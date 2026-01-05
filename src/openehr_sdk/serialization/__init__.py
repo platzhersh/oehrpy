@@ -5,7 +5,7 @@ This module provides functions for serializing and deserializing
 openEHR RM objects to/from various formats:
 
 - Canonical JSON: Standard openEHR JSON with _type discriminator
-- FLAT format: Simplified format used by EHRBase (planned)
+- FLAT format: Simplified format used by EHRBase
 """
 
 from .canonical import (
@@ -14,10 +14,24 @@ from .canonical import (
     register_type,
     get_type_registry,
 )
+from .flat import (
+    FlatBuilder,
+    FlatContext,
+    FlatPath,
+    flatten_dict,
+    unflatten_dict,
+)
 
 __all__ = [
+    # Canonical JSON
     "from_canonical",
     "to_canonical",
     "register_type",
     "get_type_registry",
+    # FLAT format
+    "FlatBuilder",
+    "FlatContext",
+    "FlatPath",
+    "flatten_dict",
+    "unflatten_dict",
 ]

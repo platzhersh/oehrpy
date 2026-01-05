@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "openehr-sdk"
+name = "oehrpy"
 version = "0.1.0"
-description = "A Python SDK for openEHR with type-safe Reference Model classes and template builders"
+description = "A Python SDK for openEHR with type-safe Reference Model classes, template builders, and EHRBase client"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -21,10 +21,11 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
     "Typing :: Typed",
 ]
-keywords = ["openehr", "healthcare", "ehr", "clinical", "sdk", "pydantic"]
+keywords = ["openehr", "healthcare", "ehr", "clinical", "sdk", "pydantic", "ehrbase", "aql"]
 dependencies = [
     "pydantic>=2.0",
     "httpx>=0.25",
