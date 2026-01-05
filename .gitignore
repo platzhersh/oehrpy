@@ -86,3 +86,6 @@ dmypy.json
 # OS
 .DS_Store
 Thumbs.db
+
+# BMM repository clone (downloaded during generation)
+generator/bmm/specifications-ITS-BMM/
