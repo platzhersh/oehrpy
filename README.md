@@ -232,7 +232,7 @@ python -m generator.pydantic_generator
 
 ## Project Structure
 
-```
+```text
 oehrpy/
 ├── src/openehr_sdk/       # Main package
 │   ├── rm/                # Generated RM classes (110+ types)
