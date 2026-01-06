@@ -189,7 +189,8 @@ class TestAQLBuilder:
 
         assert "CONTAINS COMPOSITION c" in sql
         assert "CONTAINS OBSERVATION o" in sql
-        assert "openEHR-EHR-OBSERVATION.blood_pressure.v1" in sql
+        assert ":o_archetype_id" in sql  # Parameterized
+        assert query.parameters["o_archetype_id"] == "openEHR-EHR-OBSERVATION.blood_pressure.v1"
 
     def test_full_query(self) -> None:
         """Test complete query with all clauses."""

@@ -262,7 +262,7 @@ class AQLBuilder:
         Args:
             rm_type: The RM type (COMPOSITION, OBSERVATION, etc.).
             alias: Alias for the contained item.
-            archetype_id: Optional archetype ID filter.
+            archetype_id: Optional archetype ID filter (parameterized).
 
         Returns:
             Self for method chaining.
@@ -271,7 +271,9 @@ class AQLBuilder:
             self._from_clause = FromClause()
 
         if archetype_id:
-            containment = f"{rm_type} {alias}[archetype_id/value='{archetype_id}']"
+            param_name = f"{alias}_archetype_id"
+            containment = f"{rm_type} {alias}[archetype_id/value=:{param_name}]"
+            self._parameters[param_name] = archetype_id
         else:
             containment = f"{rm_type} {alias}"
 
@@ -283,13 +285,15 @@ class AQLBuilder:
         alias: str = "c",
         template_id: str | None = None,
         archetype_id: str | None = None,
+        template_id_param: str = "template_id",
     ) -> "AQLBuilder":
         """Add a CONTAINS COMPOSITION clause.
 
         Args:
             alias: Alias for the composition.
-            template_id: Optional template ID filter.
+            template_id: Optional template ID filter (added as parameterized WHERE).
             archetype_id: Optional archetype ID filter.
+            template_id_param: Parameter name for template ID.
 
         Returns:
             Self for method chaining.
@@ -297,14 +301,21 @@ class AQLBuilder:
         if self._from_clause is None:
             self._from_clause = FromClause()
 
-        if template_id:
-            containment = f"COMPOSITION {alias}[{template_id}]"
-        elif archetype_id:
-            containment = f"COMPOSITION {alias}[archetype_id/value='{archetype_id}']"
+        if archetype_id:
+            containment = f"COMPOSITION {alias}[archetype_id/value=:{alias}_archetype_id]"
+            self._parameters[f"{alias}_archetype_id"] = archetype_id
         else:
             containment = f"COMPOSITION {alias}"
 
         self._from_clause.containments.append(containment)
+
+        # Add template_id filter as parameterized WHERE clause
+        if template_id:
+            self._where_clause.add(
+                f"{alias}/archetype_details/template_id/value = :{template_id_param}"
+            )
+            self._parameters[template_id_param] = template_id
+
         return self
 
     def contains_observation(
