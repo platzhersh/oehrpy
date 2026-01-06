@@ -354,7 +354,12 @@ class VitalSignsBuilder(TemplateBuilder):
         self._flat.set_quantity(f"{prefix}/spo2", spo2, "%")
 
         if supplemental_oxygen:
-            self._flat.set(f"{prefix}/inspired_oxygen/flow_rate|value", "true")
+            self._flat.set_coded_text(
+                f"{prefix}/inspired_oxygen/on_air",
+                value="Supplemental oxygen",
+                code="at0054",
+                terminology="local",
+            )
 
         return self
 
