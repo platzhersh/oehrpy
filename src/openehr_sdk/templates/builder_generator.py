@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 
 from .opt_parser import ArchetypeNode, TemplateDefinition
@@ -365,19 +364,6 @@ class {class_name}(TemplateBuilder):
 
         # Default
         return "1"
-
-    def _format_time(self, time: datetime | str | None) -> str:
-        """Format time for FLAT format.
-
-        Returns an ISO 8601 formatted string with timezone info.
-        """
-        if time is None:
-            return datetime.now(timezone.utc).isoformat()
-        if isinstance(time, datetime):
-            if time.tzinfo is None:
-                time = time.replace(tzinfo=timezone.utc)
-            return time.isoformat()
-        return time
 
 
 def generate_builder_from_opt(
