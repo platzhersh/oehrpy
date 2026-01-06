@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TextIO
 
-from generator.json_schema_parser import SchemaDefinition, SchemaProperty, load_rm_schema_from_json_schema
+from generator.json_schema_parser import JsonSchemaParser, SchemaDefinition, SchemaProperty
 
 
 class SimpleRMGenerator:
@@ -32,10 +32,40 @@ class SimpleRMGenerator:
         "LOCATABLE",  # Will be handled separately if needed
     }
 
-    def __init__(self, schema_dir: Path | None = None):
-        """Initialize generator."""
-        self.parser = load_rm_schema_from_json_schema(schema_dir)
-        self.definitions = self.parser.get_all_definitions()
+    def __init__(self, rm_schema_dir: Path | None = None, base_schema_dir: Path | None = None):
+        """Initialize generator with both RM and BASE schemas."""
+        # Load RM types
+        if rm_schema_dir is None:
+            rm_schema_dir = (
+                Path(__file__).parent
+                / "specifications-ITS-JSON"
+                / "components"
+                / "RM"
+                / "Release-1.1.0"
+            )
+
+        # Load BASE types
+        if base_schema_dir is None:
+            base_schema_dir = (
+                Path(__file__).parent
+                / "specifications-ITS-JSON"
+                / "components"
+                / "BASE"
+                / "Release-1.1.0"
+            )
+
+        print(f"Loading RM types from {rm_schema_dir}")
+        rm_parser = JsonSchemaParser(rm_schema_dir)
+
+        print(f"Loading BASE types from {base_schema_dir}")
+        base_parser = JsonSchemaParser(base_schema_dir)
+
+        # Combine all definitions
+        self.definitions = {}
+        self.definitions.update(base_parser.get_all_definitions())
+        self.definitions.update(rm_parser.get_all_definitions())
+
+        print(f"Total definitions loaded: {len(self.definitions)} ({len(base_parser.definitions)} BASE + {len(rm_parser.definitions)} RM)")
 
     def _python_type_for_property(self, prop: SchemaProperty) -> str:
         """Get Python type annotation for a property."""
@@ -121,13 +151,13 @@ class SimpleRMGenerator:
             # File header
             f.write('"""')
             f.write("\nGenerated Pydantic models for openEHR Reference Model 1.1.0.\n\n")
-            f.write("Auto-generated from specifications-ITS-JSON.\n")
-            f.write("DO NOT EDIT MANUALLY.\n")
+            f.write("Includes both RM and BASE types from specifications-ITS-JSON.\n")
+            f.write("Auto-generated - DO NOT EDIT MANUALLY.\n")
             f.write('"""\n\n')
             f.write("from __future__ import annotations\n\n")
             f.write("from typing import Any, Optional\n\n")
             f.write("from pydantic import BaseModel, ConfigDict, Field\n\n")
-            f.write("# RM 1.1.0 Types\n")
+            f.write("# openEHR RM 1.1.0 and BASE Types\n")
 
             # Sort definitions for consistent output
             sorted_defs = sorted(self.definitions.values(), key=lambda d: d.name)
@@ -152,19 +182,22 @@ class SimpleRMGenerator:
 
 
 def main():
-    """Generate RM 1.1.0 classes."""
+    """Generate RM 1.1.0 and BASE classes."""
     generator = SimpleRMGenerator()
 
     output_file = Path("src/openehr_sdk/rm/rm_types.py")
-    print(f"Generating RM 1.1.0 classes...")
+    print(f"\n{'='*60}")
+    print(f"Generating RM 1.1.0 + BASE types")
+    print(f"{'='*60}")
     print(f"Output: {output_file}")
 
     generator.generate(output_file)
 
-    print("\n✓ RM 1.1.0 generation complete!")
-    print(f"  - New type: DV_SCALE")
-    print(f"  - Enhanced: DV_CODED_TEXT (with preferred_term field)")
+    print("\n✓ Generation complete!")
     print(f"  - Total classes: {len(generator.definitions)}")
+    print(f"  - New in RM 1.1.0: DV_SCALE")
+    print(f"  - Enhanced: CODE_PHRASE (with preferred_term field)")
+    print(f"  - Includes: BASE types (TERMINOLOGY_ID, etc.)")
 
 
 if __name__ == "__main__":

@@ -424,7 +424,7 @@ temperature = DV_QUANTITY(
       <h2 id="overview">Overview</h2>
       <p>oehrpy is a comprehensive Python SDK for openEHR that provides:</p>
       <ul>
-        <li><strong>Type-safe RM Classes:</strong> 110+ Pydantic models for openEHR Reference Model 1.0.4</li>
+        <li><strong>Type-safe RM Classes:</strong> 134 Pydantic models for openEHR Reference Model 1.1.0 (includes BASE types)</li>
         <li><strong>Template Builders:</strong> Pre-built composition builders for common clinical templates</li>
         <li><strong>FLAT Format Support:</strong> Full support for EHRBase FLAT format serialization</li>
         <li><strong>Canonical JSON:</strong> Convert between RM objects and openEHR canonical JSON</li>
@@ -435,6 +435,10 @@ temperature = DV_QUANTITY(
 
       <h2 id="rm-classes">RM Classes</h2>
       <p>The Reference Model (RM) classes form the foundation of oehrpy. These are type-safe Pydantic models that represent openEHR data structures.</p>
+
+      <div class="note">
+        <p><strong>New in RM 1.1.0:</strong> Support for <code>DV_SCALE</code> (decimal scale values), <code>preferred_term</code> field in <code>CODE_PHRASE</code>, and enhanced Folder support. All 134 types include both RM and BASE components.</p>
+      </div>
 
       <h3>Data Types</h3>
       <p>oehrpy includes all major openEHR data types:</p>
@@ -672,7 +676,24 @@ query = (
         <li><code>DV_COUNT</code> - Integer count</li>
         <li><code>DV_PROPORTION</code> - Ratio or percentage</li>
         <li><code>DV_ORDINAL</code> - Ordered value (e.g., severity scale)</li>
+        <li><code>DV_SCALE</code> - Scale/score with decimal values <em>(new in RM 1.1.0)</em></li>
       </ul>
+
+      <h4>Using DV_SCALE (RM 1.1.0)</h4>
+      <pre><code><span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_SCALE, DV_CODED_TEXT, CODE_PHRASE, TERMINOLOGY_ID
+
+<span class="comment"># Pain scale with decimal value</span>
+pain_scale = DV_SCALE(
+    value=<span class="string">7.5</span>,  <span class="comment"># Decimal scale value</span>
+    symbol=DV_CODED_TEXT(
+        value=<span class="string">"Severe pain"</span>,
+        defining_code=CODE_PHRASE(
+            terminology_id=TERMINOLOGY_ID(value=<span class="string">"local"</span>),
+            code_string=<span class="string">"at0075"</span>,
+            preferred_term=<span class="string">"Severe"</span>  <span class="comment"># New in RM 1.1.0</span>
+        )
+    )
+)</code></pre>
 
       <h3>Temporal Types</h3>
       <ul>
@@ -750,13 +771,13 @@ pytest tests/ -v
 mypy src/openehr_sdk</code></pre>
 
       <h3>Regenerating RM Classes</h3>
-      <p>The RM classes are generated from openEHR BMM specifications:</p>
-      <pre><code>python -m generator.pydantic_generator</code></pre>
+      <p>The RM classes are generated from openEHR JSON Schema specifications (RM 1.1.0):</p>
+      <pre><code>python -m generator.generate_rm_1_1_0</code></pre>
 
       <h3>Project Structure</h3>
       <pre><code>oehrpy/
 ├── src/openehr_sdk/       <span class="comment"># Main package</span>
-│   ├── rm/                <span class="comment"># Generated RM classes (110+ types)</span>
+│   ├── rm/                <span class="comment"># Generated RM + BASE classes (134 types)</span>
 │   ├── serialization/     <span class="comment"># JSON serialization</span>
 │   ├── client/            <span class="comment"># EHRBase REST client</span>
 │   ├── templates/         <span class="comment"># Template builders</span>

@@ -1,8 +1,8 @@
 """
 Generated Pydantic models for openEHR Reference Model 1.1.0.
 
-Auto-generated from specifications-ITS-JSON.
-DO NOT EDIT MANUALLY.
+Includes both RM and BASE types from specifications-ITS-JSON.
+Auto-generated - DO NOT EDIT MANUALLY.
 """
 
 from __future__ import annotations
@@ -11,7 +11,18 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-# RM 1.1.0 Types
+# openEHR RM 1.1.0 and BASE Types
+
+
+class ACCESS_GROUP_REF(BaseModel):
+    """ACCESS_GROUP_REF."""
+
+    type: str = Field(default="ACCESS_GROUP_REF", alias="_type")
+    id: Optional[Any]
+    namespace: str
+    type: str
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ACTION(BaseModel):
@@ -138,6 +149,39 @@ class ARCHETYPED(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class ARCHETYPE_HRID(BaseModel):
+    """ARCHETYPE_HRID."""
+
+    type: str = Field(default="ARCHETYPE_HRID", alias="_type")
+    namespace: str
+    rm_publisher: str
+    rm_package: str
+    rm_class: str
+    concept_id: str
+    release_version: str
+    version_status: Optional["VERSION_STATUS"]
+    build_count: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ARCHETYPE_ID(BaseModel):
+    """ARCHETYPE_ID."""
+
+    type: str = Field(default="ARCHETYPE_ID", alias="_type")
+    value: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ARRAY(BaseModel):
+    """ARRAY."""
+
+    type: str = Field(default="ARRAY", alias="_type")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class ATTESTATION(BaseModel):
     """ATTESTATION."""
 
@@ -254,6 +298,33 @@ class CONTRIBUTION(BaseModel):
     uid: Optional["HIER_OBJECT_ID"]
     audit: Optional[Any]
     versions: list
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class DATE(BaseModel):
+    """DATE."""
+
+    type: str = Field(default="DATE", alias="_type")
+    value: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class DATE_TIME(BaseModel):
+    """DATE_TIME."""
+
+    type: str = Field(default="DATE_TIME", alias="_type")
+    value: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class DURATION(BaseModel):
+    """DURATION."""
+
+    type: str = Field(default="DURATION", alias="_type")
+    value: Optional[str] = None
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -912,6 +983,16 @@ class GENERIC_ENTRY(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class GENERIC_ID(BaseModel):
+    """GENERIC_ID."""
+
+    type: str = Field(default="GENERIC_ID", alias="_type")
+    value: str
+    scheme: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class GROUP(BaseModel):
     """GROUP."""
 
@@ -929,6 +1010,15 @@ class GROUP(BaseModel):
     reverse_relationships: Optional[list["LOCATABLE_REF"]] = None
     roles: Optional[list["PARTY_REF"]] = None
     languages: Optional[list] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class HIER_OBJECT_ID(BaseModel):
+    """HIER_OBJECT_ID."""
+
+    type: str = Field(default="HIER_OBJECT_ID", alias="_type")
+    value: str
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -1001,6 +1091,27 @@ class INSTRUCTION_DETAILS(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class INTERNET_ID(BaseModel):
+    """INTERNET_ID."""
+
+    type: str = Field(default="INTERNET_ID", alias="_type")
+    value: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class INTERVAL(BaseModel):
+    """INTERVAL."""
+
+    type: str = Field(default="INTERVAL", alias="_type")
+    lower_unbounded: bool
+    upper_unbounded: bool
+    lower_included: bool
+    upper_included: bool
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class INTERVAL_EVENT(BaseModel):
     """INTERVAL_EVENT."""
 
@@ -1029,6 +1140,24 @@ class ISM_TRANSITION(BaseModel):
     transition: Optional["DV_CODED_TEXT"] = None
     careflow_step: Optional["DV_CODED_TEXT"] = None
     reason: Optional[list] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ISO8601_TYPE(BaseModel):
+    """ISO8601_TYPE."""
+
+    type: str = Field(default="ISO8601_TYPE", alias="_type")
+    value: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ISO_OID(BaseModel):
+    """ISO_OID."""
+
+    type: str = Field(default="ISO_OID", alias="_type")
+    value: str
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -1104,6 +1233,26 @@ class LINK(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class LIST(BaseModel):
+    """LIST."""
+
+    type: str = Field(default="LIST", alias="_type")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class LOCATABLE_REF(BaseModel):
+    """LOCATABLE_REF."""
+
+    type: str = Field(default="LOCATABLE_REF", alias="_type")
+    id: Optional[Any]
+    namespace: str
+    type: str
+    path: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class MESSAGE(BaseModel):
     """MESSAGE."""
 
@@ -1112,6 +1261,26 @@ class MESSAGE(BaseModel):
     audit: Optional[Any]
     content: Optional[Any]
     signature: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class OBJECT_REF(BaseModel):
+    """OBJECT_REF."""
+
+    type: str = Field(default="OBJECT_REF", alias="_type")
+    id: Optional[Any]
+    namespace: str
+    type: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class OBJECT_VERSION_ID(BaseModel):
+    """OBJECT_VERSION_ID."""
+
+    type: str = Field(default="OBJECT_VERSION_ID", alias="_type")
+    value: str
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -1233,6 +1402,17 @@ class PARTY_IDENTITY(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class PARTY_REF(BaseModel):
+    """PARTY_REF."""
+
+    type: str = Field(default="PARTY_REF", alias="_type")
+    id: Optional[Any]
+    namespace: str
+    type: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class PARTY_RELATED(BaseModel):
     """PARTY_RELATED."""
 
@@ -1320,6 +1500,33 @@ class REFERENCE_RANGE(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class RESOURCE_DESCRIPTION(BaseModel):
+    """RESOURCE_DESCRIPTION."""
+
+    type: str = Field(default="RESOURCE_DESCRIPTION", alias="_type")
+    other_contributors: Optional[list] = None
+    lifecycle_state: str
+    resource_package_uri: Optional[str] = None
+    details: Optional[list["RESOURCE_DESCRIPTION_ITEM"]]
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class RESOURCE_DESCRIPTION_ITEM(BaseModel):
+    """RESOURCE_DESCRIPTION_ITEM."""
+
+    type: str = Field(default="RESOURCE_DESCRIPTION_ITEM", alias="_type")
+    language: Optional["TERMINOLOGY_CODE"]
+    purpose: str
+    keywords: Optional[list] = None
+    use: Optional[str] = None
+    misuse: Optional[str] = None
+    copyright: Optional[str] = None
+    original_resource_uri: Optional[list] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class REVISION_HISTORY(BaseModel):
     """REVISION_HISTORY."""
 
@@ -1376,6 +1583,14 @@ class SECTION(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class SET(BaseModel):
+    """SET."""
+
+    type: str = Field(default="SET", alias="_type")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class SYNC_EXTRACT(BaseModel):
     """SYNC_EXTRACT."""
 
@@ -1419,6 +1634,46 @@ class SYNC_EXTRACT_SPEC(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class TEMPLATE_ID(BaseModel):
+    """TEMPLATE_ID."""
+
+    type: str = Field(default="TEMPLATE_ID", alias="_type")
+    value: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class TERMINOLOGY_CODE(BaseModel):
+    """TERMINOLOGY_CODE."""
+
+    type: str = Field(default="TERMINOLOGY_CODE", alias="_type")
+    terminology_id: str
+    terminology_version: Optional[str] = None
+    code_string: str
+    uri: Optional["URI"]
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class TERMINOLOGY_ID(BaseModel):
+    """TERMINOLOGY_ID."""
+
+    type: str = Field(default="TERMINOLOGY_ID", alias="_type")
+    value: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class TERMINOLOGY_TERM(BaseModel):
+    """TERMINOLOGY_TERM."""
+
+    type: str = Field(default="TERMINOLOGY_TERM", alias="_type")
+    text: str
+    concept: Optional["TERMINOLOGY_CODE"]
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class TERM_MAPPING(BaseModel):
     """TERM_MAPPING."""
 
@@ -1430,6 +1685,50 @@ class TERM_MAPPING(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class TIME(BaseModel):
+    """TIME."""
+
+    type: str = Field(default="TIME", alias="_type")
+    value: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class TRANSLATION_DETAILS(BaseModel):
+    """TRANSLATION_DETAILS."""
+
+    type: str = Field(default="TRANSLATION_DETAILS", alias="_type")
+    language: Optional["TERMINOLOGY_CODE"]
+    accreditation: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class URI(BaseModel):
+    """URI."""
+
+    type: str = Field(default="URI", alias="_type")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class UUID(BaseModel):
+    """UUID."""
+
+    type: str = Field(default="UUID", alias="_type")
+    value: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class VALIDITY_KIND(BaseModel):
+    """VALIDITY_KIND."""
+
+    type: str = Field(default="VALIDITY_KIND", alias="_type")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class VERSIONED_OBJECT(BaseModel):
     """VERSIONED_OBJECT."""
 
@@ -1437,6 +1736,23 @@ class VERSIONED_OBJECT(BaseModel):
     uid: Optional["HIER_OBJECT_ID"]
     owner_id: Optional[Any]
     time_created: Optional["DV_DATE_TIME"]
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class VERSION_STATUS(BaseModel):
+    """VERSION_STATUS."""
+
+    type: str = Field(default="VERSION_STATUS", alias="_type")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class VERSION_TREE_ID(BaseModel):
+    """VERSION_TREE_ID."""
+
+    type: str = Field(default="VERSION_TREE_ID", alias="_type")
+    value: str
 
     model_config = ConfigDict(populate_by_name=True)
 
