@@ -235,18 +235,97 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      header {
+        padding: 16px 20px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      nav {
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      nav a:not(.github-link) {
+        font-size: 14px;
+      }
+      .github-link {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
       h1 {
         font-size: 2.5rem;
       }
       .tagline {
         font-size: 1.2rem;
       }
+      .hero {
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      .features {
+        margin: 60px auto;
+        padding: 0 20px;
+      }
       .features-grid {
         grid-template-columns: 1fr;
       }
+      .code-section {
+        padding: 0 20px;
+        margin: 60px auto;
+      }
+      .code-container {
+        padding: 20px;
+      }
+      pre code {
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      footer {
+        margin: 60px auto 30px;
+        padding: 30px 20px 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
       header {
-        flex-direction: column;
-        gap: 20px;
+        padding: 12px 16px;
+      }
+      nav {
+        gap: 12px;
+      }
+      .logo-header span {
+        font-size: 20px;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      .tagline {
+        font-size: 1rem;
+      }
+      .hero {
+        padding: 0 16px;
+      }
+      .features {
+        padding: 0 16px;
+      }
+      .section-title {
+        font-size: 1.75rem;
+      }
+      .feature-card {
+        padding: 24px;
+      }
+      .code-section {
+        padding: 0 16px;
+      }
+      .code-container {
+        padding: 16px;
+        margin-left: -16px;
+        margin-right: -16px;
+        border-radius: 0;
+      }
+      footer {
+        padding: 24px 16px 15px;
       }
     }
   </style>
