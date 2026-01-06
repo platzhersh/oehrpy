@@ -176,9 +176,7 @@ def from_canonical(
 
     # Validate expected_type if provided
     if expected_type and not issubclass(cls, expected_type):
-        raise ValueError(
-            f"Type mismatch: expected {expected_type.__name__}, got {type_name}"
-        )
+        raise ValueError(f"Type mismatch: expected {expected_type.__name__}, got {type_name}")
 
     # Remove _type field from data before validation
     clean_data = {k: v for k, v in data.items() if k != "_type"}
@@ -191,7 +189,7 @@ def from_canonical(
 
 def _process_nested_types(data: dict[str, Any]) -> None:
     """Recursively remove _type fields from nested data."""
-    for key, value in data.items():
+    for _key, value in data.items():
         if isinstance(value, dict):
             # Remove _type and recurse
             if "_type" in value:

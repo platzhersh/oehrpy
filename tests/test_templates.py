@@ -1,8 +1,5 @@
 """Tests for template builders."""
 
-import pytest
-from datetime import datetime
-
 from openehr_sdk.templates import VitalSignsBuilder
 
 
@@ -91,13 +88,7 @@ class TestVitalSignsBuilder:
     def test_method_chaining(self) -> None:
         """Test that methods return self for chaining."""
         builder = VitalSignsBuilder(composer_name="Dr. Smith")
-        result = (
-            builder
-            .add_blood_pressure(120, 80)
-            .add_pulse(72)
-            .add_temperature(37.0)
-            .build()
-        )
+        result = builder.add_blood_pressure(120, 80).add_pulse(72).add_temperature(37.0).build()
 
         assert len(result) > 3  # Context + vitals
 

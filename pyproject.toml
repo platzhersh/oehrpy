@@ -67,6 +67,11 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
 
+[tool.ruff.lint.per-file-ignores]
+"src/openehr_sdk/rm/*.py" = ["N801", "N817"]  # Allow non-PascalCase class names in RM types
+"generator/*.py" = ["E501"]  # Allow long lines in code generator
+"src/openehr_sdk/templates/opt_parser.py" = ["N817"]  # Allow ET as acronym for ElementTree
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

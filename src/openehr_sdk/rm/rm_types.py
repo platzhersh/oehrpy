@@ -7,7 +7,7 @@ Do not edit manually.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Optional
+from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -21,15 +21,15 @@ class EHR(BaseModel):
     )
 
     _type_: ClassVar[str] = "EHR"
-    system_id: "HIER_OBJECT_ID"
-    ehr_id: "HIER_OBJECT_ID"
-    time_created: "DV_DATE_TIME"
-    ehr_access: "OBJECT_REF"
-    ehr_status: "OBJECT_REF"
-    directory: Optional["OBJECT_REF"] = Field(default=None)
-    compositions: Optional[list["OBJECT_REF"]] = Field(default=None)
-    contributions: list["OBJECT_REF"]
-    most_recent_composition: Optional["COMPOSITION"] = Field(default=None)
+    system_id: HIER_OBJECT_ID
+    ehr_id: HIER_OBJECT_ID
+    time_created: DV_DATE_TIME
+    ehr_access: OBJECT_REF
+    ehr_status: OBJECT_REF
+    directory: OBJECT_REF | None = Field(default=None)
+    compositions: list[OBJECT_REF] | None = Field(default=None)
+    contributions: list[OBJECT_REF]
+    most_recent_composition: COMPOSITION | None = Field(default=None)
 
 
 class PATHABLE(BaseModel):
@@ -52,12 +52,12 @@ class LOCATABLE(PATHABLE):
     )
 
     _type_: ClassVar[str] = "LOCATABLE"
-    uid: Optional["UID_BASED_ID"] = Field(default=None)
+    uid: UID_BASED_ID | None = Field(default=None)
     archetype_node_id: str
-    name: "DV_TEXT"
-    archetype_details: Optional["ARCHETYPED"] = Field(default=None)
-    feeder_audit: Optional["FEEDER_AUDIT"] = Field(default=None)
-    links: Optional[list["LINK"]] = Field(default=None)
+    name: DV_TEXT
+    archetype_details: ARCHETYPED | None = Field(default=None)
+    feeder_audit: FEEDER_AUDIT | None = Field(default=None)
+    links: list[LINK] | None = Field(default=None)
 
 
 class EHR_ACCESS(LOCATABLE):
@@ -69,7 +69,7 @@ class EHR_ACCESS(LOCATABLE):
     )
 
     _type_: ClassVar[str] = "EHR_ACCESS"
-    settings: Optional["ACCESS_CONTROL_SETTINGS"] = Field(default=None)
+    settings: ACCESS_CONTROL_SETTINGS | None = Field(default=None)
 
 
 class ACCESS_CONTROL_SETTINGS(BaseModel):
@@ -92,10 +92,10 @@ class EHR_STATUS(LOCATABLE):
     )
 
     _type_: ClassVar[str] = "EHR_STATUS"
-    subject: "PARTY_SELF"
+    subject: PARTY_SELF
     is_queryable: bool
     is_modifiable: bool
-    other_details: Optional["ITEM_STRUCTURE"] = Field(default=None)
+    other_details: ITEM_STRUCTURE | None = Field(default=None)
 
 
 class COMPOSITION(LOCATABLE):
@@ -107,12 +107,12 @@ class COMPOSITION(LOCATABLE):
     )
 
     _type_: ClassVar[str] = "COMPOSITION"
-    language: "CODE_PHRASE"
-    territory: "CODE_PHRASE"
-    category: "DV_CODED_TEXT"
-    composer: "PARTY_PROXY"
-    context: Optional["EVENT_CONTEXT"] = Field(default=None)
-    content: Optional[list["CONTENT_ITEM"]] = Field(default=None)
+    language: CODE_PHRASE
+    territory: CODE_PHRASE
+    category: DV_CODED_TEXT
+    composer: PARTY_PROXY
+    context: EVENT_CONTEXT | None = Field(default=None)
+    content: list[CONTENT_ITEM] | None = Field(default=None)
 
 
 class EVENT_CONTEXT(PATHABLE):
@@ -124,13 +124,13 @@ class EVENT_CONTEXT(PATHABLE):
     )
 
     _type_: ClassVar[str] = "EVENT_CONTEXT"
-    health_care_facility: Optional["PARTY_IDENTIFIED"] = Field(default=None)
-    start_time: "DV_DATE_TIME"
-    end_time: Optional["DV_DATE_TIME"] = Field(default=None)
-    participations: Optional[list["PARTICIPATION"]] = Field(default=None)
+    health_care_facility: PARTY_IDENTIFIED | None = Field(default=None)
+    start_time: DV_DATE_TIME
+    end_time: DV_DATE_TIME | None = Field(default=None)
+    participations: list[PARTICIPATION] | None = Field(default=None)
     location: str | None = Field(default=None)
-    setting: "DV_CODED_TEXT"
-    other_context: Optional["ITEM_STRUCTURE"] = Field(default=None)
+    setting: DV_CODED_TEXT
+    other_context: ITEM_STRUCTURE | None = Field(default=None)
 
 
 class CONTENT_ITEM(LOCATABLE):
@@ -153,7 +153,7 @@ class SECTION(CONTENT_ITEM):
     )
 
     _type_: ClassVar[str] = "SECTION"
-    items: Optional[list["CONTENT_ITEM"]] = Field(default=None)
+    items: list[CONTENT_ITEM] | None = Field(default=None)
 
 
 class ENTRY(CONTENT_ITEM):
@@ -165,12 +165,12 @@ class ENTRY(CONTENT_ITEM):
     )
 
     _type_: ClassVar[str] = "ENTRY"
-    language: "CODE_PHRASE"
-    encoding: "CODE_PHRASE"
-    subject: "PARTY_PROXY"
-    provider: Optional["PARTY_PROXY"] = Field(default=None)
-    other_participations: Optional[list["PARTICIPATION"]] = Field(default=None)
-    workflow_id: Optional["OBJECT_REF"] = Field(default=None)
+    language: CODE_PHRASE
+    encoding: CODE_PHRASE
+    subject: PARTY_PROXY
+    provider: PARTY_PROXY | None = Field(default=None)
+    other_participations: list[PARTICIPATION] | None = Field(default=None)
+    workflow_id: OBJECT_REF | None = Field(default=None)
 
 
 class ADMIN_ENTRY(ENTRY):
@@ -182,7 +182,7 @@ class ADMIN_ENTRY(ENTRY):
     )
 
     _type_: ClassVar[str] = "ADMIN_ENTRY"
-    data: "ITEM_STRUCTURE"
+    data: ITEM_STRUCTURE
 
 
 class CARE_ENTRY(ENTRY):
@@ -194,12 +194,15 @@ class CARE_ENTRY(ENTRY):
     )
 
     _type_: ClassVar[str] = "CARE_ENTRY"
-    protocol: Optional["ITEM_STRUCTURE"] = Field(default=None)
-    guideline_id: Optional["OBJECT_REF"] = Field(default=None)
+    protocol: ITEM_STRUCTURE | None = Field(default=None)
+    guideline_id: OBJECT_REF | None = Field(default=None)
 
 
 class OBSERVATION(CARE_ENTRY):
-    """ENTRY subtype used to represent observation information in time, as either a single or multiple samples."""
+    """ENTRY subtype for observation information in time.
+
+    Represents single or multiple samples.
+    """
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -207,8 +210,10 @@ class OBSERVATION(CARE_ENTRY):
     )
 
     _type_: ClassVar[str] = "OBSERVATION"
-    data: "HISTORY" = Field(description="Data of the observation, in the form of a HISTORY of EVENTs.")
-    state: Optional["HISTORY"] = Field(default=None)
+    data: HISTORY = Field(
+        description="Data of the observation, in the form of a HISTORY of EVENTs."
+    )
+    state: HISTORY | None = Field(default=None)
 
 
 class EVALUATION(CARE_ENTRY):
@@ -220,7 +225,7 @@ class EVALUATION(CARE_ENTRY):
     )
 
     _type_: ClassVar[str] = "EVALUATION"
-    data: "ITEM_STRUCTURE"
+    data: ITEM_STRUCTURE
 
 
 class INSTRUCTION(CARE_ENTRY):
@@ -232,10 +237,10 @@ class INSTRUCTION(CARE_ENTRY):
     )
 
     _type_: ClassVar[str] = "INSTRUCTION"
-    narrative: "DV_TEXT"
-    expiry_time: Optional["DV_DATE_TIME"] = Field(default=None)
-    wf_definition: Optional["DV_PARSABLE"] = Field(default=None)
-    activities: Optional[list["ACTIVITY"]] = Field(default=None)
+    narrative: DV_TEXT
+    expiry_time: DV_DATE_TIME | None = Field(default=None)
+    wf_definition: DV_PARSABLE | None = Field(default=None)
+    activities: list[ACTIVITY] | None = Field(default=None)
 
 
 class ACTIVITY(LOCATABLE):
@@ -247,8 +252,8 @@ class ACTIVITY(LOCATABLE):
     )
 
     _type_: ClassVar[str] = "ACTIVITY"
-    description: "ITEM_STRUCTURE"
-    timing: Optional["DV_PARSABLE"] = Field(default=None)
+    description: ITEM_STRUCTURE
+    timing: DV_PARSABLE | None = Field(default=None)
     action_archetype_id: str
 
 
@@ -261,10 +266,10 @@ class ACTION(CARE_ENTRY):
     )
 
     _type_: ClassVar[str] = "ACTION"
-    time: "DV_DATE_TIME"
-    description: "ITEM_STRUCTURE"
-    ism_transition: "ISM_TRANSITION"
-    instruction_details: Optional["INSTRUCTION_DETAILS"] = Field(default=None)
+    time: DV_DATE_TIME
+    description: ITEM_STRUCTURE
+    ism_transition: ISM_TRANSITION
+    instruction_details: INSTRUCTION_DETAILS | None = Field(default=None)
 
 
 class INSTRUCTION_DETAILS(PATHABLE):
@@ -276,8 +281,8 @@ class INSTRUCTION_DETAILS(PATHABLE):
     )
 
     _type_: ClassVar[str] = "INSTRUCTION_DETAILS"
-    instruction_id: "LOCATABLE_REF"
-    wf_details: Optional["ITEM_STRUCTURE"] = Field(default=None)
+    instruction_id: LOCATABLE_REF
+    wf_details: ITEM_STRUCTURE | None = Field(default=None)
     activity_id: str
 
 
@@ -290,10 +295,10 @@ class ISM_TRANSITION(PATHABLE):
     )
 
     _type_: ClassVar[str] = "ISM_TRANSITION"
-    current_state: "DV_CODED_TEXT"
-    transition: Optional["DV_CODED_TEXT"] = Field(default=None)
-    careflow_step: Optional["DV_CODED_TEXT"] = Field(default=None)
-    reason: Optional[list["DV_TEXT"]] = Field(default=None)
+    current_state: DV_CODED_TEXT
+    transition: DV_CODED_TEXT | None = Field(default=None)
+    careflow_step: DV_CODED_TEXT | None = Field(default=None)
+    reason: list[DV_TEXT] | None = Field(default=None)
 
 
 class GENERIC_ENTRY(CONTENT_ITEM):
@@ -305,7 +310,7 @@ class GENERIC_ENTRY(CONTENT_ITEM):
     )
 
     _type_: ClassVar[str] = "GENERIC_ENTRY"
-    data: "ITEM_TREE"
+    data: ITEM_TREE
 
 
 class DATA_STRUCTURE(LOCATABLE):
@@ -339,7 +344,7 @@ class ITEM_SINGLE(ITEM_STRUCTURE):
     )
 
     _type_: ClassVar[str] = "ITEM_SINGLE"
-    item: "ELEMENT"
+    item: ELEMENT
 
 
 class ITEM_LIST(ITEM_STRUCTURE):
@@ -351,7 +356,7 @@ class ITEM_LIST(ITEM_STRUCTURE):
     )
 
     _type_: ClassVar[str] = "ITEM_LIST"
-    items: Optional[list["ELEMENT"]] = Field(default=None)
+    items: list[ELEMENT] | None = Field(default=None)
 
 
 class ITEM_TABLE(ITEM_STRUCTURE):
@@ -363,7 +368,7 @@ class ITEM_TABLE(ITEM_STRUCTURE):
     )
 
     _type_: ClassVar[str] = "ITEM_TABLE"
-    rows: Optional[list["CLUSTER"]] = Field(default=None)
+    rows: list[CLUSTER] | None = Field(default=None)
 
 
 class ITEM_TREE(ITEM_STRUCTURE):
@@ -375,7 +380,7 @@ class ITEM_TREE(ITEM_STRUCTURE):
     )
 
     _type_: ClassVar[str] = "ITEM_TREE"
-    items: Optional[list["ITEM"]] = Field(default=None)
+    items: list[ITEM] | None = Field(default=None)
 
 
 class ITEM(LOCATABLE):
@@ -398,7 +403,7 @@ class CLUSTER(ITEM):
     )
 
     _type_: ClassVar[str] = "CLUSTER"
-    items: list["ITEM"]
+    items: list[ITEM]
 
 
 class ELEMENT(ITEM):
@@ -410,8 +415,8 @@ class ELEMENT(ITEM):
     )
 
     _type_: ClassVar[str] = "ELEMENT"
-    null_flavour: Optional["DV_CODED_TEXT"] = Field(default=None)
-    value: Optional["DATA_VALUE"] = Field(default=None)
+    null_flavour: DV_CODED_TEXT | None = Field(default=None)
+    value: DATA_VALUE | None = Field(default=None)
 
 
 class HISTORY(DATA_STRUCTURE):
@@ -423,11 +428,11 @@ class HISTORY(DATA_STRUCTURE):
     )
 
     _type_: ClassVar[str] = "HISTORY"
-    origin: "DV_DATE_TIME"
-    period: Optional["DV_DURATION"] = Field(default=None)
-    duration: Optional["DV_DURATION"] = Field(default=None)
-    summary: Optional["ITEM_STRUCTURE"] = Field(default=None)
-    events: Optional[list["EVENT"]] = Field(default=None)
+    origin: DV_DATE_TIME
+    period: DV_DURATION | None = Field(default=None)
+    duration: DV_DURATION | None = Field(default=None)
+    summary: ITEM_STRUCTURE | None = Field(default=None)
+    events: list[EVENT] | None = Field(default=None)
 
 
 class EVENT(LOCATABLE):
@@ -439,10 +444,10 @@ class EVENT(LOCATABLE):
     )
 
     _type_: ClassVar[str] = "EVENT"
-    time: "DV_DATE_TIME"
-    state: Optional["ITEM_STRUCTURE"] = Field(default=None)
+    time: DV_DATE_TIME
+    state: ITEM_STRUCTURE | None = Field(default=None)
     data: Any
-    offset: Optional["DV_DURATION"] = Field(default=None)
+    offset: DV_DURATION | None = Field(default=None)
 
 
 class POINT_EVENT(EVENT):
@@ -466,9 +471,9 @@ class INTERVAL_EVENT(EVENT):
     )
 
     _type_: ClassVar[str] = "INTERVAL_EVENT"
-    width: "DV_DURATION"
+    width: DV_DURATION
     sample_count: int | None = Field(default=None)
-    math_function: "DV_CODED_TEXT"
+    math_function: DV_CODED_TEXT
 
 
 class REVISION_HISTORY(BaseModel):
@@ -480,7 +485,7 @@ class REVISION_HISTORY(BaseModel):
     )
 
     _type_: ClassVar[str] = "REVISION_HISTORY"
-    items: list["REVISION_HISTORY_ITEM"]
+    items: list[REVISION_HISTORY_ITEM]
 
 
 class REVISION_HISTORY_ITEM(BaseModel):
@@ -492,8 +497,8 @@ class REVISION_HISTORY_ITEM(BaseModel):
     )
 
     _type_: ClassVar[str] = "REVISION_HISTORY_ITEM"
-    version_id: "OBJECT_VERSION_ID"
-    audits: list["AUDIT_DETAILS"]
+    version_id: OBJECT_VERSION_ID
+    audits: list[AUDIT_DETAILS]
 
 
 class AUDIT_DETAILS(BaseModel):
@@ -506,10 +511,10 @@ class AUDIT_DETAILS(BaseModel):
 
     _type_: ClassVar[str] = "AUDIT_DETAILS"
     system_id: str
-    time_committed: "DV_DATE_TIME"
-    change_type: "DV_CODED_TEXT"
-    description: Optional["DV_TEXT"] = Field(default=None)
-    committer: "PARTY_PROXY"
+    time_committed: DV_DATE_TIME
+    change_type: DV_CODED_TEXT
+    description: DV_TEXT | None = Field(default=None)
+    committer: PARTY_PROXY
 
 
 class ATTESTATION(AUDIT_DETAILS):
@@ -521,10 +526,10 @@ class ATTESTATION(AUDIT_DETAILS):
     )
 
     _type_: ClassVar[str] = "ATTESTATION"
-    attested_view: Optional["DV_MULTIMEDIA"] = Field(default=None)
+    attested_view: DV_MULTIMEDIA | None = Field(default=None)
     proof: str | None = Field(default=None)
-    items: Optional[list["DV_EHR_URI"]] = Field(default=None)
-    reason: "DV_TEXT"
+    items: list[DV_EHR_URI] | None = Field(default=None)
+    reason: DV_TEXT
     is_pending: bool
 
 
@@ -537,10 +542,10 @@ class PARTICIPATION(BaseModel):
     )
 
     _type_: ClassVar[str] = "PARTICIPATION"
-    function: "DV_TEXT"
-    time: Optional["DV_INTERVAL"] = Field(default=None)
-    mode: Optional["DV_CODED_TEXT"] = Field(default=None)
-    performer: "PARTY_PROXY"
+    function: DV_TEXT
+    time: DV_INTERVAL | None = Field(default=None)
+    mode: DV_CODED_TEXT | None = Field(default=None)
+    performer: PARTY_PROXY
 
 
 class PARTY_PROXY(BaseModel):
@@ -552,7 +557,7 @@ class PARTY_PROXY(BaseModel):
     )
 
     _type_: ClassVar[str] = "PARTY_PROXY"
-    external_ref: Optional["PARTY_REF"] = Field(default=None)
+    external_ref: PARTY_REF | None = Field(default=None)
 
 
 class PARTY_IDENTIFIED(PARTY_PROXY):
@@ -565,7 +570,7 @@ class PARTY_IDENTIFIED(PARTY_PROXY):
 
     _type_: ClassVar[str] = "PARTY_IDENTIFIED"
     name: str | None = Field(default=None)
-    identifiers: Optional[list["DV_IDENTIFIER"]] = Field(default=None)
+    identifiers: list[DV_IDENTIFIER] | None = Field(default=None)
 
 
 class PARTY_RELATED(PARTY_IDENTIFIED):
@@ -577,7 +582,7 @@ class PARTY_RELATED(PARTY_IDENTIFIED):
     )
 
     _type_: ClassVar[str] = "PARTY_RELATED"
-    relationship: "DV_CODED_TEXT"
+    relationship: DV_CODED_TEXT
 
 
 class PARTY_SELF(PARTY_PROXY):
@@ -601,9 +606,9 @@ class LINK(BaseModel):
     )
 
     _type_: ClassVar[str] = "LINK"
-    meaning: "DV_TEXT"
-    type: "DV_TEXT"
-    target: "DV_EHR_URI"
+    meaning: DV_TEXT
+    type: DV_TEXT
+    target: DV_EHR_URI
 
 
 class ARCHETYPED(BaseModel):
@@ -615,8 +620,8 @@ class ARCHETYPED(BaseModel):
     )
 
     _type_: ClassVar[str] = "ARCHETYPED"
-    archetype_id: "ARCHETYPE_ID"
-    template_id: Optional["TEMPLATE_ID"] = Field(default=None)
+    archetype_id: ARCHETYPE_ID
+    template_id: TEMPLATE_ID | None = Field(default=None)
     rm_version: str
 
 
@@ -629,11 +634,11 @@ class FEEDER_AUDIT(BaseModel):
     )
 
     _type_: ClassVar[str] = "FEEDER_AUDIT"
-    originating_system_item_ids: Optional[list["DV_IDENTIFIER"]] = Field(default=None)
-    feeder_system_item_ids: Optional[list["DV_IDENTIFIER"]] = Field(default=None)
-    original_content: Optional["DV_ENCAPSULATED"] = Field(default=None)
-    originating_system_audit: "FEEDER_AUDIT_DETAILS"
-    feeder_system_audit: Optional["FEEDER_AUDIT_DETAILS"] = Field(default=None)
+    originating_system_item_ids: list[DV_IDENTIFIER] | None = Field(default=None)
+    feeder_system_item_ids: list[DV_IDENTIFIER] | None = Field(default=None)
+    original_content: DV_ENCAPSULATED | None = Field(default=None)
+    originating_system_audit: FEEDER_AUDIT_DETAILS
+    feeder_system_audit: FEEDER_AUDIT_DETAILS | None = Field(default=None)
 
 
 class FEEDER_AUDIT_DETAILS(BaseModel):
@@ -646,10 +651,10 @@ class FEEDER_AUDIT_DETAILS(BaseModel):
 
     _type_: ClassVar[str] = "FEEDER_AUDIT_DETAILS"
     system_id: str
-    location: Optional["PARTY_IDENTIFIED"] = Field(default=None)
-    provider: Optional["PARTY_IDENTIFIED"] = Field(default=None)
-    subject: Optional["PARTY_PROXY"] = Field(default=None)
-    time: Optional["DV_DATE_TIME"] = Field(default=None)
+    location: PARTY_IDENTIFIED | None = Field(default=None)
+    provider: PARTY_IDENTIFIED | None = Field(default=None)
+    subject: PARTY_PROXY | None = Field(default=None)
+    time: DV_DATE_TIME | None = Field(default=None)
     version_id: str | None = Field(default=None)
 
 
@@ -662,8 +667,8 @@ class FOLDER(LOCATABLE):
     )
 
     _type_: ClassVar[str] = "FOLDER"
-    folders: Optional[list["FOLDER"]] = Field(default=None)
-    items: Optional[list["OBJECT_REF"]] = Field(default=None)
+    folders: list[FOLDER] | None = Field(default=None)
+    items: list[OBJECT_REF] | None = Field(default=None)
 
 
 class CONTRIBUTION(BaseModel):
@@ -675,9 +680,9 @@ class CONTRIBUTION(BaseModel):
     )
 
     _type_: ClassVar[str] = "CONTRIBUTION"
-    uid: "HIER_OBJECT_ID"
-    audit: "AUDIT_DETAILS"
-    versions: list["OBJECT_REF"]
+    uid: HIER_OBJECT_ID
+    audit: AUDIT_DETAILS
+    versions: list[OBJECT_REF]
 
 
 class VERSIONED_OBJECT(BaseModel):
@@ -689,9 +694,9 @@ class VERSIONED_OBJECT(BaseModel):
     )
 
     _type_: ClassVar[str] = "VERSIONED_OBJECT"
-    uid: "HIER_OBJECT_ID"
-    owner_id: "OBJECT_REF"
-    time_created: "DV_DATE_TIME"
+    uid: HIER_OBJECT_ID
+    owner_id: OBJECT_REF
+    time_created: DV_DATE_TIME
 
 
 class VERSION(BaseModel):
@@ -703,8 +708,8 @@ class VERSION(BaseModel):
     )
 
     _type_: ClassVar[str] = "VERSION"
-    contribution: "OBJECT_REF"
-    commit_audit: "AUDIT_DETAILS"
+    contribution: OBJECT_REF
+    commit_audit: AUDIT_DETAILS
     signature: str | None = Field(default=None)
 
 
@@ -717,11 +722,11 @@ class ORIGINAL_VERSION(VERSION):
     )
 
     _type_: ClassVar[str] = "ORIGINAL_VERSION"
-    uid: "OBJECT_VERSION_ID"
-    preceding_version_uid: Optional["OBJECT_VERSION_ID"] = Field(default=None)
-    other_input_version_uids: Optional[list["OBJECT_VERSION_ID"]] = Field(default=None)
-    attestations: Optional[list["ATTESTATION"]] = Field(default=None)
-    lifecycle_state: "DV_CODED_TEXT"
+    uid: OBJECT_VERSION_ID
+    preceding_version_uid: OBJECT_VERSION_ID | None = Field(default=None)
+    other_input_version_uids: list[OBJECT_VERSION_ID] | None = Field(default=None)
+    attestations: list[ATTESTATION] | None = Field(default=None)
+    lifecycle_state: DV_CODED_TEXT
     data: Any | None = Field(default=None)
 
 
@@ -734,7 +739,7 @@ class IMPORTED_VERSION(VERSION):
     )
 
     _type_: ClassVar[str] = "IMPORTED_VERSION"
-    item: "ORIGINAL_VERSION"
+    item: ORIGINAL_VERSION
 
 
 class DATA_VALUE(BaseModel):
@@ -784,7 +789,7 @@ class DV_STATE(DATA_VALUE):
     )
 
     _type_: ClassVar[str] = "DV_STATE"
-    value: "DV_CODED_TEXT"
+    value: DV_CODED_TEXT
     is_terminal: bool
 
 
@@ -798,8 +803,8 @@ class TERM_MAPPING(BaseModel):
 
     _type_: ClassVar[str] = "TERM_MAPPING"
     match: str
-    purpose: Optional["DV_CODED_TEXT"] = Field(default=None)
-    target: "CODE_PHRASE"
+    purpose: DV_CODED_TEXT | None = Field(default=None)
+    target: CODE_PHRASE
 
 
 class DV_TEXT(DATA_VALUE):
@@ -812,11 +817,11 @@ class DV_TEXT(DATA_VALUE):
 
     _type_: ClassVar[str] = "DV_TEXT"
     value: str
-    hyperlink: Optional["DV_URI"] = Field(default=None)
-    language: Optional["CODE_PHRASE"] = Field(default=None)
-    encoding: Optional["CODE_PHRASE"] = Field(default=None)
+    hyperlink: DV_URI | None = Field(default=None)
+    language: CODE_PHRASE | None = Field(default=None)
+    encoding: CODE_PHRASE | None = Field(default=None)
     formatting: str | None = Field(default=None)
-    mappings: Optional[list["TERM_MAPPING"]] = Field(default=None)
+    mappings: list[TERM_MAPPING] | None = Field(default=None)
 
 
 class DV_CODED_TEXT(DV_TEXT):
@@ -828,7 +833,7 @@ class DV_CODED_TEXT(DV_TEXT):
     )
 
     _type_: ClassVar[str] = "DV_CODED_TEXT"
-    defining_code: "CODE_PHRASE"
+    defining_code: CODE_PHRASE
 
 
 class CODE_PHRASE(BaseModel):
@@ -840,7 +845,7 @@ class CODE_PHRASE(BaseModel):
     )
 
     _type_: ClassVar[str] = "CODE_PHRASE"
-    terminology_id: "TERMINOLOGY_ID"
+    terminology_id: TERMINOLOGY_ID
     code_string: str
 
 
@@ -853,7 +858,7 @@ class DV_PARAGRAPH(DATA_VALUE):
     )
 
     _type_: ClassVar[str] = "DV_PARAGRAPH"
-    items: list["DV_TEXT"]
+    items: list[DV_TEXT]
 
 
 class DV_INTERVAL(DATA_VALUE):
@@ -877,8 +882,8 @@ class REFERENCE_RANGE(BaseModel):
     )
 
     _type_: ClassVar[str] = "REFERENCE_RANGE"
-    range: "DV_INTERVAL"
-    meaning: "DV_TEXT"
+    range: DV_INTERVAL
+    meaning: DV_TEXT
 
 
 class DV_ORDERED(DATA_VALUE):
@@ -890,9 +895,9 @@ class DV_ORDERED(DATA_VALUE):
     )
 
     _type_: ClassVar[str] = "DV_ORDERED"
-    normal_status: Optional["CODE_PHRASE"] = Field(default=None)
-    normal_range: Optional["DV_INTERVAL"] = Field(default=None)
-    other_reference_ranges: Optional[list["REFERENCE_RANGE"]] = Field(default=None)
+    normal_status: CODE_PHRASE | None = Field(default=None)
+    normal_range: DV_INTERVAL | None = Field(default=None)
+    other_reference_ranges: list[REFERENCE_RANGE] | None = Field(default=None)
 
 
 class DV_QUANTIFIED(DV_ORDERED):
@@ -918,7 +923,7 @@ class DV_ORDINAL(DV_ORDERED):
 
     _type_: ClassVar[str] = "DV_ORDINAL"
     value: int
-    symbol: "DV_CODED_TEXT"
+    symbol: DV_CODED_TEXT
 
 
 class DV_AMOUNT(DV_QUANTIFIED):
@@ -943,7 +948,7 @@ class DV_ABSOLUTE_QUANTITY(DV_QUANTIFIED):
     )
 
     _type_: ClassVar[str] = "DV_ABSOLUTE_QUANTITY"
-    accuracy: Optional["DV_AMOUNT"] = Field(default=None)
+    accuracy: DV_AMOUNT | None = Field(default=None)
 
 
 class DV_QUANTITY(DV_AMOUNT):
@@ -956,11 +961,11 @@ class DV_QUANTITY(DV_AMOUNT):
 
     _type_: ClassVar[str] = "DV_QUANTITY"
     magnitude: float
-    property: "CODE_PHRASE"
+    property: CODE_PHRASE
     units: str
     precision: int | None = Field(default=None)
-    normal_range: Optional["DV_INTERVAL"] = Field(default=None)
-    other_reference_ranges: Optional[list["REFERENCE_RANGE"]] = Field(default=None)
+    normal_range: DV_INTERVAL | None = Field(default=None)
+    other_reference_ranges: list[REFERENCE_RANGE] | None = Field(default=None)
 
 
 class DV_COUNT(DV_AMOUNT):
@@ -973,8 +978,8 @@ class DV_COUNT(DV_AMOUNT):
 
     _type_: ClassVar[str] = "DV_COUNT"
     magnitude: int
-    normal_range: Optional["DV_INTERVAL"] = Field(default=None)
-    other_reference_ranges: Optional[list["REFERENCE_RANGE"]] = Field(default=None)
+    normal_range: DV_INTERVAL | None = Field(default=None)
+    other_reference_ranges: list[REFERENCE_RANGE] | None = Field(default=None)
 
 
 class DV_PROPORTION(DV_AMOUNT):
@@ -988,11 +993,11 @@ class DV_PROPORTION(DV_AMOUNT):
     _type_: ClassVar[str] = "DV_PROPORTION"
     numerator: float
     denominator: float
-    type: "PROPORTION_KIND"
+    type: PROPORTION_KIND
     precision: int | None = Field(default=None)
     is_integral: bool | None = Field(default=None)
-    normal_range: Optional["DV_INTERVAL"] = Field(default=None)
-    other_reference_ranges: Optional[list["REFERENCE_RANGE"]] = Field(default=None)
+    normal_range: DV_INTERVAL | None = Field(default=None)
+    other_reference_ranges: list[REFERENCE_RANGE] | None = Field(default=None)
 
 
 class PROPORTION_KIND(BaseModel):
@@ -1016,7 +1021,7 @@ class DV_TEMPORAL(DV_ABSOLUTE_QUANTITY):
     )
 
     _type_: ClassVar[str] = "DV_TEMPORAL"
-    accuracy: Optional["DV_DURATION"] = Field(default=None)
+    accuracy: DV_DURATION | None = Field(default=None)
 
 
 class DV_DATE(DV_TEMPORAL):
@@ -1076,8 +1081,8 @@ class DV_ENCAPSULATED(DATA_VALUE):
     )
 
     _type_: ClassVar[str] = "DV_ENCAPSULATED"
-    charset: Optional["CODE_PHRASE"] = Field(default=None)
-    language: Optional["CODE_PHRASE"] = Field(default=None)
+    charset: CODE_PHRASE | None = Field(default=None)
+    language: CODE_PHRASE | None = Field(default=None)
 
 
 class DV_MULTIMEDIA(DV_ENCAPSULATED):
@@ -1090,13 +1095,13 @@ class DV_MULTIMEDIA(DV_ENCAPSULATED):
 
     _type_: ClassVar[str] = "DV_MULTIMEDIA"
     alternate_text: str | None = Field(default=None)
-    uri: Optional["DV_URI"] = Field(default=None)
-    data: Optional[list[bytes]] = Field(default=None)
-    media_type: "CODE_PHRASE"
-    compression_algorithm: Optional["CODE_PHRASE"] = Field(default=None)
-    integrity_check: Optional[list[bytes]] = Field(default=None)
-    integrity_check_algorithm: Optional["CODE_PHRASE"] = Field(default=None)
-    thumbnail: Optional["DV_MULTIMEDIA"] = Field(default=None)
+    uri: DV_URI | None = Field(default=None)
+    data: list[bytes] | None = Field(default=None)
+    media_type: CODE_PHRASE
+    compression_algorithm: CODE_PHRASE | None = Field(default=None)
+    integrity_check: list[bytes] | None = Field(default=None)
+    integrity_check_algorithm: CODE_PHRASE | None = Field(default=None)
+    thumbnail: DV_MULTIMEDIA | None = Field(default=None)
     size: int
 
 
@@ -1146,7 +1151,7 @@ class DV_TIME_SPECIFICATION(DATA_VALUE):
     )
 
     _type_: ClassVar[str] = "DV_TIME_SPECIFICATION"
-    value: "DV_PARSABLE"
+    value: DV_PARSABLE
 
 
 class DV_PERIODIC_TIME_SPECIFICATION(DV_TIME_SPECIFICATION):
@@ -1182,7 +1187,7 @@ class OBJECT_REF(BaseModel):
     )
 
     _type_: ClassVar[str] = "OBJECT_REF"
-    id: "OBJECT_ID"
+    id: OBJECT_ID
     namespace: str
     type: str
 
@@ -1196,7 +1201,7 @@ class LOCATABLE_REF(OBJECT_REF):
     )
 
     _type_: ClassVar[str] = "LOCATABLE_REF"
-    id: "UID_BASED_ID"
+    id: UID_BASED_ID
     path: str | None = Field(default=None)
 
 
@@ -1298,7 +1303,7 @@ class ARCHETYPE_HRID(BaseModel):
     rm_class: str
     concept_id: str
     release_version: str
-    version_status: "VERSION_STATUS"
+    version_status: VERSION_STATUS
     build_count: str
 
 
@@ -1433,8 +1438,8 @@ class AUTHORED_RESOURCE(BaseModel):
     _type_: ClassVar[str] = "AUTHORED_RESOURCE"
     original_language: Any
     is_controlled: bool | None = Field(default=None)
-    translations: Optional[list["TRANSLATION_DETAILS"]] = Field(default=None)
-    description: Optional["RESOURCE_DESCRIPTION"] = Field(default=None)
+    translations: list[TRANSLATION_DETAILS] | None = Field(default=None)
+    description: RESOURCE_DESCRIPTION | None = Field(default=None)
 
 
 class TRANSLATION_DETAILS(BaseModel):
@@ -1462,12 +1467,12 @@ class RESOURCE_DESCRIPTION(BaseModel):
 
     _type_: ClassVar[str] = "RESOURCE_DESCRIPTION"
     original_author: Any
-    other_contributors: Optional[list[str]] = Field(default=None)
+    other_contributors: list[str] | None = Field(default=None)
     lifecycle_state: str
     resource_package_uri: str | None = Field(default=None)
     other_details: Any | None = Field(default=None)
-    parent_resource: "AUTHORED_RESOURCE"
-    details: list["RESOURCE_DESCRIPTION_ITEM"]
+    parent_resource: AUTHORED_RESOURCE
+    details: list[RESOURCE_DESCRIPTION_ITEM]
 
 
 class RESOURCE_DESCRIPTION_ITEM(BaseModel):
@@ -1481,11 +1486,9 @@ class RESOURCE_DESCRIPTION_ITEM(BaseModel):
     _type_: ClassVar[str] = "RESOURCE_DESCRIPTION_ITEM"
     language: Any
     purpose: str
-    keywords: Optional[list[str]] = Field(default=None)
+    keywords: list[str] | None = Field(default=None)
     use: str | None = Field(default=None)
     misuse: str | None = Field(default=None)
     copyright: str | None = Field(default=None)
-    original_resource_uri: Optional[list[Any]] = Field(default=None)
+    original_resource_uri: list[Any] | None = Field(default=None)
     other_details: Any
-
-

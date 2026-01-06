@@ -6,14 +6,14 @@ openEHR Clinical Data Repositories.
 """
 
 from .ehrbase import (
+    AuthenticationError,
+    CompositionResponse,
     EHRBaseClient,
     EHRBaseConfig,
-    EHRResponse,
-    CompositionResponse,
-    QueryResponse,
     EHRBaseError,
-    AuthenticationError,
+    EHRResponse,
     NotFoundError,
+    QueryResponse,
     ValidationError,
 )
 

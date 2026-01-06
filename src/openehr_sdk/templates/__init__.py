@@ -7,15 +7,15 @@ This module provides:
 - Pre-built builders for common templates
 """
 
-from .opt_parser import (
-    OPTParser,
-    TemplateDefinition,
-    ArchetypeNode,
-    ConstraintDefinition,
-)
 from .builders import (
     TemplateBuilder,
     VitalSignsBuilder,
+)
+from .opt_parser import (
+    ArchetypeNode,
+    ConstraintDefinition,
+    OPTParser,
+    TemplateDefinition,
 )
 
 __all__ = [
