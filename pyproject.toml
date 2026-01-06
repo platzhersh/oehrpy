@@ -29,6 +29,7 @@ keywords = ["openehr", "healthcare", "ehr", "clinical", "sdk", "pydantic", "ehrb
 dependencies = [
     "pydantic>=2.0",
     "httpx>=0.25",
+    "defusedxml>=0.7",
 ]
 
 [project.optional-dependencies]

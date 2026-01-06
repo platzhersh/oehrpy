@@ -18,7 +18,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-from xml.etree import ElementTree as ET
+import defusedxml.ElementTree as ET
 
 
 # OPT XML Namespaces
