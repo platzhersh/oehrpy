@@ -18,8 +18,8 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from .opt_parser import ArchetypeNode, TemplateDefinition
 
@@ -251,9 +251,6 @@ class {class_name}(TemplateBuilder):
         # Generate method body
         body = self._generate_method_body(obs)
 
-        # Determine return type (use class name from self reference)
-        return_type = f'"{self.__class__.__name__}"'
-
         return f'''
     def {method_name}(
         self,
@@ -308,7 +305,8 @@ class {class_name}(TemplateBuilder):
         lines.append("")
 
         # Build path prefix
-        lines.append(f'        prefix = f"{obs.flat_path}:{{event_index}}/any_event:{{event_index}}"')
+        path_template = f"{obs.flat_path}:{{event_index}}/any_event:{{event_index}}"
+        lines.append(f'        prefix = f"{path_template}"')
         lines.append("")
 
         # Set time
@@ -325,7 +323,11 @@ class {class_name}(TemplateBuilder):
                 elem_path = self._derive_short_name(elem.name)
                 # Default unit based on common patterns
                 unit = self._guess_unit(elem.name)
-                lines.append(f'        self._flat.set_quantity(f"{{prefix}}/{elem_path}", {elem_name}, "{unit}")')
+                quantity_call = (
+                    f'        self._flat.set_quantity('
+                    f'f"{{{{prefix}}}}/{elem_path}", {elem_name}, "{unit}")'
+                )
+                lines.append(quantity_call)
 
         return "\n".join(lines)
 

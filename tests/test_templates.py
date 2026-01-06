@@ -193,9 +193,11 @@ class TestBuilderGenerator:
         generator = BuilderGenerator()
 
         # Test various template ID formats
-        assert generator._derive_class_name("IDCR - Vital Signs Encounter.v1") == "VitalSignsEncounterBuilder"
+        result = generator._derive_class_name("IDCR - Vital Signs Encounter.v1")
+        assert result == "VitalSignsEncounterBuilder"
         assert generator._derive_class_name("Problem List.v1") == "ProblemListBuilder"
-        assert generator._derive_class_name("openEHR - Lab Results.v2") == "LabResultsBuilder"
+        result = generator._derive_class_name("openEHR - Lab Results.v2")
+        assert result == "LabResultsBuilder"
 
     def test_short_name_derivation(self) -> None:
         """Test short name derivation for Python identifiers."""

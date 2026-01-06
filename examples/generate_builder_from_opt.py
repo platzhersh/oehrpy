@@ -10,14 +10,10 @@ Usage:
     python examples/generate_builder_from_opt.py path/to/template.opt
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
-from openehr_sdk.templates import (
-    parse_opt,
-    generate_builder_from_opt,
-    BuilderGenerator,
-)
+from openehr_sdk.templates import BuilderGenerator, parse_opt
 
 
 def main() -> None:
@@ -40,7 +36,7 @@ def main() -> None:
     # Step 1: Parse the OPT file
     template = parse_opt(opt_path)
 
-    print(f"\nTemplate Information:")
+    print("\nTemplate Information:")
     print(f"  Template ID: {template.template_id}")
     print(f"  Concept: {template.concept}")
     print(f"  Description: {template.description}")
@@ -74,8 +70,9 @@ def main() -> None:
     if save == 'y':
         generator.generate_to_file(template, output_path)
         print(f"✓ Builder saved to: {output_path}")
-        print(f"\nYou can now use it like this:")
-        print(f"  from {opt_path.stem}_builder import {generator._derive_class_name(template.template_id)}")
+        print("\nYou can now use it like this:")
+        class_name = generator._derive_class_name(template.template_id)
+        print(f"  from {opt_path.stem}_builder import {class_name}")
     else:
         print("\nBuilder not saved.")
 
