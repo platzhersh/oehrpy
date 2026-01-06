@@ -7,13 +7,12 @@ This module generates Pydantic v2 model classes from parsed BMM schemas.
 from __future__ import annotations
 
 import keyword
-import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TextIO
 
-from .bmm_parser import BmmClass, BmmParser, BmmProperty, BmmSchema, BmmTypeRef
+from .bmm_parser import BmmClass, BmmProperty, BmmSchema, BmmTypeRef
 
 
 @dataclass
@@ -22,58 +21,85 @@ class GeneratorConfig:
 
     output_dir: Path = field(default_factory=lambda: Path("src/openehr_sdk/rm"))
     # Map of BMM type names to Python type strings
-    primitive_map: dict[str, str] = field(default_factory=lambda: {
-        "Any": "Any",
-        "Boolean": "bool",
-        "Integer": "int",
-        "Integer64": "int",
-        "Real": "float",
-        "Double": "float",
-        "String": "str",
-        "Character": "str",
-        "Byte": "bytes",
-        "Octet": "bytes",
-        "Uri": "str",
-        "Iso8601_date": "str",
-        "Iso8601_time": "str",
-        "Iso8601_date_time": "str",
-        "Iso8601_duration": "str",
-        "Ordered": "Any",
-        "Numeric": "Any",
-        "Ordered_Numeric": "Any",
-        "Temporal": "Any",
-        "Iso8601_type": "str",
-        "Container": "Any",
-        "Terminology_code": "Any",
-        "Terminology_term": "Any",
-    })
+    primitive_map: dict[str, str] = field(
+        default_factory=lambda: {
+            "Any": "Any",
+            "Boolean": "bool",
+            "Integer": "int",
+            "Integer64": "int",
+            "Real": "float",
+            "Double": "float",
+            "String": "str",
+            "Character": "str",
+            "Byte": "bytes",
+            "Octet": "bytes",
+            "Uri": "str",
+            "Iso8601_date": "str",
+            "Iso8601_time": "str",
+            "Iso8601_date_time": "str",
+            "Iso8601_duration": "str",
+            "Ordered": "Any",
+            "Numeric": "Any",
+            "Ordered_Numeric": "Any",
+            "Temporal": "Any",
+            "Iso8601_type": "str",
+            "Container": "Any",
+            "Terminology_code": "Any",
+            "Terminology_term": "Any",
+        }
+    )
     # Classes that should not be generated (primitives and abstract base types)
-    skip_classes: set[str] = field(default_factory=lambda: {
-        # Abstract primitive types
-        "Any", "Ordered", "Numeric", "Ordered_Numeric", "Container",
-        "Temporal", "Iso8601_type",
-        # Primitives that map to Python builtins
-        "Boolean", "Integer", "Integer64", "Real", "Double",
-        "String", "Character", "Byte", "Octet", "Uri",
-        "Iso8601_date", "Iso8601_time", "Iso8601_date_time", "Iso8601_duration",
-        "Terminology_code", "Terminology_term",
-        # Container types
-        "List", "Set", "Array", "Hash", "Interval",
-    })
+    skip_classes: set[str] = field(
+        default_factory=lambda: {
+            # Abstract primitive types
+            "Any",
+            "Ordered",
+            "Numeric",
+            "Ordered_Numeric",
+            "Container",
+            "Temporal",
+            "Iso8601_type",
+            # Primitives that map to Python builtins
+            "Boolean",
+            "Integer",
+            "Integer64",
+            "Real",
+            "Double",
+            "String",
+            "Character",
+            "Byte",
+            "Octet",
+            "Uri",
+            "Iso8601_date",
+            "Iso8601_time",
+            "Iso8601_date_time",
+            "Iso8601_duration",
+            "Terminology_code",
+            "Terminology_term",
+            # Container types
+            "List",
+            "Set",
+            "Array",
+            "Hash",
+            "Interval",
+        }
+    )
     # Map source_schema_id patterns to module names
     # For now, put all classes in a single module to avoid circular imports
     # TODO: Create proper module hierarchy with TYPE_CHECKING imports
-    module_map: dict[str, str] = field(default_factory=lambda: {
-        "data_types": "rm_types",
-        "data_structures": "rm_types",
-        "common": "rm_types",
-        "support": "rm_types",
-        "ehr": "rm_types",
-        "composition": "rm_types",
-        "demographic": "rm_types",
-        "ehr_extract": "rm_types",
-        "base": "rm_types",
-    })
+    module_map: dict[str, str] = field(
+        default_factory=lambda: {
+            "data_types": "rm_types",
+            "data_structures": "rm_types",
+            "common": "rm_types",
+            "support": "rm_types",
+            "ehr": "rm_types",
+            "composition": "rm_types",
+            "demographic": "rm_types",
+            "ehr_extract": "rm_types",
+            "base": "rm_types",
+        }
+    )
 
 
 class PydanticGenerator:
@@ -168,7 +194,9 @@ class PydanticGenerator:
 
     def _write_module_header(self, f: TextIO, module_name: str) -> None:
         """Write module docstring and future imports."""
-        f.write(f'"""\nopenEHR Reference Model - {module_name.replace("_", " ").title()} classes.\n\n')
+        f.write(
+            f'"""\nopenEHR Reference Model - {module_name.replace("_", " ").title()} classes.\n\n'
+        )
         f.write("Auto-generated from openEHR BMM specifications.\n")
         f.write("Do not edit manually.\n")
         f.write('"""\n\n')
@@ -246,7 +274,7 @@ class PydanticGenerator:
         # Model config
         f.write("    model_config = ConfigDict(\n")
         f.write("        populate_by_name=True,\n")
-        f.write("        extra=\"forbid\",\n")
+        f.write('        extra="forbid",\n')
         f.write("    )\n\n")
 
         # Type discriminator field
@@ -267,10 +295,7 @@ class PydanticGenerator:
             return "BaseModel"
 
         # Filter ancestors to only include those we generate
-        valid_ancestors = [
-            a for a in cls.ancestors
-            if a in self._class_to_module or a == "Any"
-        ]
+        valid_ancestors = [a for a in cls.ancestors if a in self._class_to_module or a == "Any"]
 
         if not valid_ancestors or valid_ancestors == ["Any"]:
             return "BaseModel"
@@ -393,7 +418,9 @@ class PydanticGenerator:
 
         with open(init_path, "w") as f:
             f.write('"""\nopenEHR Reference Model (RM) 1.0.4 type definitions.\n\n')
-            f.write("This module contains Pydantic models for all openEHR Reference Model classes,\n")
+            f.write(
+                "This module contains Pydantic models for all openEHR Reference Model classes,\n"
+            )
             f.write("generated from the official BMM specifications.\n")
             f.write('"""\n\n')
 
@@ -406,9 +433,7 @@ class PydanticGenerator:
 
             # Write __all__
             f.write("\n__all__ = [\n")
-            all_names = sorted(
-                name for names in self._module_classes.values() for name in names
-            )
+            all_names = sorted(name for names in self._module_classes.values() for name in names)
             for name in all_names:
                 f.write(f'    "{name}",\n')
             f.write("]\n")

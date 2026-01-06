@@ -18,8 +18,9 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-import defusedxml.ElementTree as ET
+from xml.etree.ElementTree import Element  # For type hints
 
+import defusedxml.ElementTree as ET
 
 # OPT XML Namespaces
 NAMESPACES = {
@@ -67,10 +68,10 @@ class ArchetypeNode:
     rm_type: str
     name: str
     path: str
-    children: list["ArchetypeNode"] = field(default_factory=list)
+    children: list[ArchetypeNode] = field(default_factory=list)
     constraints: list[ConstraintDefinition] = field(default_factory=list)
 
-    def find_node(self, node_id: str) -> "ArchetypeNode | None":
+    def find_node(self, node_id: str) -> ArchetypeNode | None:
         """Find a child node by ID."""
         for child in self.children:
             if child.node_id == node_id:
@@ -134,7 +135,10 @@ class OPTParser:
             Parsed TemplateDefinition.
         """
         tree = ET.parse(path)
-        return self._parse_root(tree.getroot())
+        root = tree.getroot()
+        if root is None:
+            raise ValueError(f"Failed to parse XML from {path}: no root element")
+        return self._parse_root(root)
 
     def parse_string(self, xml_content: str) -> TemplateDefinition:
         """Parse OPT from XML string.
@@ -146,9 +150,11 @@ class OPTParser:
             Parsed TemplateDefinition.
         """
         root = ET.fromstring(xml_content)
+        if root is None:
+            raise ValueError("Failed to parse XML string: no root element")
         return self._parse_root(root)
 
-    def _parse_root(self, root: ET.Element) -> TemplateDefinition:
+    def _parse_root(self, root: Element) -> TemplateDefinition:
         """Parse the root element of an OPT file."""
         # Handle namespace prefixes
         self._detect_namespaces(root)
@@ -168,8 +174,10 @@ class OPTParser:
 
         if definition is not None:
             template.archetype_id = self._get_text(definition, "archetype_id/value")
-            template.rm_type = definition.get("{{{}}}type".format(self._namespaces.get("xsi", ""))) or \
-                              definition.get("type") or "COMPOSITION"
+            xsi_type_key = "{{{}}}type".format(self._namespaces.get("xsi", ""))
+            template.rm_type = (
+                definition.get(xsi_type_key) or definition.get("type") or "COMPOSITION"
+            )
             template.rm_type = template.rm_type.split(":")[-1]  # Remove namespace prefix
 
             template.root = self._parse_node(definition, "/")
@@ -178,37 +186,40 @@ class OPTParser:
 
         return template
 
-    def _detect_namespaces(self, root: ET.Element) -> None:
+    def _detect_namespaces(self, root: Element) -> None:
         """Detect namespaces used in the document."""
         # Try to extract namespaces from the root element
-        for key, value in root.attrib.items():
+        for key, _value in root.attrib.items():
             if key.startswith("{"):
                 ns = key[1:].split("}")[0]
                 if "openehr.org" in ns:
                     self._namespaces["opt"] = ns
 
-    def _get_text(self, element: ET.Element, xpath: str) -> str | None:
+    def _get_text(self, element: Element, xpath: str) -> str | None:
         """Get text content from xpath, trying with and without namespaces."""
         # Try with namespace
         child = element.find(xpath, self._namespaces)
-        if child is not None and child.text:
+        if child is not None and child.text is not None:
             return child.text.strip()
 
         # Try without namespace
         child = element.find(xpath)
-        if child is not None and child.text:
+        if child is not None and child.text is not None:
             return child.text.strip()
 
         return None
 
-    def _parse_node(self, element: ET.Element, parent_path: str) -> ArchetypeNode | None:
+    def _parse_node(self, element: Element, parent_path: str) -> ArchetypeNode | None:
         """Parse an archetype node from an XML element."""
         node_id = self._get_text(element, "node_id") or ""
         archetype_id = self._get_text(element, "archetype_id/value") or ""
 
         # Get RM type from xsi:type attribute
-        rm_type = element.get("{{{}}}type".format(self._namespaces.get("xsi", ""))) or \
-                  element.get("type") or ""
+        rm_type = (
+            element.get("{{{}}}type".format(self._namespaces.get("xsi", "")))
+            or element.get("type")
+            or ""
+        )
         rm_type = rm_type.split(":")[-1]  # Remove namespace prefix like "opt:C_ARCHETYPE_ROOT"
 
         # Map constraint types to RM types
@@ -220,7 +231,11 @@ class OPTParser:
             rm_type = rm_type_map[rm_type]
 
         # Get name from ontology or term_definitions
-        name = self._get_text(element, "name/value") or self._get_term_text(element, node_id) or node_id
+        name = (
+            self._get_text(element, "name/value")
+            or self._get_term_text(element, node_id)
+            or node_id
+        )
 
         path = f"{parent_path}/{node_id}" if node_id else parent_path
 
@@ -233,10 +248,14 @@ class OPTParser:
         )
 
         # Parse child attributes
-        for attr in element.findall(".//attributes", self._namespaces) or element.findall(".//attributes"):
+        attrs_with_ns = element.findall(".//attributes", self._namespaces)
+        attrs_without_ns = element.findall(".//attributes")
+        for attr in attrs_with_ns or attrs_without_ns:
             attr_name = self._get_text(attr, "rm_attribute_name") or ""
 
-            for child in attr.findall(".//children", self._namespaces) or attr.findall(".//children"):
+            children_with_ns = attr.findall(".//children", self._namespaces)
+            children_without_ns = attr.findall(".//children")
+            for child in children_with_ns or children_without_ns:
                 child_node = self._parse_node(child, f"{path}/{attr_name}")
                 if child_node:
                     node.children.append(child_node)
@@ -247,7 +266,7 @@ class OPTParser:
 
         return node
 
-    def _parse_constraints(self, element: ET.Element, path: str) -> list[ConstraintDefinition]:
+    def _parse_constraints(self, element: Element, path: str) -> list[ConstraintDefinition]:
         """Parse constraint definitions from an element."""
         constraints = []
 
@@ -270,7 +289,7 @@ class OPTParser:
 
         return constraints
 
-    def _get_term_text(self, element: ET.Element, node_id: str) -> str | None:
+    def _get_term_text(self, element: Element, node_id: str) -> str | None:
         """Get term text from ontology for a node ID."""
         # This is a simplified implementation - full implementation would
         # look up terms in the ontology section

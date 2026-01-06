@@ -10,9 +10,9 @@ openEHR RM objects to/from various formats:
 
 from .canonical import (
     from_canonical,
-    to_canonical,
-    register_type,
     get_type_registry,
+    register_type,
+    to_canonical,
 )
 from .flat import (
     FlatBuilder,

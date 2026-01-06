@@ -21,12 +21,9 @@ Example:
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, AsyncIterator
-from contextlib import asynccontextmanager
+from typing import Any
 
 import httpx
 
@@ -45,7 +42,12 @@ class CompositionFormat(str, Enum):
 class EHRBaseError(Exception):
     """Base exception for EHRBase client errors."""
 
-    def __init__(self, message: str, status_code: int | None = None, response: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        message: str,
+        status_code: int | None = None,
+        response: dict[str, Any] | None = None,
+    ):
         super().__init__(message)
         self.status_code = status_code
         self.response = response
@@ -82,13 +84,15 @@ class EHRResponse:
     time_created: str | None = None
 
     @classmethod
-    def from_response(cls, data: dict[str, Any]) -> "EHRResponse":
+    def from_response(cls, data: dict[str, Any]) -> EHRResponse:
         """Create from API response."""
+        system_id_data = data.get("system_id")
+        time_created_data = data.get("time_created")
         return cls(
             ehr_id=data.get("ehr_id", {}).get("value", data.get("ehr_id", "")),
             ehr_status=data.get("ehr_status"),
-            system_id=data.get("system_id", {}).get("value") if data.get("system_id") else None,
-            time_created=data.get("time_created", {}).get("value") if data.get("time_created") else None,
+            system_id=system_id_data.get("value") if system_id_data else None,
+            time_created=time_created_data.get("value") if time_created_data else None,
         )
 
 
@@ -103,9 +107,10 @@ class CompositionResponse:
     composition: dict[str, Any] | None = None
 
     @classmethod
-    def from_response(cls, data: dict[str, Any], ehr_id: str | None = None) -> "CompositionResponse":
+    def from_response(cls, data: dict[str, Any], ehr_id: str | None = None) -> CompositionResponse:
         """Create from API response."""
-        uid = data.get("uid", {}).get("value", "") if isinstance(data.get("uid"), dict) else data.get("uid", "")
+        uid_data = data.get("uid")
+        uid = uid_data.get("value", "") if isinstance(uid_data, dict) else uid_data or ""
         return cls(
             uid=uid,
             ehr_id=ehr_id,
@@ -125,7 +130,7 @@ class QueryResponse:
     rows: list[list[Any]] = field(default_factory=list)
 
     @classmethod
-    def from_response(cls, data: dict[str, Any]) -> "QueryResponse":
+    def from_response(cls, data: dict[str, Any]) -> QueryResponse:
         """Create from API response."""
         return cls(
             name=data.get("name"),
@@ -139,7 +144,7 @@ class QueryResponse:
         if not self.columns:
             return []
         col_names = [col.get("name", f"col_{i}") for i, col in enumerate(self.columns)]
-        return [dict(zip(col_names, row)) for row in self.rows]
+        return [dict(zip(col_names, row, strict=False)) for row in self.rows]
 
 
 @dataclass
@@ -151,7 +156,7 @@ class TemplateResponse:
     archetype_id: str | None = None
 
     @classmethod
-    def from_response(cls, data: dict[str, Any]) -> "TemplateResponse":
+    def from_response(cls, data: dict[str, Any]) -> TemplateResponse:
         """Create from API response."""
         return cls(
             template_id=data.get("template_id", ""),
@@ -215,7 +220,7 @@ class EHRBaseClient:
             )
         self._client: httpx.AsyncClient | None = None
 
-    async def __aenter__(self) -> "EHRBaseClient":
+    async def __aenter__(self) -> EHRBaseClient:
         """Enter async context."""
         await self.connect()
         return self

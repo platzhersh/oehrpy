@@ -32,10 +32,10 @@ __version__ = "0.1.0"
 
 # Re-export main components for convenient access
 from openehr_sdk.serialization import (
-    to_canonical,
-    from_canonical,
     FlatBuilder,
     FlatContext,
+    from_canonical,
+    to_canonical,
 )
 
 __all__ = [

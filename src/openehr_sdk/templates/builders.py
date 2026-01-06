@@ -13,11 +13,11 @@ Example:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from ..serialization.flat import FlatBuilder, FlatContext
+from ..serialization.flat import FlatBuilder
 
 
 @dataclass
@@ -92,7 +92,7 @@ class TemplateBuilder:
         self._event_counters[observation] = current + 1
         return current
 
-    def set(self, path: str, value: Any) -> "TemplateBuilder":
+    def set(self, path: str, value: Any) -> TemplateBuilder:
         """Set a raw value at the given path."""
         self._flat.set(path, value)
         return self
@@ -186,7 +186,7 @@ class VitalSignsBuilder(TemplateBuilder):
         cuff_size: str | None = None,
         location: str | None = None,
         event_index: int | None = None,
-    ) -> "VitalSignsBuilder":
+    ) -> VitalSignsBuilder:
         """Add a blood pressure reading.
 
         Args:
@@ -231,7 +231,7 @@ class VitalSignsBuilder(TemplateBuilder):
         regularity: str | None = None,
         position: str | None = None,
         event_index: int | None = None,
-    ) -> "VitalSignsBuilder":
+    ) -> VitalSignsBuilder:
         """Add a pulse/heart rate reading.
 
         Args:
@@ -267,7 +267,7 @@ class VitalSignsBuilder(TemplateBuilder):
         time: datetime | str | None = None,
         site: str | None = None,
         event_index: int | None = None,
-    ) -> "VitalSignsBuilder":
+    ) -> VitalSignsBuilder:
         """Add a body temperature reading.
 
         Args:
@@ -300,7 +300,7 @@ class VitalSignsBuilder(TemplateBuilder):
         time: datetime | str | None = None,
         regularity: str | None = None,
         event_index: int | None = None,
-    ) -> "VitalSignsBuilder":
+    ) -> VitalSignsBuilder:
         """Add a respiration rate reading.
 
         Args:
@@ -332,7 +332,7 @@ class VitalSignsBuilder(TemplateBuilder):
         time: datetime | str | None = None,
         supplemental_oxygen: bool = False,
         event_index: int | None = None,
-    ) -> "VitalSignsBuilder":
+    ) -> VitalSignsBuilder:
         """Add an oxygen saturation (SpO2) reading.
 
         Args:
@@ -372,7 +372,7 @@ class VitalSignsBuilder(TemplateBuilder):
         respiration: float | None = None,
         spo2: float | None = None,
         time: datetime | str | None = None,
-    ) -> "VitalSignsBuilder":
+    ) -> VitalSignsBuilder:
         """Add all vital signs at once.
 
         Args:

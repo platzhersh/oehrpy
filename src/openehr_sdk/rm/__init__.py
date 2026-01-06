@@ -11,6 +11,7 @@ from .rm_types import *  # noqa: F403, F401
 # Re-export for convenience
 __all__ = [
     # Export all uppercase names (classes) from rm_types
-    name for name in dir()
-    if not name.startswith('_') and name[0].isupper()
+    name
+    for name in dir()
+    if not name.startswith("_") and name[0].isupper()
 ]
