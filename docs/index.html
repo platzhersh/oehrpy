@@ -215,6 +215,7 @@
     .code-keyword { color: #c084fc; }
     .code-string { color: #fbbf24; }
     .code-function { color: #60a5fa; }
+    .code-number { color: #fb923c; }
 
     /* Footer */
     footer {
@@ -413,7 +414,7 @@
       <div class="feature-card">
         <div class="feature-icon">🏥</div>
         <h3>openEHR Native</h3>
-        <p>Full support for openEHR archetypes, templates, and compositions. Work with standardized healthcare data models effortlessly.</p>
+        <p>Full support for openEHR archetypes, templates (OPT), and compositions. Auto-generate type-safe builders from OPT files.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">⚡</div>
@@ -450,14 +451,20 @@
       <pre><code><span class="code-comment"># Install oehrpy</span>
 pip install oehrpy
 
-<span class="code-comment"># Import and start building</span>
-<span class="code-keyword">from</span> oehrpy <span class="code-keyword">import</span> Client
+<span class="code-comment"># Generate a builder from your OPT template</span>
+<span class="code-keyword">from</span> openehr_sdk.templates <span class="code-keyword">import</span> generate_builder_from_opt
 
-<span class="code-comment"># Connect to your openEHR server</span>
-client = <span class="code-function">Client</span>(<span class="code-string">"https://your-ehr-server.com"</span>)
+code = <span class="code-function">generate_builder_from_opt</span>(<span class="code-string">"vital_signs.opt"</span>)
 
-<span class="code-comment"># Query compositions, work with archetypes</span>
-<span class="code-comment"># Build the future of healthcare software</span>
+<span class="code-comment"># Use the type-safe builder</span>
+<span class="code-keyword">from</span> openehr_sdk.templates <span class="code-keyword">import</span> VitalSignsBuilder
+
+builder = <span class="code-function">VitalSignsBuilder</span>(composer_name=<span class="code-string">"Dr. Smith"</span>)
+builder.<span class="code-function">add_blood_pressure</span>(systolic=<span class="code-number">120</span>, diastolic=<span class="code-number">80</span>)
+builder.<span class="code-function">add_pulse</span>(rate=<span class="code-number">72</span>)
+
+<span class="code-comment"># Get FLAT format ready for EHRBase</span>
+flat_data = builder.<span class="code-function">build</span>()
 </code></pre>
     </div>
   </section>

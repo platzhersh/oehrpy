@@ -167,7 +167,7 @@ class OPTParser:
         )
 
         # Parse the definition (root archetype)
-        definition = root.find(".//definition", self._namespaces)
+        definition = root.find("opt:definition", self._namespaces)
         if definition is None:
             # Try without namespace
             definition = root.find(".//definition")
@@ -188,7 +188,13 @@ class OPTParser:
 
     def _detect_namespaces(self, root: Element) -> None:
         """Detect namespaces used in the document."""
-        # Try to extract namespaces from the root element
+        # Extract namespace from root element tag
+        if root.tag.startswith("{"):
+            ns = root.tag[1:].split("}")[0]
+            if "openehr.org" in ns or "schemas.openehr.org" in ns:
+                self._namespaces["opt"] = ns
+
+        # Also try to extract from attributes
         for key, _value in root.attrib.items():
             if key.startswith("{"):
                 ns = key[1:].split("}")[0]
@@ -197,7 +203,24 @@ class OPTParser:
 
     def _get_text(self, element: Element, xpath: str) -> str | None:
         """Get text content from xpath, trying with and without namespaces."""
-        # Try with namespace
+        # Try with namespace prefix in XPath
+        if "opt" in self._namespaces:
+            # Convert simple xpath to namespaced version
+            # .//template_id/value -> .//opt:template_id/opt:value
+            parts = xpath.split("/")
+            ns_parts = []
+            for part in parts:
+                if part and not part.startswith(".") and ":" not in part:
+                    ns_parts.append(f"opt:{part}")
+                else:
+                    ns_parts.append(part)
+            ns_xpath = "/".join(ns_parts)
+
+            child = element.find(ns_xpath, self._namespaces)
+            if child is not None and child.text is not None:
+                return child.text.strip()
+
+        # Try with namespace without prefix (for ElementTree default namespace)
         child = element.find(xpath, self._namespaces)
         if child is not None and child.text is not None:
             return child.text.strip()
@@ -248,13 +271,13 @@ class OPTParser:
         )
 
         # Parse child attributes
-        attrs_with_ns = element.findall(".//attributes", self._namespaces)
-        attrs_without_ns = element.findall(".//attributes")
+        attrs_with_ns = element.findall("opt:attributes", self._namespaces)
+        attrs_without_ns = element.findall("attributes") if not attrs_with_ns else []
         for attr in attrs_with_ns or attrs_without_ns:
             attr_name = self._get_text(attr, "rm_attribute_name") or ""
 
-            children_with_ns = attr.findall(".//children", self._namespaces)
-            children_without_ns = attr.findall(".//children")
+            children_with_ns = attr.findall("opt:children", self._namespaces)
+            children_without_ns = attr.findall("children") if not children_with_ns else []
             for child in children_with_ns or children_without_ns:
                 child_node = self._parse_node(child, f"{path}/{attr_name}")
                 if child_node:
@@ -271,7 +294,7 @@ class OPTParser:
         constraints = []
 
         # Parse occurrences
-        occ = element.find(".//occurrences", self._namespaces) or element.find(".//occurrences")
+        occ = element.find("opt:occurrences", self._namespaces) or element.find("occurrences")
         if occ is not None:
             lower = self._get_text(occ, "lower") or "0"
             upper = self._get_text(occ, "upper")

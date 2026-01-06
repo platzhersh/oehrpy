@@ -1,6 +1,13 @@
 """Tests for template builders."""
 
-from openehr_sdk.templates import VitalSignsBuilder
+from pathlib import Path
+
+from openehr_sdk.templates import (
+    BuilderGenerator,
+    VitalSignsBuilder,
+    generate_builder_from_opt,
+    parse_opt,
+)
 
 
 class TestVitalSignsBuilder:
@@ -111,3 +118,151 @@ class TestVitalSignsBuilder:
         result = builder.build()
 
         assert result["vital_signs/blood_pressure:0/any_event:0/time"] == time_str
+
+
+class TestOPTParser:
+    """Tests for OPT parser."""
+
+    @property
+    def sample_opt_path(self) -> Path:
+        """Get path to sample OPT file."""
+        return Path(__file__).parent / "fixtures" / "vital_signs.opt"
+
+    def test_parse_opt_file(self) -> None:
+        """Test parsing an OPT file."""
+        template = parse_opt(self.sample_opt_path)
+
+        assert template.template_id == "IDCR - Vital Signs Encounter.v1"
+        assert template.concept == "Vital Signs Encounter"
+        assert template.archetype_id == "openEHR-EHR-COMPOSITION.encounter.v1"
+        assert template.language == "en"
+
+    def test_extract_observations(self) -> None:
+        """Test extracting observations from template."""
+        template = parse_opt(self.sample_opt_path)
+
+        observations = template.list_observations()
+        assert len(observations) == 3
+
+        # Check archetype IDs
+        archetype_ids = [obs.archetype_id for obs in observations]
+        assert "openEHR-EHR-OBSERVATION.blood_pressure.v1" in archetype_ids
+        assert "openEHR-EHR-OBSERVATION.pulse.v1" in archetype_ids
+        assert "openEHR-EHR-OBSERVATION.body_temperature.v1" in archetype_ids
+
+    def test_template_structure(self) -> None:
+        """Test template structure parsing."""
+        template = parse_opt(self.sample_opt_path)
+
+        assert template.root is not None
+        assert template.root.rm_type == "COMPOSITION"
+        assert len(template.root.children) == 3
+
+        # Each observation should have children (data structures)
+        for obs in template.list_observations():
+            assert len(obs.children) > 0
+
+
+class TestBuilderGenerator:
+    """Tests for builder generator."""
+
+    @property
+    def sample_opt_path(self) -> Path:
+        """Get path to sample OPT file."""
+        return Path(__file__).parent / "fixtures" / "vital_signs.opt"
+
+    def test_generate_builder_code(self) -> None:
+        """Test generating builder code from OPT."""
+        code = generate_builder_from_opt(self.sample_opt_path)
+
+        # Check imports
+        assert "from __future__ import annotations" in code
+        assert "from .builders import TemplateBuilder" in code
+
+        # Check class definition
+        assert "class VitalSignsEncounterBuilder(TemplateBuilder):" in code
+        assert 'template_id = "IDCR - Vital Signs Encounter.v1"' in code
+
+        # Check generated methods
+        assert "def add_blood_pressure(" in code
+        assert "def add_pulse(" in code
+        assert "def add_body_temperature(" in code
+
+    def test_derived_class_name(self) -> None:
+        """Test class name derivation."""
+        generator = BuilderGenerator()
+
+        # Test various template ID formats
+        result = generator._derive_class_name("IDCR - Vital Signs Encounter.v1")
+        assert result == "VitalSignsEncounterBuilder"
+        assert generator._derive_class_name("Problem List.v1") == "ProblemListBuilder"
+        result = generator._derive_class_name("openEHR - Lab Results.v2")
+        assert result == "LabResultsBuilder"
+
+    def test_short_name_derivation(self) -> None:
+        """Test short name derivation for Python identifiers."""
+        generator = BuilderGenerator()
+
+        assert generator._derive_short_name("Blood Pressure") == "blood_pressure"
+        assert generator._derive_short_name("Pulse/Heart Beat") == "pulse_heart_beat"
+        assert generator._derive_short_name("Body Temperature") == "body_temperature"
+
+    def test_unit_guessing(self) -> None:
+        """Test unit guessing for common measurements."""
+        generator = BuilderGenerator()
+
+        assert generator._guess_unit("Systolic") == "mm[Hg]"
+        assert generator._guess_unit("Diastolic") == "mm[Hg]"
+        assert generator._guess_unit("Pulse Rate") == "/min"
+        assert generator._guess_unit("Heart Rate") == "/min"
+        assert generator._guess_unit("Body Temperature") == "Cel"
+        assert generator._guess_unit("SpO2") == "%"
+        assert generator._guess_unit("Weight") == "kg"
+        assert generator._guess_unit("Height") == "cm"
+
+    def test_generate_to_file(self) -> None:
+        """Test generating builder to a file."""
+        import tempfile
+
+        template = parse_opt(self.sample_opt_path)
+        generator = BuilderGenerator()
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+            output_path = Path(f.name)
+
+        try:
+            generator.generate_to_file(template, output_path)
+
+            assert output_path.exists()
+            content = output_path.read_text()
+            assert "VitalSignsEncounterBuilder" in content
+            assert "def add_blood_pressure(" in content
+        finally:
+            if output_path.exists():
+                output_path.unlink()
+
+    def test_custom_class_name(self) -> None:
+        """Test generating with a custom class name."""
+        template = parse_opt(self.sample_opt_path)
+        generator = BuilderGenerator()
+
+        code = generator.generate(template, class_name="CustomVitalsBuilder")
+
+        assert "class CustomVitalsBuilder(TemplateBuilder):" in code
+        assert "VitalSignsEncounterBuilder" not in code
+
+    def test_composition_name_derivation(self) -> None:
+        """Test that composition name is derived from template, not hardcoded."""
+        template = parse_opt(self.sample_opt_path)
+        generator = BuilderGenerator()
+
+        code = generator.generate(template)
+
+        # Should derive "vital_signs" from concept "Vital Signs Encounter"
+        assert 'prefix = f"vital_signs/blood_pressure' in code
+        assert 'prefix = f"vital_signs/pulse' in code
+
+        # Verify the method exists
+        assert hasattr(generator, "_derive_composition_name")
+        composition_name = generator._derive_composition_name()
+        assert composition_name == "vital_signs"
