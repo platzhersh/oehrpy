@@ -135,7 +135,10 @@ class OPTParser:
             Parsed TemplateDefinition.
         """
         tree = ET.parse(path)
-        return self._parse_root(tree.getroot())
+        root = tree.getroot()
+        if root is None:
+            raise ValueError(f"Failed to parse XML from {path}: no root element")
+        return self._parse_root(root)
 
     def parse_string(self, xml_content: str) -> TemplateDefinition:
         """Parse OPT from XML string.
@@ -147,6 +150,8 @@ class OPTParser:
             Parsed TemplateDefinition.
         """
         root = ET.fromstring(xml_content)
+        if root is None:
+            raise ValueError("Failed to parse XML string: no root element")
         return self._parse_root(root)
 
     def _parse_root(self, root: Element) -> TemplateDefinition:
