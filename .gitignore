@@ -89,6 +89,7 @@ Thumbs.db
 
 # BMM repository clone (downloaded during generation)
 generator/bmm/specifications-ITS-BMM/
+generator/bmm-repo/
 
 # JSON Schema repository clone (downloaded for RM 1.1.0 generation)
 generator/specifications-ITS-JSON/
