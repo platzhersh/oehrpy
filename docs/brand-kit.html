@@ -19,6 +19,7 @@
       color: #eee;
       padding: 40px;
       min-height: 100vh;
+      overflow-x: hidden;
     }
     h1 {
       text-align: center;
@@ -129,6 +130,71 @@
     }
     .replay-btn:hover {
       background: #2563eb;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      .section-title {
+        font-size: 1.1rem;
+      }
+      .logo-row {
+        gap: 20px;
+      }
+      .logo-card {
+        padding: 20px;
+        width: 100%;
+        max-width: 100%;
+      }
+      .logo-card svg {
+        max-width: 100%;
+        height: auto;
+      }
+      .animation-container {
+        gap: 20px;
+      }
+      .animation-card {
+        padding: 24px;
+        width: 100%;
+      }
+      .preview-box {
+        padding: 20px;
+        width: 100%;
+        overflow-x: auto;
+      }
+      .favicon-grid {
+        gap: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 16px;
+      }
+      h1 {
+        font-size: 1.75rem;
+      }
+      .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 30px;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .logo-card {
+        padding: 16px;
+      }
+      .animation-card {
+        padding: 20px;
+      }
+      .preview-box {
+        padding: 16px;
+      }
     }
   </style>
 </head>

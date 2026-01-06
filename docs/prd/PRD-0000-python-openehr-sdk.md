@@ -1,9 +1,11 @@
 # PRD-0000: Python openEHR SDK Generation
 
-**Version:** 1.0  
-**Date:** 2026-01-05  
-**Status:** Draft  
+**Version:** 1.0
+**Date:** 2026-01-06
+**Status:** Draft
 **Owner:** Open CIS Project
+
+> **UPDATE (2026-01-06)**: This PRD originally targeted RM 1.0.4. We have since decided to support **RM 1.1.0** using JSON Schema files from the `specifications-ITS-JSON` repository. See [ADR-0001: Support RM 1.1.0](../adr/0001-odin-parsing-and-rm-1.1.0-support.md) for details. References to RM 1.0.4 in this document are preserved for historical context.
 
 ---
 

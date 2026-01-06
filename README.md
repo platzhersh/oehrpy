@@ -24,7 +24,7 @@ pip install -e .
 
 ## Features
 
-- **Type-safe RM Classes**: 110+ Pydantic models for openEHR Reference Model 1.0.4 types
+- **Type-safe RM Classes**: 134 Pydantic models for openEHR Reference Model 1.1.0 types (includes BASE types)
 - **Template Builders**: Pre-built composition builders for common templates (Vital Signs)
 - **FLAT Format**: Full support for EHRBase FLAT format serialization
 - **Canonical JSON**: Convert RM objects to/from openEHR canonical JSON format
@@ -172,11 +172,12 @@ print(query.to_string())
 
 ## Available RM Types
 
-The SDK includes all major openEHR RM 1.0.4 types:
+The SDK includes all major openEHR RM 1.1.0 types:
 
 **Data Types:**
 - `DV_TEXT`, `DV_CODED_TEXT`, `CODE_PHRASE`
-- `DV_QUANTITY`, `DV_COUNT`, `DV_PROPORTION`
+- `DV_QUANTITY`, `DV_COUNT`, `DV_PROPORTION`, `DV_SCALE` *(new in 1.1.0)*
+- `DV_ORDINAL` *(integer values only - use DV_SCALE for decimal scale values)*
 - `DV_DATE_TIME`, `DV_DATE`, `DV_TIME`, `DV_DURATION`
 - `DV_BOOLEAN`, `DV_IDENTIFIER`, `DV_URI`, `DV_EHR_URI`
 - `DV_MULTIMEDIA`, `DV_PARSABLE`
@@ -191,6 +192,14 @@ The SDK includes all major openEHR RM 1.0.4 types:
 - `PARTY_IDENTIFIED`, `PARTY_SELF`, `PARTICIPATION`
 - `OBJECT_REF`, `OBJECT_ID`, `HIER_OBJECT_ID`
 - `ARCHETYPED`, `LOCATABLE`, `PATHABLE`
+
+### New in RM 1.1.0
+
+- **DV_SCALE**: Data type for scales/scores with decimal values (extends DV_ORDINAL for non-integer scales)
+- **preferred_term**: New optional field in DV_CODED_TEXT for terminology mapping
+- **Enhanced Folder support**: Archetypeable meta-data in EHR folders
+
+For details, see [ADR-0001: Support RM 1.1.0](docs/adr/0001-odin-parsing-and-rm-1.1.0-support.md).
 
 ## Development
 
@@ -235,7 +244,7 @@ python -m generator.pydantic_generator
 ```text
 oehrpy/
 ├── src/openehr_sdk/       # Main package
-│   ├── rm/                # Generated RM classes (110+ types)
+│   ├── rm/                # Generated RM + BASE classes (134 types)
 │   ├── serialization/     # JSON serialization (canonical + FLAT)
 │   ├── client/            # EHRBase REST client
 │   ├── templates/         # Template builders (Vital Signs, etc.)

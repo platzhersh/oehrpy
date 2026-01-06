@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation - oehrpy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #f3f4f6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2d2d4d;
+      background: #1a1a2e;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .logo-header span {
+      font-size: 24px;
+      font-weight: 600;
+      color: #f3f4f6;
+    }
+    nav {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+    nav a {
+      color: #9ca3af;
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: #f3f4f6;
+    }
+    .github-link {
+      background: #252540;
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: #f3f4f6 !important;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .github-link:hover {
+      background: #2d2d4d;
+    }
+
+    /* Layout */
+    .docs-container {
+      display: flex;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      padding: 40px 20px;
+      border-right: 1px solid #2d2d4d;
+      position: sticky;
+      top: 81px;
+      height: calc(100vh - 81px);
+      overflow-y: auto;
+    }
+    .sidebar-section {
+      margin-bottom: 30px;
+    }
+    .sidebar-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .sidebar-link {
+      display: block;
+      padding: 8px 12px;
+      color: #9ca3af;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+    .sidebar-link:hover {
+      background: #252540;
+      color: #f3f4f6;
+    }
+    .sidebar-link.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      padding: 40px 60px;
+      max-width: 900px;
+    }
+    .content h1 {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #f97316 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .content h2 {
+      font-size: 2rem;
+      margin-top: 60px;
+      margin-bottom: 20px;
+      color: #f3f4f6;
+      border-bottom: 2px solid #2d2d4d;
+      padding-bottom: 12px;
+    }
+    .content h3 {
+      font-size: 1.5rem;
+      margin-top: 40px;
+      margin-bottom: 16px;
+      color: #f3f4f6;
+    }
+    .content h4 {
+      font-size: 1.2rem;
+      margin-top: 30px;
+      margin-bottom: 12px;
+      color: #e5e7eb;
+    }
+    .content p {
+      line-height: 1.7;
+      color: #d1d5db;
+      margin-bottom: 16px;
+    }
+    .content ul, .content ol {
+      margin-left: 24px;
+      margin-bottom: 16px;
+      line-height: 1.7;
+      color: #d1d5db;
+    }
+    .content li {
+      margin-bottom: 8px;
+    }
+    .content a {
+      color: #60a5fa;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .content a:hover {
+      border-bottom-color: #60a5fa;
+    }
+    .content code {
+      font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+      font-size: 0.9em;
+      background: #252540;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #fbbf24;
+    }
+    .content pre {
+      background: #0a0a14;
+      border: 1px solid #2d2d4d;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+    .content pre code {
+      background: none;
+      padding: 0;
+      color: #e5e7eb;
+      font-size: 0.9rem;
+    }
+    .note {
+      background: #1e3a5f;
+      border-left: 4px solid #3b82f6;
+      padding: 16px;
+      border-radius: 6px;
+      margin: 24px 0;
+    }
+    .note p {
+      margin: 0;
+    }
+    .warning {
+      background: #4a2f1e;
+      border-left: 4px solid #f97316;
+      padding: 16px;
+      border-radius: 6px;
+      margin: 24px 0;
+    }
+    .warning p {
+      margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .sidebar {
+        display: none;
+      }
+      .content {
+        padding: 40px 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 16px 20px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      nav {
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      nav a:first-child:not(.github-link) {
+        display: none;
+      }
+      nav a:not(.github-link) {
+        font-size: 14px;
+      }
+      .github-link {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
+      .github-link span {
+        display: none;
+      }
+      .content {
+        padding: 24px 16px;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      .content h1 {
+        font-size: 1.75rem;
+      }
+      .content h2 {
+        font-size: 1.5rem;
+        margin-top: 40px;
+      }
+      .content h3 {
+        font-size: 1.25rem;
+      }
+      .content pre {
+        padding: 16px;
+        font-size: 0.8rem;
+        max-width: 100%;
+      }
+      .content pre code {
+        font-size: 0.8rem;
+      }
+      .docs-container {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 12px 16px;
+      }
+      nav {
+        gap: 12px;
+      }
+      .logo-header span {
+        font-size: 20px;
+      }
+      .content {
+        padding: 20px 12px;
+      }
+      .content h1 {
+        font-size: 1.5rem;
+      }
+      .content pre {
+        padding: 12px;
+        margin-left: -12px;
+        margin-right: -12px;
+        border-radius: 0;
+      }
+      .note, .warning {
+        padding: 12px;
+        margin-left: -12px;
+        margin-right: -12px;
+        border-radius: 0;
+      }
+    }
+
+    /* Syntax highlighting */
+    .keyword { color: #c084fc; }
+    .string { color: #fbbf24; }
+    .function { color: #60a5fa; }
+    .comment { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <a href="index.html" class="logo-header">
+      <svg viewBox="0 0 80 80" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logo-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#60a5fa"/>
+            <stop offset="100%" style="stop-color:#3b82f6"/>
+          </linearGradient>
+          <linearGradient id="logo-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fdba74"/>
+            <stop offset="100%" style="stop-color:#f97316"/>
+          </linearGradient>
+        </defs>
+        <path d="M40 10 C20 10 15 25 15 35 C15 46 28 52 40 52 C52 52 65 46 65 35 C65 25 60 10 40 10"
+              fill="url(#logo-blue)"/>
+        <circle cx="28" cy="24" r="4" fill="#fff"/>
+        <path d="M40 70 C60 70 65 55 65 45 C65 34 52 28 40 28 C28 28 15 34 15 45 C15 55 20 70 40 70"
+              fill="url(#logo-orange)"/>
+        <circle cx="52" cy="56" r="4" fill="#fff"/>
+      </svg>
+      <span>oehrpy</span>
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="docs.html" class="active">Docs</a>
+      <a href="brand-kit.html">Brand Kit</a>
+      <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
+    </nav>
+  </header>
+
+  <div class="docs-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Getting Started</div>
+        <a href="#installation" class="sidebar-link">Installation</a>
+        <a href="#quick-start" class="sidebar-link">Quick Start</a>
+        <a href="#overview" class="sidebar-link">Overview</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Core Concepts</div>
+        <a href="#rm-classes" class="sidebar-link">RM Classes</a>
+        <a href="#template-builders" class="sidebar-link">Template Builders</a>
+        <a href="#serialization" class="sidebar-link">Serialization</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">API Reference</div>
+        <a href="#ehrbase-client" class="sidebar-link">EHRBase Client</a>
+        <a href="#aql-builder" class="sidebar-link">AQL Query Builder</a>
+        <a href="#data-types" class="sidebar-link">Data Types</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Advanced</div>
+        <a href="#validation" class="sidebar-link">Validation</a>
+        <a href="#type-safety" class="sidebar-link">Type Safety</a>
+        <a href="#development" class="sidebar-link">Development</a>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="content">
+      <h1>Documentation</h1>
+      <p>Welcome to the oehrpy documentation. This guide will help you get started with the Python openEHR SDK and explore its features.</p>
+
+      <h2 id="installation">Installation</h2>
+      <p>Install oehrpy using pip:</p>
+      <pre><code>pip install oehrpy</code></pre>
+
+      <p>Or install from source for development:</p>
+      <pre><code>git clone https://github.com/platzhersh/oehrpy.git
+cd oehrpy
+pip install -e ".[dev]"</code></pre>
+
+      <div class="note">
+        <p><strong>Requirements:</strong> Python 3.10 or higher is required.</p>
+      </div>
+
+      <h2 id="quick-start">Quick Start</h2>
+      <p>Here's a quick example to get you started with oehrpy:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_TEXT, DV_QUANTITY, CODE_PHRASE, TERMINOLOGY_ID
+
+<span class="comment"># Create a simple text value</span>
+text = DV_TEXT(value=<span class="string">"Patient temperature recorded"</span>)
+
+<span class="comment"># Create a quantity with units</span>
+temperature = DV_QUANTITY(
+    magnitude=<span class="string">37.2</span>,
+    units=<span class="string">"°C"</span>,
+    property=CODE_PHRASE(
+        terminology_id=TERMINOLOGY_ID(value=<span class="string">"openehr"</span>),
+        code_string=<span class="string">"127"</span>
+    )
+)
+
+<span class="keyword">print</span>(<span class="string">f"Temperature: {temperature.magnitude} {temperature.units}"</span>)</code></pre>
+
+      <h2 id="overview">Overview</h2>
+      <p>oehrpy is a comprehensive Python SDK for openEHR that provides:</p>
+      <ul>
+        <li><strong>Type-safe RM Classes:</strong> 134 Pydantic models for openEHR Reference Model 1.1.0 (includes BASE types)</li>
+        <li><strong>Template Builders:</strong> Pre-built composition builders for common clinical templates</li>
+        <li><strong>FLAT Format Support:</strong> Full support for EHRBase FLAT format serialization</li>
+        <li><strong>Canonical JSON:</strong> Convert between RM objects and openEHR canonical JSON</li>
+        <li><strong>EHRBase Client:</strong> Async REST client for EHRBase CDR operations</li>
+        <li><strong>AQL Builder:</strong> Fluent API for building type-safe AQL queries</li>
+        <li><strong>Full IDE Support:</strong> Complete autocomplete and type checking</li>
+      </ul>
+
+      <h2 id="rm-classes">RM Classes</h2>
+      <p>The Reference Model (RM) classes form the foundation of oehrpy. These are type-safe Pydantic models that represent openEHR data structures.</p>
+
+      <div class="note">
+        <p><strong>New in RM 1.1.0:</strong> Support for <code>DV_SCALE</code> (decimal scale values), <code>preferred_term</code> field in <code>CODE_PHRASE</code>, and enhanced Folder support. All 134 types include both RM and BASE components.</p>
+      </div>
+
+      <h3>Data Types</h3>
+      <p>oehrpy includes all major openEHR data types:</p>
+
+      <h4>Text and Coded Values</h4>
+      <pre><code><span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_TEXT, DV_CODED_TEXT, CODE_PHRASE, TERMINOLOGY_ID
+
+<span class="comment"># Simple text</span>
+text = DV_TEXT(value=<span class="string">"Blood pressure measurement"</span>)
+
+<span class="comment"># Coded text with terminology</span>
+status = DV_CODED_TEXT(
+    value=<span class="string">"Normal"</span>,
+    defining_code=CODE_PHRASE(
+        terminology_id=TERMINOLOGY_ID(value=<span class="string">"local"</span>),
+        code_string=<span class="string">"at0001"</span>
+    )
+)</code></pre>
+
+      <h4>Quantities and Measurements</h4>
+      <pre><code><span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_QUANTITY, DV_COUNT
+
+<span class="comment"># Blood pressure (quantity with units)</span>
+systolic = DV_QUANTITY(
+    magnitude=<span class="string">120.0</span>,
+    units=<span class="string">"mm[Hg]"</span>,
+    property=CODE_PHRASE(
+        terminology_id=TERMINOLOGY_ID(value=<span class="string">"openehr"</span>),
+        code_string=<span class="string">"382"</span>  <span class="comment"># Pressure</span>
+    )
+)
+
+<span class="comment"># Heart rate (count)</span>
+heart_rate = DV_COUNT(magnitude=<span class="string">72</span>)</code></pre>
+
+      <h4>Date and Time</h4>
+      <pre><code><span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_DATE_TIME, DV_DATE, DV_TIME, DV_DURATION
+
+<span class="comment"># Date and time</span>
+timestamp = DV_DATE_TIME(value=<span class="string">"2024-01-15T14:30:00Z"</span>)
+date = DV_DATE(value=<span class="string">"2024-01-15"</span>)
+time = DV_TIME(value=<span class="string">"14:30:00"</span>)
+
+<span class="comment"># Duration</span>
+duration = DV_DURATION(value=<span class="string">"PT2H30M"</span>)  <span class="comment"># 2 hours 30 minutes</span></code></pre>
+
+      <h3>Structures</h3>
+      <p>Build complex clinical structures using openEHR structural types:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> ELEMENT, CLUSTER, ITEM_TREE
+
+<span class="comment"># Create an element</span>
+bp_element = ELEMENT(
+    name=DV_TEXT(value=<span class="string">"Systolic"</span>),
+    value=systolic
+)
+
+<span class="comment"># Group elements in a cluster</span>
+bp_cluster = CLUSTER(
+    name=DV_TEXT(value=<span class="string">"Blood Pressure"</span>),
+    items=[bp_element, ...]
+)</code></pre>
+
+      <h2 id="template-builders">Template Builders</h2>
+      <p>Template builders provide a high-level API for creating compositions without knowing FLAT paths.</p>
+
+      <h3>Vital Signs Builder</h3>
+      <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> VitalSignsBuilder
+
+<span class="comment"># Create a vital signs composition</span>
+builder = VitalSignsBuilder(composer_name=<span class="string">"Dr. Smith"</span>)
+
+<span class="comment"># Add measurements</span>
+builder.add_blood_pressure(systolic=<span class="string">120</span>, diastolic=<span class="string">80</span>)
+builder.add_pulse(rate=<span class="string">72</span>)
+builder.add_temperature(<span class="string">37.2</span>)
+builder.add_respiration(rate=<span class="string">16</span>)
+builder.add_oxygen_saturation(spo2=<span class="string">98</span>)
+
+<span class="comment"># Build FLAT format for EHRBase</span>
+flat_data = builder.build()
+<span class="comment"># {</span>
+<span class="comment">#   "ctx/language": "en",</span>
+<span class="comment">#   "ctx/territory": "US",</span>
+<span class="comment">#   "vital_signs/blood_pressure:0/any_event:0/systolic|magnitude": 120,</span>
+<span class="comment">#   ...</span>
+<span class="comment"># }</span></code></pre>
+
+      <h3>Creating Custom Builders</h3>
+      <p>You can create your own template builders for custom archetypes:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.serialization <span class="keyword">import</span> FlatBuilder
+
+<span class="keyword">class</span> <span class="function">CustomTemplateBuilder</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, composer_name: str):
+        self.builder = FlatBuilder()
+        self.builder.context(
+            language=<span class="string">"en"</span>,
+            territory=<span class="string">"US"</span>,
+            composer_name=composer_name
+        )
+
+    <span class="keyword">def</span> <span class="function">add_observation</span>(self, value: float, unit: str):
+        self.builder.set_quantity(
+            <span class="string">"template/observation/value"</span>,
+            value,
+            unit
+        )
+        <span class="keyword">return</span> self
+
+    <span class="keyword">def</span> <span class="function">build</span>(self):
+        <span class="keyword">return</span> self.builder.build()</code></pre>
+
+      <h2 id="serialization">Serialization</h2>
+      <p>oehrpy supports two main serialization formats: Canonical JSON and FLAT format.</p>
+
+      <h3>Canonical JSON</h3>
+      <p>Canonical JSON is the standard openEHR format with <code>_type</code> fields:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.serialization <span class="keyword">import</span> to_canonical, from_canonical
+<span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_QUANTITY
+
+<span class="comment"># Serialize to canonical JSON</span>
+quantity = DV_QUANTITY(magnitude=<span class="string">120.0</span>, units=<span class="string">"mm[Hg]"</span>, ...)
+canonical = to_canonical(quantity)
+<span class="comment"># {"_type": "DV_QUANTITY", "magnitude": 120.0, "units": "mm[Hg]", ...}</span>
+
+<span class="comment"># Deserialize from canonical JSON</span>
+restored = from_canonical(canonical, expected_type=DV_QUANTITY)</code></pre>
+
+      <h3>FLAT Format</h3>
+      <p>FLAT format is EHRBase's simplified format using paths:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.serialization <span class="keyword">import</span> FlatBuilder
+
+builder = FlatBuilder()
+builder.context(language=<span class="string">"en"</span>, territory=<span class="string">"US"</span>, composer_name=<span class="string">"Dr. Smith"</span>)
+builder.set_quantity(<span class="string">"vital_signs/bp/systolic"</span>, <span class="string">120.0</span>, <span class="string">"mm[Hg]"</span>)
+builder.set_text(<span class="string">"vital_signs/notes"</span>, <span class="string">"Patient stable"</span>)
+
+flat_data = builder.build()</code></pre>
+
+      <h2 id="ehrbase-client">EHRBase Client</h2>
+      <p>The EHRBase client provides an async REST API for interacting with EHRBase CDR.</p>
+
+      <h3>Basic Operations</h3>
+      <pre><code><span class="keyword">from</span> openehr_sdk.client <span class="keyword">import</span> EHRBaseClient
+
+<span class="keyword">async with</span> EHRBaseClient(
+    base_url=<span class="string">"http://localhost:8080/ehrbase"</span>,
+    username=<span class="string">"admin"</span>,
+    password=<span class="string">"admin"</span>
+) <span class="keyword">as</span> client:
+    <span class="comment"># Create an EHR</span>
+    ehr = <span class="keyword">await</span> client.create_ehr()
+    <span class="keyword">print</span>(<span class="string">f"Created EHR: {ehr.ehr_id}"</span>)
+
+    <span class="comment"># Create a composition</span>
+    result = <span class="keyword">await</span> client.create_composition(
+        ehr_id=ehr.ehr_id,
+        template_id=<span class="string">"IDCR - Vital Signs Encounter.v1"</span>,
+        composition=flat_data,
+        format=<span class="string">"FLAT"</span>
+    )
+
+    <span class="comment"># Retrieve a composition</span>
+    composition = <span class="keyword">await</span> client.get_composition(
+        ehr_id=ehr.ehr_id,
+        composition_uid=result.uid,
+        format=<span class="string">"FLAT"</span>
+    )</code></pre>
+
+      <h3>Querying with AQL</h3>
+      <pre><code><span class="comment"># Execute AQL query</span>
+query_result = <span class="keyword">await</span> client.query(
+    <span class="string">"""SELECT c/uid/value, c/context/start_time/value
+    FROM EHR e CONTAINS COMPOSITION c
+    WHERE e/ehr_id/value = :ehr_id"""</span>,
+    query_parameters={<span class="string">"ehr_id"</span>: ehr.ehr_id}
+)
+
+<span class="keyword">for</span> row <span class="keyword">in</span> query_result.rows:
+    <span class="keyword">print</span>(<span class="string">f"Composition: {row[0]} at {row[1]}"</span>)</code></pre>
+
+      <h2 id="aql-builder">AQL Query Builder</h2>
+      <p>Build complex AQL queries with a fluent, type-safe API.</p>
+
+      <h3>Basic Queries</h3>
+      <pre><code><span class="keyword">from</span> openehr_sdk.aql <span class="keyword">import</span> AQLBuilder
+
+<span class="comment"># Simple query</span>
+query = (
+    AQLBuilder()
+    .select(<span class="string">"c/uid/value"</span>, alias=<span class="string">"composition_id"</span>)
+    .select(<span class="string">"c/name/value"</span>, alias=<span class="string">"name"</span>)
+    .from_ehr()
+    .contains_composition()
+    .where_ehr_id()
+    .build()
+)
+
+<span class="keyword">print</span>(query.to_string())
+<span class="comment"># SELECT c/uid/value AS composition_id, c/name/value AS name</span>
+<span class="comment"># FROM EHR e CONTAINS COMPOSITION c</span>
+<span class="comment"># WHERE e/ehr_id/value = :ehr_id</span></code></pre>
+
+      <h3>Complex Queries</h3>
+      <pre><code><span class="comment"># Query with observations and ordering</span>
+query = (
+    AQLBuilder()
+    .select(<span class="string">"c/context/start_time/value"</span>, alias=<span class="string">"time"</span>)
+    .select(<span class="string">"o/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value/magnitude"</span>,
+            alias=<span class="string">"systolic"</span>)
+    .from_ehr()
+    .contains_composition()
+    .contains_observation(archetype_id=<span class="string">"openEHR-EHR-OBSERVATION.blood_pressure.v1"</span>)
+    .where_ehr_id()
+    .order_by_time(descending=<span class="string">True</span>)
+    .limit(<span class="string">100</span>)
+    .build()
+)</code></pre>
+
+      <h2 id="data-types">Data Types Reference</h2>
+      <p>Complete list of available RM data types:</p>
+
+      <h3>Basic Types</h3>
+      <ul>
+        <li><code>DV_TEXT</code> - Plain text value</li>
+        <li><code>DV_CODED_TEXT</code> - Text with terminology code</li>
+        <li><code>DV_BOOLEAN</code> - Boolean value</li>
+        <li><code>DV_IDENTIFIER</code> - Unique identifier</li>
+        <li><code>DV_URI</code> - URI reference</li>
+        <li><code>DV_EHR_URI</code> - EHR-specific URI</li>
+      </ul>
+
+      <h3>Quantitative Types</h3>
+      <ul>
+        <li><code>DV_QUANTITY</code> - Quantity with units and magnitude</li>
+        <li><code>DV_COUNT</code> - Integer count</li>
+        <li><code>DV_PROPORTION</code> - Ratio or percentage</li>
+        <li><code>DV_ORDINAL</code> - Ordered value (e.g., severity scale)</li>
+        <li><code>DV_SCALE</code> - Scale/score with decimal values <em>(new in RM 1.1.0)</em></li>
+      </ul>
+
+      <h4>Using DV_SCALE (RM 1.1.0)</h4>
+      <pre><code><span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_SCALE, DV_CODED_TEXT, CODE_PHRASE, TERMINOLOGY_ID
+
+<span class="comment"># Pain scale with decimal value</span>
+pain_scale = DV_SCALE(
+    value=<span class="string">7.5</span>,  <span class="comment"># Decimal scale value</span>
+    symbol=DV_CODED_TEXT(
+        value=<span class="string">"Severe pain"</span>,
+        defining_code=CODE_PHRASE(
+            terminology_id=TERMINOLOGY_ID(value=<span class="string">"local"</span>),
+            code_string=<span class="string">"at0075"</span>,
+            preferred_term=<span class="string">"Severe"</span>  <span class="comment"># New in RM 1.1.0</span>
+        )
+    )
+)</code></pre>
+
+      <h3>Temporal Types</h3>
+      <ul>
+        <li><code>DV_DATE_TIME</code> - Date and time</li>
+        <li><code>DV_DATE</code> - Date only</li>
+        <li><code>DV_TIME</code> - Time only</li>
+        <li><code>DV_DURATION</code> - Time duration (ISO 8601)</li>
+      </ul>
+
+      <h3>Complex Types</h3>
+      <ul>
+        <li><code>DV_MULTIMEDIA</code> - Media content (images, video, etc.)</li>
+        <li><code>DV_PARSABLE</code> - Parsable text in specific format</li>
+      </ul>
+
+      <h2 id="validation">Validation</h2>
+      <p>oehrpy uses Pydantic v2 for comprehensive validation.</p>
+
+      <h3>Automatic Validation</h3>
+      <pre><code><span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_QUANTITY
+
+<span class="keyword">try</span>:
+    <span class="comment"># This will raise a validation error</span>
+    invalid = DV_QUANTITY(
+        magnitude=<span class="string">"not a number"</span>,  <span class="comment"># Should be float</span>
+        units=<span class="string">"mm[Hg]"</span>
+    )
+<span class="keyword">except</span> ValidationError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(e)</code></pre>
+
+      <h3>Custom Validation</h3>
+      <p>All RM classes support Pydantic's validation features:</p>
+      <pre><code><span class="keyword">from</span> pydantic <span class="keyword">import</span> ValidationError
+
+<span class="comment"># Validate required fields</span>
+<span class="keyword">try</span>:
+    text = DV_TEXT()  <span class="comment"># Missing required 'value' field</span>
+<span class="keyword">except</span> ValidationError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(e.errors())</code></pre>
+
+      <h2 id="type-safety">Type Safety</h2>
+      <p>Full type hints enable IDE autocomplete and static type checking.</p>
+
+      <h3>Using mypy</h3>
+      <pre><code><span class="comment"># Type checking with mypy</span>
+<span class="keyword">from</span> openehr_sdk.rm <span class="keyword">import</span> DV_TEXT, DV_QUANTITY
+
+text: DV_TEXT = DV_TEXT(value=<span class="string">"example"</span>)  <span class="comment"># OK</span>
+quantity: DV_QUANTITY = DV_TEXT(value=<span class="string">"wrong"</span>)  <span class="comment"># mypy error</span></code></pre>
+
+      <h3>IDE Support</h3>
+      <p>Modern IDEs like VS Code, PyCharm, and others provide full autocomplete:</p>
+      <ul>
+        <li>Field names and types</li>
+        <li>Method signatures</li>
+        <li>Constructor parameters</li>
+        <li>Return types</li>
+      </ul>
+
+      <h2 id="development">Development</h2>
+      <p>Information for contributors and developers.</p>
+
+      <h3>Setup Development Environment</h3>
+      <pre><code><span class="comment"># Clone repository</span>
+git clone https://github.com/platzhersh/oehrpy.git
+cd oehrpy
+
+<span class="comment"># Install with development dependencies</span>
+pip install -e <span class="string">".[dev,generator]"</span>
+
+<span class="comment"># Run tests</span>
+pytest tests/ -v
+
+<span class="comment"># Type checking</span>
+mypy src/openehr_sdk</code></pre>
+
+      <h3>Regenerating RM Classes</h3>
+      <p>The RM classes are generated from openEHR JSON Schema specifications (RM 1.1.0):</p>
+      <pre><code>python -m generator.generate_rm_1_1_0</code></pre>
+
+      <h3>Project Structure</h3>
+      <pre><code>oehrpy/
+├── src/openehr_sdk/       <span class="comment"># Main package</span>
+│   ├── rm/                <span class="comment"># Generated RM + BASE classes (134 types)</span>
+│   ├── serialization/     <span class="comment"># JSON serialization</span>
+│   ├── client/            <span class="comment"># EHRBase REST client</span>
+│   ├── templates/         <span class="comment"># Template builders</span>
+│   └── aql/               <span class="comment"># AQL query builder</span>
+├── generator/             <span class="comment"># Code generation tools</span>
+├── tests/                 <span class="comment"># Test suite</span>
+└── docs/                  <span class="comment"># Documentation</span></code></pre>
+
+      <div class="note">
+        <p><strong>Contributing:</strong> We welcome contributions! Check out the <a href="https://github.com/platzhersh/oehrpy" target="_blank">GitHub repository</a> for guidelines.</p>
+      </div>
+
+      <h3>Running Tests</h3>
+      <pre><code><span class="comment"># Run all tests</span>
+pytest
+
+<span class="comment"># Run with coverage</span>
+pytest --cov=openehr_sdk --cov-report=html
+
+<span class="comment"># Run specific test file</span>
+pytest tests/test_rm.py -v</code></pre>
+
+      <div class="warning">
+        <p><strong>Note:</strong> Some tests require a running EHRBase instance. Use the provided Docker Compose setup for integration tests.</p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+
+          // Update active link
+          document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.classList.remove('active');
+          });
+          this.classList.add('active');
+        }
+      });
+    });
+
+    // Highlight active section on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${id}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -80% 0px' });
+
+    document.querySelectorAll('h2[id], h3[id]').forEach(section => {
+      observer.observe(section);
+    });
+  </script>
+</body>
+</html>
