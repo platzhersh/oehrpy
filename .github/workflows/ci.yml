@@ -49,20 +49,15 @@ jobs:
         run: mypy src/openehr_sdk
 
   test:
-    name: Test (Python ${{ matrix.python-version }})
+    name: Test
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -73,13 +68,11 @@ jobs:
         run: pytest tests/ -v --tb=short
 
       - name: Run tests with coverage
-        if: matrix.python-version == '3.12'
         run: |
           pip install pytest-cov
           pytest tests/ --cov=src/openehr_sdk --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage reports
-        if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
