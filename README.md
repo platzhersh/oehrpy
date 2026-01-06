@@ -1,6 +1,6 @@
 # oehrpy - Python openEHR SDK
 
-> **Pronunciation:** "o-air-pie" — short for "openehrpy", where "ehr" is pronounced like "air" (as in openEHR).
+> **Pronunciation:** /oʊ.ɛər.paɪ/ ("o-air-pie") — short for "openehrpy", where "ehr" is pronounced like "air" (as in openEHR).
 
 A comprehensive Python SDK for openEHR that provides type-safe Reference Model classes, template-specific composition builders, EHRBase client, and AQL query builder.
 
