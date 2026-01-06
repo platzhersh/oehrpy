@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+from xml.etree.ElementTree import Element  # For type hints
 
 import defusedxml.ElementTree as ET
 
@@ -148,7 +149,7 @@ class OPTParser:
         root = ET.fromstring(xml_content)
         return self._parse_root(root)
 
-    def _parse_root(self, root: ET.Element) -> TemplateDefinition:
+    def _parse_root(self, root: Element) -> TemplateDefinition:
         """Parse the root element of an OPT file."""
         # Handle namespace prefixes
         self._detect_namespaces(root)
@@ -180,7 +181,7 @@ class OPTParser:
 
         return template
 
-    def _detect_namespaces(self, root: ET.Element) -> None:
+    def _detect_namespaces(self, root: Element) -> None:
         """Detect namespaces used in the document."""
         # Try to extract namespaces from the root element
         for key, _value in root.attrib.items():
@@ -189,7 +190,7 @@ class OPTParser:
                 if "openehr.org" in ns:
                     self._namespaces["opt"] = ns
 
-    def _get_text(self, element: ET.Element, xpath: str) -> str | None:
+    def _get_text(self, element: Element, xpath: str) -> str | None:
         """Get text content from xpath, trying with and without namespaces."""
         # Try with namespace
         child = element.find(xpath, self._namespaces)
@@ -203,7 +204,7 @@ class OPTParser:
 
         return None
 
-    def _parse_node(self, element: ET.Element, parent_path: str) -> ArchetypeNode | None:
+    def _parse_node(self, element: Element, parent_path: str) -> ArchetypeNode | None:
         """Parse an archetype node from an XML element."""
         node_id = self._get_text(element, "node_id") or ""
         archetype_id = self._get_text(element, "archetype_id/value") or ""
@@ -260,7 +261,7 @@ class OPTParser:
 
         return node
 
-    def _parse_constraints(self, element: ET.Element, path: str) -> list[ConstraintDefinition]:
+    def _parse_constraints(self, element: Element, path: str) -> list[ConstraintDefinition]:
         """Parse constraint definitions from an element."""
         constraints = []
 
@@ -283,7 +284,7 @@ class OPTParser:
 
         return constraints
 
-    def _get_term_text(self, element: ET.Element, node_id: str) -> str | None:
+    def _get_term_text(self, element: Element, node_id: str) -> str | None:
         """Get term text from ontology for a node ID."""
         # This is a simplified implementation - full implementation would
         # look up terms in the ontology section
