@@ -20,7 +20,6 @@ class ACCESS_GROUP_REF(BaseModel):
     type: str = Field(default="ACCESS_GROUP_REF", alias="_type")
     id: Optional[Any]
     namespace: str
-    type: str
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -435,7 +434,6 @@ class DV_IDENTIFIER(BaseModel):
     type: str = Field(default="DV_IDENTIFIER", alias="_type")
     issuer: Optional[str] = None
     id: str
-    type: Optional[str] = None
     assigner: Optional[str] = None
 
     model_config = ConfigDict(populate_by_name=True)
@@ -527,7 +525,6 @@ class DV_PROPORTION(BaseModel):
     accuracy_is_percent: Optional[bool] = None
     numerator: float
     denominator: float
-    type: int
     precision: Optional[int] = None
 
     model_config = ConfigDict(populate_by_name=True)
@@ -1227,7 +1224,6 @@ class LINK(BaseModel):
 
     type: str = Field(default="LINK", alias="_type")
     meaning: Optional[Any]
-    type: Optional[Any]
     target: Optional["DV_EHR_URI"]
 
     model_config = ConfigDict(populate_by_name=True)
@@ -1247,7 +1243,6 @@ class LOCATABLE_REF(BaseModel):
     type: str = Field(default="LOCATABLE_REF", alias="_type")
     id: Optional[Any]
     namespace: str
-    type: str
     path: Optional[str] = None
 
     model_config = ConfigDict(populate_by_name=True)
@@ -1271,7 +1266,6 @@ class OBJECT_REF(BaseModel):
     type: str = Field(default="OBJECT_REF", alias="_type")
     id: Optional[Any]
     namespace: str
-    type: str
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -1408,7 +1402,6 @@ class PARTY_REF(BaseModel):
     type: str = Field(default="PARTY_REF", alias="_type")
     id: Optional[Any]
     namespace: str
-    type: str
 
     model_config = ConfigDict(populate_by_name=True)
 

@@ -122,6 +122,8 @@ class SimpleRMGenerator:
         for prop_name, prop in definition.properties.items():
             if prop_name == "_type":
                 continue  # Already handled above
+            if prop_name == "type" and definition.type_field_value:
+                continue  # Skip duplicate type field when we have a type discriminator
 
             py_type = self._python_type_for_property(prop)
 

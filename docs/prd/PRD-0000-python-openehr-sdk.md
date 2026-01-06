@@ -1,7 +1,7 @@
 # PRD-0000: Python openEHR SDK Generation
 
 **Version:** 1.0
-**Date:** 2026-01-05
+**Date:** 2026-01-06
 **Status:** Draft
 **Owner:** Open CIS Project
 

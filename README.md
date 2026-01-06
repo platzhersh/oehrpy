@@ -24,7 +24,7 @@ pip install -e .
 
 ## Features
 
-- **Type-safe RM Classes**: 110+ Pydantic models for openEHR Reference Model 1.1.0 types
+- **Type-safe RM Classes**: 134 Pydantic models for openEHR Reference Model 1.1.0 types (includes BASE types)
 - **Template Builders**: Pre-built composition builders for common templates (Vital Signs)
 - **FLAT Format**: Full support for EHRBase FLAT format serialization
 - **Canonical JSON**: Convert RM objects to/from openEHR canonical JSON format
@@ -244,7 +244,7 @@ python -m generator.pydantic_generator
 ```text
 oehrpy/
 ├── src/openehr_sdk/       # Main package
-│   ├── rm/                # Generated RM classes (110+ types)
+│   ├── rm/                # Generated RM + BASE classes (134 types)
 │   ├── serialization/     # JSON serialization (canonical + FLAT)
 │   ├── client/            # EHRBase REST client
 │   ├── templates/         # Template builders (Vital Signs, etc.)

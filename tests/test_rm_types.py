@@ -115,15 +115,15 @@ class TestModelDump:
     """Tests for model serialization."""
 
     def test_dv_text_model_dump(self) -> None:
-        """Test DV_TEXT model_dump.
+        """Test DV_TEXT model_dump with canonical JSON format.
 
-        Note: RM 1.1.0 includes the _type discriminator field in dumps,
-        which is correct for openEHR JSON serialization.
+        Tests serialization using by_alias=True to produce openEHR canonical JSON
+        with _type discriminator field.
         """
         text = DV_TEXT(value="Test")
-        data = text.model_dump(exclude_none=True)
+        data = text.model_dump(by_alias=True, exclude_none=True)
 
-        assert data == {"type": "DV_TEXT", "value": "Test"}
+        assert data == {"_type": "DV_TEXT", "value": "Test"}
 
     def test_dv_quantity_model_dump(self) -> None:
         """Test DV_QUANTITY model_dump."""
