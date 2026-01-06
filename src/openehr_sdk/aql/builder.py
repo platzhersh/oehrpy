@@ -288,7 +288,7 @@ class AQLBuilder:
             self._from_clause = FromClause()
 
         if template_id:
-            containment = f"COMPOSITION {alias}[openEHR-EHR-COMPOSITION.encounter.v1]"
+            containment = f"COMPOSITION {alias}[{template_id}]"
         elif archetype_id:
             containment = f"COMPOSITION {alias}[archetype_id/value='{archetype_id}']"
         else:
