@@ -409,7 +409,13 @@ def generate_builder_from_opt(
     template = parse_opt(opt_path)
     generator = BuilderGenerator()
 
-    if output_path:
-        generator.generate_to_file(template, output_path, class_name)
+    # Generate once
+    code = generator.generate(template, class_name)
 
-    return generator.generate(template, class_name)
+    # Write to file if requested
+    if output_path:
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(code)
+
+    return code
