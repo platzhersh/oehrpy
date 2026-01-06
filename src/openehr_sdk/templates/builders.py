@@ -14,7 +14,7 @@ Example:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from ..serialization.flat import FlatBuilder, FlatContext
@@ -396,9 +396,17 @@ class VitalSignsBuilder(TemplateBuilder):
         return self
 
     def _format_time(self, time: datetime | str | None) -> str:
-        """Format time for FLAT format."""
+        """Format time for FLAT format.
+
+        Returns an ISO 8601 formatted string with timezone info.
+        If no time is provided, uses the current UTC time.
+        Naive datetimes are assumed to be UTC.
+        """
         if time is None:
-            time = datetime.now()
+            return datetime.now(timezone.utc).isoformat()
         if isinstance(time, datetime):
+            if time.tzinfo is None:
+                # Assume naive datetime is UTC
+                time = time.replace(tzinfo=timezone.utc)
             return time.isoformat()
         return time
