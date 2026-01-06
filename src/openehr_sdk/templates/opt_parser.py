@@ -169,9 +169,7 @@ class OPTParser:
         if definition is not None:
             template.archetype_id = self._get_text(definition, "archetype_id/value")
             xsi_type = "{{{}}}type".format(self._namespaces.get("xsi", ""))
-            template.rm_type = (
-                definition.get(xsi_type) or definition.get("type") or "COMPOSITION"
-            )
+            template.rm_type = definition.get(xsi_type) or definition.get("type") or "COMPOSITION"
             template.rm_type = template.rm_type.split(":")[-1]  # Remove namespace prefix
 
             template.root = self._parse_node(definition, "/")
@@ -209,8 +207,11 @@ class OPTParser:
         archetype_id = self._get_text(element, "archetype_id/value") or ""
 
         # Get RM type from xsi:type attribute
-        rm_type = element.get("{{{}}}type".format(self._namespaces.get("xsi", ""))) or \
-                  element.get("type") or ""
+        rm_type = (
+            element.get("{{{}}}type".format(self._namespaces.get("xsi", "")))
+            or element.get("type")
+            or ""
+        )
         rm_type = rm_type.split(":")[-1]  # Remove namespace prefix like "opt:C_ARCHETYPE_ROOT"
 
         # Map constraint types to RM types
@@ -245,9 +246,7 @@ class OPTParser:
         for attr in attrs:
             attr_name = self._get_text(attr, "rm_attribute_name") or ""
 
-            children = attr.findall(".//children", self._namespaces) or attr.findall(
-                ".//children"
-            )
+            children = attr.findall(".//children", self._namespaces) or attr.findall(".//children")
             for child in children:
                 child_node = self._parse_node(child, f"{path}/{attr_name}")
                 if child_node:

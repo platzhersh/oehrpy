@@ -1,6 +1,5 @@
 """Tests for AQL query builder."""
 
-
 from openehr_sdk.aql import AQLBuilder
 
 
@@ -47,11 +46,7 @@ class TestAQLBuilder:
     def test_select_count(self) -> None:
         """Test COUNT aggregate."""
         query = (
-            AQLBuilder()
-            .select_count("c", alias="total")
-            .from_ehr()
-            .contains_composition()
-            .build()
+            AQLBuilder().select_count("c", alias="total").from_ehr().contains_composition().build()
         )
         sql = query.to_string()
 
@@ -89,14 +84,7 @@ class TestAQLBuilder:
 
     def test_where_ehr_id(self) -> None:
         """Test WHERE for EHR ID."""
-        query = (
-            AQLBuilder()
-            .select("c")
-            .from_ehr()
-            .contains_composition()
-            .where_ehr_id()
-            .build()
-        )
+        query = AQLBuilder().select("c").from_ehr().contains_composition().where_ehr_id().build()
         sql = query.to_string()
 
         assert "e/ehr_id/value = :ehr_id" in sql
@@ -131,14 +119,7 @@ class TestAQLBuilder:
 
     def test_limit(self) -> None:
         """Test LIMIT clause."""
-        query = (
-            AQLBuilder()
-            .select("c")
-            .from_ehr()
-            .contains_composition()
-            .limit(10)
-            .build()
-        )
+        query = AQLBuilder().select("c").from_ehr().contains_composition().limit(10).build()
         sql = query.to_string()
 
         assert "LIMIT 10" in sql
@@ -146,13 +127,7 @@ class TestAQLBuilder:
     def test_offset(self) -> None:
         """Test OFFSET clause."""
         query = (
-            AQLBuilder()
-            .select("c")
-            .from_ehr()
-            .contains_composition()
-            .limit(10)
-            .offset(20)
-            .build()
+            AQLBuilder().select("c").from_ehr().contains_composition().limit(10).offset(20).build()
         )
         sql = query.to_string()
 

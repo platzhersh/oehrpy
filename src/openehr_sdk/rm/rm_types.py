@@ -1489,5 +1489,3 @@ class RESOURCE_DESCRIPTION_ITEM(BaseModel):
     copyright: str | None = Field(default=None)
     original_resource_uri: list[Any] | None = Field(default=None)
     other_details: Any
-
-

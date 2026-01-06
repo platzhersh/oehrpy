@@ -1,6 +1,5 @@
 """Tests for FLAT format serialization."""
 
-
 from openehr_sdk.serialization.flat import (
     FlatBuilder,
     FlatContext,

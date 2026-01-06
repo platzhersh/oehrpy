@@ -391,9 +391,7 @@ class AQLBuilder:
         Returns:
             Self for method chaining.
         """
-        self.where(
-            f"{composition_alias}/archetype_details/template_id/value = :{param_name}"
-        )
+        self.where(f"{composition_alias}/archetype_details/template_id/value = :{param_name}")
         if template_id:
             self._parameters[param_name] = template_id
         return self

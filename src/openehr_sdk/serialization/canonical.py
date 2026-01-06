@@ -176,9 +176,7 @@ def from_canonical(
 
     # Validate expected_type if provided
     if expected_type and not issubclass(cls, expected_type):
-        raise ValueError(
-            f"Type mismatch: expected {expected_type.__name__}, got {type_name}"
-        )
+        raise ValueError(f"Type mismatch: expected {expected_type.__name__}, got {type_name}")
 
     # Remove _type field from data before validation
     clean_data = {k: v for k, v in data.items() if k != "_type"}
