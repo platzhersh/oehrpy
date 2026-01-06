@@ -386,21 +386,27 @@ class AQLBuilder:
         path: str,
         start: str | None = None,
         end: str | None = None,
+        start_param: str = "start_time",
+        end_param: str = "end_time",
     ) -> "AQLBuilder":
         """Add WHERE conditions for a time range.
 
         Args:
             path: Path to the datetime field.
-            start: Start time (ISO format).
-            end: End time (ISO format).
+            start: Start time (ISO format). If provided, registers as parameter.
+            end: End time (ISO format). If provided, registers as parameter.
+            start_param: Parameter name for start time.
+            end_param: Parameter name for end time.
 
         Returns:
             Self for method chaining.
         """
         if start:
-            self.where(f"{path} >= '{start}'")
+            self.where(f"{path} >= :{start_param}")
+            self._parameters[start_param] = start
         if end:
-            self.where(f"{path} <= '{end}'")
+            self.where(f"{path} <= :{end_param}")
+            self._parameters[end_param] = end
         return self
 
     def order_by(
