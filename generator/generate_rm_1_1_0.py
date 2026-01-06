@@ -65,7 +65,9 @@ class SimpleRMGenerator:
         self.definitions.update(base_parser.get_all_definitions())
         self.definitions.update(rm_parser.get_all_definitions())
 
-        print(f"Total definitions loaded: {len(self.definitions)} ({len(base_parser.definitions)} BASE + {len(rm_parser.definitions)} RM)")
+        print(
+            f"Total definitions loaded: {len(self.definitions)} ({len(base_parser.definitions)} BASE + {len(rm_parser.definitions)} RM)"
+        )
 
     def _python_type_for_property(self, prop: SchemaProperty) -> str:
         """Get Python type annotation for a property."""
@@ -112,7 +114,9 @@ class SimpleRMGenerator:
 
         # Special handling for _type field
         if definition.type_field_value:
-            f.write(f'    type: str = Field(default="{definition.type_field_value}", alias="_type")\n')
+            f.write(
+                f'    type: str = Field(default="{definition.type_field_value}", alias="_type")\n'
+            )
 
         # Write properties
         if not definition.properties:
@@ -174,7 +178,9 @@ class SimpleRMGenerator:
             f.write("_module = _sys.modules[__name__]\n")
             f.write("for _name in dir(_module):\n")
             f.write("    _obj = getattr(_module, _name)\n")
-            f.write("    if isinstance(_obj, type) and issubclass(_obj, BaseModel) and _obj is not BaseModel:\n")
+            f.write(
+                "    if isinstance(_obj, type) and issubclass(_obj, BaseModel) and _obj is not BaseModel:\n"
+            )
             f.write("        try:\n")
             f.write("            _obj.model_rebuild()\n")
             f.write("        except Exception:\n")
@@ -188,9 +194,9 @@ def main():
     generator = SimpleRMGenerator()
 
     output_file = Path("src/openehr_sdk/rm/rm_types.py")
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Generating RM 1.1.0 + BASE types")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Output: {output_file}")
 
     generator.generate(output_file)
