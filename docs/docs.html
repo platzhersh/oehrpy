@@ -18,6 +18,7 @@
       background: #1a1a2e;
       color: #f3f4f6;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     /* Header */
@@ -225,6 +226,88 @@
       }
       .content {
         padding: 40px 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 16px 20px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      nav {
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      nav a:first-child:not(.github-link) {
+        display: none;
+      }
+      nav a:not(.github-link) {
+        font-size: 14px;
+      }
+      .github-link {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
+      .github-link span {
+        display: none;
+      }
+      .content {
+        padding: 24px 16px;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      .content h1 {
+        font-size: 1.75rem;
+      }
+      .content h2 {
+        font-size: 1.5rem;
+        margin-top: 40px;
+      }
+      .content h3 {
+        font-size: 1.25rem;
+      }
+      .content pre {
+        padding: 16px;
+        font-size: 0.8rem;
+        max-width: 100%;
+      }
+      .content pre code {
+        font-size: 0.8rem;
+      }
+      .docs-container {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 12px 16px;
+      }
+      nav {
+        gap: 12px;
+      }
+      .logo-header span {
+        font-size: 20px;
+      }
+      .content {
+        padding: 20px 12px;
+      }
+      .content h1 {
+        font-size: 1.5rem;
+      }
+      .content pre {
+        padding: 12px;
+        margin-left: -12px;
+        margin-right: -12px;
+        border-radius: 0;
+      }
+      .note, .warning {
+        padding: 12px;
+        margin-left: -12px;
+        margin-right: -12px;
+        border-radius: 0;
       }
     }
 
