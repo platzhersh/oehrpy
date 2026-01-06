@@ -26,6 +26,7 @@ pip install -e .
 
 - **Type-safe RM Classes**: 134 Pydantic models for openEHR Reference Model 1.1.0 types (includes BASE types)
 - **Template Builders**: Pre-built composition builders for common templates (Vital Signs)
+- **OPT Parser & Generator**: Parse OPT files and auto-generate type-safe builder classes
 - **FLAT Format**: Full support for EHRBase FLAT format serialization
 - **Canonical JSON**: Convert RM objects to/from openEHR canonical JSON format
 - **EHRBase Client**: Async REST client for EHRBase CDR operations
@@ -84,6 +85,36 @@ flat_data = builder.build()
 #   ...
 # }
 ```
+
+### Generate Builders from OPT Files
+
+Automatically generate template-specific builder classes from OPT (Operational Template) files:
+
+```python
+from openehr_sdk.templates import generate_builder_from_opt, parse_opt
+
+# Parse an OPT file
+template = parse_opt("path/to/your-template.opt")
+print(f"Template: {template.template_id}")
+print(f"Observations: {len(template.list_observations())}")
+
+# Generate Python builder code
+code = generate_builder_from_opt("path/to/your-template.opt")
+print(code)  # Full Python class ready to use
+
+# Or save directly to a file
+from openehr_sdk.templates import BuilderGenerator
+
+generator = BuilderGenerator()
+generator.generate_to_file(template, "my_template_builder.py")
+```
+
+**Command-line tool:**
+```bash
+python examples/generate_builder_from_opt.py path/to/template.opt
+```
+
+This eliminates the need to manually code builders - just provide your OPT file and get a fully type-safe builder class with methods for each observation type.
 
 ### Canonical JSON Serialization
 
