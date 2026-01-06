@@ -73,10 +73,10 @@ class BuilderGenerator:
         class_def = self._generate_class_definition(template, class_name)
         methods = self._generate_methods()
 
-        return f'''{imports}
+        return f"""{imports}
 
 {class_def}
-{methods}'''
+{methods}"""
 
     def generate_to_file(
         self, template: TemplateDefinition, output_path: Path | str, class_name: str | None = None
@@ -310,7 +310,7 @@ class {class_name}(TemplateBuilder):
 
         # Set time
         lines.append("        # Set time")
-        lines.append('        time_str = self._format_time(time)')
+        lines.append("        time_str = self._format_time(time)")
         lines.append('        self._flat.set(f"{prefix}/time", time_str)')
         lines.append("")
 
@@ -323,7 +323,7 @@ class {class_name}(TemplateBuilder):
                 # Default unit based on common patterns
                 unit = self._guess_unit(elem.name)
                 quantity_call = (
-                    f'        self._flat.set_quantity('
+                    f"        self._flat.set_quantity("
                     f'f"{{{{prefix}}}}/{elem_path}", {elem_name}, "{unit}")'
                 )
                 lines.append(quantity_call)

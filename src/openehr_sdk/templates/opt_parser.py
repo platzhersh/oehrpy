@@ -273,12 +273,12 @@ class OPTParser:
         # Parse child attributes
         attrs_with_ns = element.findall("opt:attributes", self._namespaces)
         attrs_without_ns = element.findall("attributes") if not attrs_with_ns else []
-        for attr in (attrs_with_ns or attrs_without_ns):
+        for attr in attrs_with_ns or attrs_without_ns:
             attr_name = self._get_text(attr, "rm_attribute_name") or ""
 
             children_with_ns = attr.findall("opt:children", self._namespaces)
             children_without_ns = attr.findall("children") if not children_with_ns else []
-            for child in (children_with_ns or children_without_ns):
+            for child in children_with_ns or children_without_ns:
                 child_node = self._parse_node(child, f"{path}/{attr_name}")
                 if child_node:
                     node.children.append(child_node)

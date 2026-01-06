@@ -67,7 +67,7 @@ def main() -> None:
     output_path = opt_path.stem + "_builder.py"
     save = input(f"\nSave to {output_path}? (y/N): ").strip().lower()
 
-    if save == 'y':
+    if save == "y":
         generator.generate_to_file(template, output_path)
         print(f"✓ Builder saved to: {output_path}")
         print("\nYou can now use it like this:")
