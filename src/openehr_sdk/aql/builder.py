@@ -388,19 +388,18 @@ class AQLBuilder:
 
         Args:
             composition_alias: Alias for the composition.
-            template_id: The template ID value.
-            param_name: Parameter name if using parameterized query.
+            template_id: The template ID value (registered as parameter if provided).
+            param_name: Parameter name for the template ID.
 
         Returns:
             Self for method chaining.
         """
-        if template_id:
-            return self.where(
-                f"{composition_alias}/archetype_details/template_id/value = '{template_id}'"
-            )
-        return self.where(
+        self.where(
             f"{composition_alias}/archetype_details/template_id/value = :{param_name}"
         )
+        if template_id:
+            self._parameters[param_name] = template_id
+        return self
 
     def where_time_range(
         self,
