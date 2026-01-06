@@ -34,12 +34,13 @@ class FlatPath:
     attribute: str | None = None
 
     @classmethod
-    def parse(cls, path: str) -> "FlatPath":
+    def parse(cls, path: str) -> FlatPath:
         """Parse a FLAT format path string.
 
         Examples:
             - "ctx/language" -> FlatPath(["ctx", "language"])
-            - "vital_signs/bp:0/systolic|magnitude" -> FlatPath(["vital_signs", "bp", "systolic"], 0, "magnitude")
+            - "vital_signs/bp:0/systolic|magnitude" ->
+              FlatPath(["vital_signs", "bp", "systolic"], 0, "magnitude")
         """
         result = cls()
 
@@ -135,7 +136,7 @@ class FlatContext:
         return result
 
     @classmethod
-    def from_flat(cls, data: dict[str, Any]) -> "FlatContext":
+    def from_flat(cls, data: dict[str, Any]) -> FlatContext:
         """Create context from FLAT format data."""
         return cls(
             language=data.get("ctx/language", "en"),
@@ -203,7 +204,7 @@ def unflatten_dict(data: dict[str, Any]) -> dict[str, Any]:
         parts = path.replace("|", "/").split("/")
         current = result
 
-        for i, part in enumerate(parts[:-1]):
+        for _i, part in enumerate(parts[:-1]):
             # Check for index notation
             match = re.match(r"^(.+):(\d+)$", part)
             if match:
@@ -258,7 +259,7 @@ class FlatBuilder:
         territory: str = "US",
         composer_name: str | None = None,
         **kwargs: Any,
-    ) -> "FlatBuilder":
+    ) -> FlatBuilder:
         """Set context fields."""
         self._context.language = language
         self._context.territory = territory
@@ -269,7 +270,7 @@ class FlatBuilder:
                 setattr(self._context, key, value)
         return self
 
-    def set(self, path: str, value: Any) -> "FlatBuilder":
+    def set(self, path: str, value: Any) -> FlatBuilder:
         """Set a value at the given FLAT path."""
         self._data[path] = value
         return self
@@ -280,7 +281,7 @@ class FlatBuilder:
         magnitude: float,
         unit: str,
         precision: int | None = None,
-    ) -> "FlatBuilder":
+    ) -> FlatBuilder:
         """Set a DV_QUANTITY at the given path."""
         self._data[f"{path}|magnitude"] = magnitude
         self._data[f"{path}|unit"] = unit
@@ -294,19 +295,19 @@ class FlatBuilder:
         value: str,
         code: str,
         terminology: str = "local",
-    ) -> "FlatBuilder":
+    ) -> FlatBuilder:
         """Set a DV_CODED_TEXT at the given path."""
         self._data[f"{path}|value"] = value
         self._data[f"{path}|code"] = code
         self._data[f"{path}|terminology"] = terminology
         return self
 
-    def set_text(self, path: str, value: str) -> "FlatBuilder":
+    def set_text(self, path: str, value: str) -> FlatBuilder:
         """Set a DV_TEXT at the given path."""
         self._data[path] = value
         return self
 
-    def set_datetime(self, path: str, value: str) -> "FlatBuilder":
+    def set_datetime(self, path: str, value: str) -> FlatBuilder:
         """Set a DV_DATE_TIME at the given path."""
         self._data[path] = value
         return self

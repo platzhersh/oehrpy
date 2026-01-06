@@ -191,7 +191,7 @@ def from_canonical(
 
 def _process_nested_types(data: dict[str, Any]) -> None:
     """Recursively remove _type fields from nested data."""
-    for key, value in data.items():
+    for _key, value in data.items():
         if isinstance(value, dict):
             # Remove _type and recurse
             if "_type" in value:

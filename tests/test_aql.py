@@ -1,8 +1,7 @@
 """Tests for AQL query builder."""
 
-import pytest
 
-from openehr_sdk.aql import AQLBuilder, AQLQuery
+from openehr_sdk.aql import AQLBuilder
 
 
 class TestAQLBuilder:

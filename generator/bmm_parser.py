@@ -267,7 +267,15 @@ def load_rm_schema(bmm_path: Path | None = None) -> BmmSchema:
     """
     if bmm_path is None:
         # Use bundled BMM files
-        bmm_path = Path(__file__).parent / "bmm" / "specifications-ITS-BMM" / "components" / "RM" / "Release-1.0.4" / "json"
+        bmm_path = (
+            Path(__file__).parent
+            / "bmm"
+            / "specifications-ITS-BMM"
+            / "components"
+            / "RM"
+            / "Release-1.0.4"
+            / "json"
+        )
 
     parser = BmmParser()
 
@@ -289,4 +297,5 @@ if __name__ == "__main__":
     for name in ["DV_QUANTITY", "COMPOSITION", "OBSERVATION", "LOCATABLE"]:
         cls = schema.get_class(name)
         if cls:
-            print(f"  {name}: ancestors={cls.ancestors}, props={list(cls.properties.keys())[:5]}...")
+            props = list(cls.properties.keys())[:5]
+            print(f"  {name}: ancestors={cls.ancestors}, props={props}...")

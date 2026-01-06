@@ -1,7 +1,5 @@
 """Tests for template builders."""
 
-import pytest
-from datetime import datetime
 
 from openehr_sdk.templates import VitalSignsBuilder
 

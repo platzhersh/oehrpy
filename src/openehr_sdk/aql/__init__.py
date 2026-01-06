@@ -24,10 +24,10 @@ Example:
 from .builder import (
     AQLBuilder,
     AQLQuery,
-    SelectClause,
     FromClause,
-    WhereClause,
     OrderByClause,
+    SelectClause,
+    WhereClause,
 )
 
 __all__ = [

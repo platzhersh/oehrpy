@@ -7,13 +7,12 @@ This module generates Pydantic v2 model classes from parsed BMM schemas.
 from __future__ import annotations
 
 import keyword
-import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TextIO
 
-from .bmm_parser import BmmClass, BmmParser, BmmProperty, BmmSchema, BmmTypeRef
+from .bmm_parser import BmmClass, BmmProperty, BmmSchema, BmmTypeRef
 
 
 @dataclass
@@ -168,7 +167,8 @@ class PydanticGenerator:
 
     def _write_module_header(self, f: TextIO, module_name: str) -> None:
         """Write module docstring and future imports."""
-        f.write(f'"""\nopenEHR Reference Model - {module_name.replace("_", " ").title()} classes.\n\n')
+        module_title = module_name.replace("_", " ").title()
+        f.write(f'"""\nopenEHR Reference Model - {module_title} classes.\n\n')
         f.write("Auto-generated from openEHR BMM specifications.\n")
         f.write("Do not edit manually.\n")
         f.write('"""\n\n')
@@ -393,7 +393,10 @@ class PydanticGenerator:
 
         with open(init_path, "w") as f:
             f.write('"""\nopenEHR Reference Model (RM) 1.0.4 type definitions.\n\n')
-            f.write("This module contains Pydantic models for all openEHR Reference Model classes,\n")
+            f.write(
+                "This module contains Pydantic models for all openEHR "
+                "Reference Model classes,\n"
+            )
             f.write("generated from the official BMM specifications.\n")
             f.write('"""\n\n')
 

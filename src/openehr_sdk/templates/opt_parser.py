@@ -18,8 +18,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-import defusedxml.ElementTree as ET
 
+import defusedxml.ElementTree as ET
 
 # OPT XML Namespaces
 NAMESPACES = {
@@ -67,10 +67,10 @@ class ArchetypeNode:
     rm_type: str
     name: str
     path: str
-    children: list["ArchetypeNode"] = field(default_factory=list)
+    children: list[ArchetypeNode] = field(default_factory=list)
     constraints: list[ConstraintDefinition] = field(default_factory=list)
 
-    def find_node(self, node_id: str) -> "ArchetypeNode | None":
+    def find_node(self, node_id: str) -> ArchetypeNode | None:
         """Find a child node by ID."""
         for child in self.children:
             if child.node_id == node_id:
@@ -168,8 +168,10 @@ class OPTParser:
 
         if definition is not None:
             template.archetype_id = self._get_text(definition, "archetype_id/value")
-            template.rm_type = definition.get("{{{}}}type".format(self._namespaces.get("xsi", ""))) or \
-                              definition.get("type") or "COMPOSITION"
+            xsi_type = "{{{}}}type".format(self._namespaces.get("xsi", ""))
+            template.rm_type = (
+                definition.get(xsi_type) or definition.get("type") or "COMPOSITION"
+            )
             template.rm_type = template.rm_type.split(":")[-1]  # Remove namespace prefix
 
             template.root = self._parse_node(definition, "/")
@@ -181,7 +183,7 @@ class OPTParser:
     def _detect_namespaces(self, root: ET.Element) -> None:
         """Detect namespaces used in the document."""
         # Try to extract namespaces from the root element
-        for key, value in root.attrib.items():
+        for key, _value in root.attrib.items():
             if key.startswith("{"):
                 ns = key[1:].split("}")[0]
                 if "openehr.org" in ns:
@@ -220,7 +222,11 @@ class OPTParser:
             rm_type = rm_type_map[rm_type]
 
         # Get name from ontology or term_definitions
-        name = self._get_text(element, "name/value") or self._get_term_text(element, node_id) or node_id
+        name = (
+            self._get_text(element, "name/value")
+            or self._get_term_text(element, node_id)
+            or node_id
+        )
 
         path = f"{parent_path}/{node_id}" if node_id else parent_path
 
@@ -233,10 +239,16 @@ class OPTParser:
         )
 
         # Parse child attributes
-        for attr in element.findall(".//attributes", self._namespaces) or element.findall(".//attributes"):
+        attrs = element.findall(".//attributes", self._namespaces) or element.findall(
+            ".//attributes"
+        )
+        for attr in attrs:
             attr_name = self._get_text(attr, "rm_attribute_name") or ""
 
-            for child in attr.findall(".//children", self._namespaces) or attr.findall(".//children"):
+            children = attr.findall(".//children", self._namespaces) or attr.findall(
+                ".//children"
+            )
+            for child in children:
                 child_node = self._parse_node(child, f"{path}/{attr_name}")
                 if child_node:
                     node.children.append(child_node)

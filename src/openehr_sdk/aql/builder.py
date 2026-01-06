@@ -45,10 +45,7 @@ class SelectClause:
 
     def to_string(self) -> str:
         """Convert to AQL string."""
-        if self.aggregate:
-            expr = f"{self.aggregate}({self.path})"
-        else:
-            expr = self.path
+        expr = f"{self.aggregate}({self.path})" if self.aggregate else self.path
 
         if self.alias:
             return f"{expr} AS {self.alias}"
@@ -157,7 +154,7 @@ class AQLQuery:
     def __str__(self) -> str:
         return self.to_string()
 
-    def with_parameters(self, **params: Any) -> "AQLQuery":
+    def with_parameters(self, **params: Any) -> AQLQuery:
         """Return a new query with additional parameters."""
         new_params = {**self.parameters, **params}
         return AQLQuery(
@@ -202,7 +199,7 @@ class AQLBuilder:
         path: str,
         alias: str | None = None,
         aggregate: str | None = None,
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add a SELECT clause item.
 
         Args:
@@ -216,15 +213,15 @@ class AQLBuilder:
         self._select_clauses.append(SelectClause(path, alias, aggregate))
         return self
 
-    def select_count(self, path: str = "*", alias: str | None = None) -> "AQLBuilder":
+    def select_count(self, path: str = "*", alias: str | None = None) -> AQLBuilder:
         """Add a COUNT aggregate."""
         return self.select(path, alias, "COUNT")
 
-    def select_max(self, path: str, alias: str | None = None) -> "AQLBuilder":
+    def select_max(self, path: str, alias: str | None = None) -> AQLBuilder:
         """Add a MAX aggregate."""
         return self.select(path, alias, "MAX")
 
-    def select_min(self, path: str, alias: str | None = None) -> "AQLBuilder":
+    def select_min(self, path: str, alias: str | None = None) -> AQLBuilder:
         """Add a MIN aggregate."""
         return self.select(path, alias, "MIN")
 
@@ -233,7 +230,7 @@ class AQLBuilder:
         alias: str = "e",
         ehr_id: str | None = None,
         ehr_id_param: str = "ehr_id_from",
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Set the FROM EHR clause.
 
         Args:
@@ -256,7 +253,7 @@ class AQLBuilder:
         rm_type: str,
         alias: str,
         archetype_id: str | None = None,
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add a CONTAINS clause.
 
         Args:
@@ -286,7 +283,7 @@ class AQLBuilder:
         template_id: str | None = None,
         archetype_id: str | None = None,
         template_id_param: str = "template_id",
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add a CONTAINS COMPOSITION clause.
 
         Args:
@@ -322,7 +319,7 @@ class AQLBuilder:
         self,
         alias: str = "o",
         archetype_id: str | None = None,
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add a CONTAINS OBSERVATION clause."""
         return self.contains("OBSERVATION", alias, archetype_id)
 
@@ -330,7 +327,7 @@ class AQLBuilder:
         self,
         alias: str = "e",
         archetype_id: str | None = None,
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add a CONTAINS EVALUATION clause."""
         return self.contains("EVALUATION", alias, archetype_id)
 
@@ -338,7 +335,7 @@ class AQLBuilder:
         self,
         alias: str = "i",
         archetype_id: str | None = None,
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add a CONTAINS INSTRUCTION clause."""
         return self.contains("INSTRUCTION", alias, archetype_id)
 
@@ -346,11 +343,11 @@ class AQLBuilder:
         self,
         alias: str = "a",
         archetype_id: str | None = None,
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add a CONTAINS ACTION clause."""
         return self.contains("ACTION", alias, archetype_id)
 
-    def where(self, condition: str) -> "AQLBuilder":
+    def where(self, condition: str) -> AQLBuilder:
         """Add a WHERE condition.
 
         Args:
@@ -362,11 +359,11 @@ class AQLBuilder:
         self._where_clause.add(condition)
         return self
 
-    def and_where(self, condition: str) -> "AQLBuilder":
+    def and_where(self, condition: str) -> AQLBuilder:
         """Add an AND condition."""
         return self.where(condition)
 
-    def where_ehr_id(self, ehr_alias: str = "e", param_name: str = "ehr_id") -> "AQLBuilder":
+    def where_ehr_id(self, ehr_alias: str = "e", param_name: str = "ehr_id") -> AQLBuilder:
         """Add a WHERE condition for EHR ID.
 
         Args:
@@ -383,7 +380,7 @@ class AQLBuilder:
         composition_alias: str = "c",
         template_id: str | None = None,
         param_name: str = "template_id",
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add a WHERE condition for template ID.
 
         Args:
@@ -408,7 +405,7 @@ class AQLBuilder:
         end: str | None = None,
         start_param: str = "start_time",
         end_param: str = "end_time",
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add WHERE conditions for a time range.
 
         Args:
@@ -433,7 +430,7 @@ class AQLBuilder:
         self,
         path: str,
         descending: bool = False,
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add an ORDER BY clause.
 
         Args:
@@ -451,11 +448,11 @@ class AQLBuilder:
         self,
         path: str = "c/context/start_time/value",
         descending: bool = True,
-    ) -> "AQLBuilder":
+    ) -> AQLBuilder:
         """Add ORDER BY for a time field (newest first by default)."""
         return self.order_by(path, descending)
 
-    def limit(self, count: int) -> "AQLBuilder":
+    def limit(self, count: int) -> AQLBuilder:
         """Set the LIMIT.
 
         Args:
@@ -467,7 +464,7 @@ class AQLBuilder:
         self._limit = count
         return self
 
-    def offset(self, count: int) -> "AQLBuilder":
+    def offset(self, count: int) -> AQLBuilder:
         """Set the OFFSET.
 
         Args:
@@ -479,7 +476,7 @@ class AQLBuilder:
         self._offset = count
         return self
 
-    def paginate(self, page: int, page_size: int) -> "AQLBuilder":
+    def paginate(self, page: int, page_size: int) -> AQLBuilder:
         """Set pagination.
 
         Args:
@@ -493,7 +490,7 @@ class AQLBuilder:
         self._offset = (page - 1) * page_size
         return self
 
-    def param(self, name: str, value: Any) -> "AQLBuilder":
+    def param(self, name: str, value: Any) -> AQLBuilder:
         """Set a query parameter.
 
         Args:
