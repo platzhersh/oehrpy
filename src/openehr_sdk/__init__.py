@@ -2,7 +2,7 @@
 oehrpy - A Python SDK for openEHR.
 
 This package provides:
-- Type-safe Pydantic models for all openEHR Reference Model 1.0.4 types
+- Type-safe Pydantic models for all openEHR Reference Model 1.1.0 types
 - Template-specific composition builders (e.g., Vital Signs)
 - Serialization support for canonical JSON and FLAT formats
 - Async REST client for EHRBase CDR
