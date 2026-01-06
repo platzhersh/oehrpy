@@ -191,12 +191,12 @@ class OPTParser:
         """Get text content from xpath, trying with and without namespaces."""
         # Try with namespace
         child = element.find(xpath, self._namespaces)
-        if child is not None and child.text:
+        if child is not None and child.text is not None:
             return child.text.strip()
 
         # Try without namespace
         child = element.find(xpath)
-        if child is not None and child.text:
+        if child is not None and child.text is not None:
             return child.text.strip()
 
         return None
