@@ -556,7 +556,8 @@ def select_compositions(
     )
 
     if ehr_id:
-        builder.where(f"e/ehr_id/value = '{ehr_id}'")
+        builder.where_ehr_id()
+        builder.param("ehr_id", ehr_id)
     if template_id:
         builder.where_template(template_id=template_id)
 
