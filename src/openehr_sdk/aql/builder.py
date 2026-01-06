@@ -60,7 +60,7 @@ class FromClause:
     """Represents a FROM clause with containments."""
 
     ehr_alias: str = "e"
-    ehr_id: str | None = None
+    ehr_id_param: str | None = None  # Parameter name for EHR ID (not the value)
     containments: list[str] = field(default_factory=list)
 
     def to_string(self) -> str:
@@ -68,8 +68,8 @@ class FromClause:
         parts = []
 
         # EHR clause
-        if self.ehr_id:
-            parts.append(f"EHR {self.ehr_alias}[ehr_id/value='{self.ehr_id}']")
+        if self.ehr_id_param:
+            parts.append(f"EHR {self.ehr_alias}[ehr_id/value=:{self.ehr_id_param}]")
         else:
             parts.append(f"EHR {self.ehr_alias}")
 
@@ -228,17 +228,27 @@ class AQLBuilder:
         """Add a MIN aggregate."""
         return self.select(path, alias, "MIN")
 
-    def from_ehr(self, alias: str = "e", ehr_id: str | None = None) -> "AQLBuilder":
+    def from_ehr(
+        self,
+        alias: str = "e",
+        ehr_id: str | None = None,
+        ehr_id_param: str = "ehr_id_from",
+    ) -> "AQLBuilder":
         """Set the FROM EHR clause.
 
         Args:
             alias: Alias for the EHR (default: "e").
-            ehr_id: Optional specific EHR ID to query.
+            ehr_id: Optional specific EHR ID to query (registered as parameter).
+            ehr_id_param: Parameter name for the EHR ID.
 
         Returns:
             Self for method chaining.
         """
-        self._from_clause = FromClause(ehr_alias=alias, ehr_id=ehr_id)
+        if ehr_id is not None:
+            self._from_clause = FromClause(ehr_alias=alias, ehr_id_param=ehr_id_param)
+            self._parameters[ehr_id_param] = ehr_id
+        else:
+            self._from_clause = FromClause(ehr_alias=alias)
         return self
 
     def contains(
