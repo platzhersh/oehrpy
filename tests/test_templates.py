@@ -250,3 +250,19 @@ class TestBuilderGenerator:
 
         assert "class CustomVitalsBuilder(TemplateBuilder):" in code
         assert "VitalSignsEncounterBuilder" not in code
+
+    def test_composition_name_derivation(self) -> None:
+        """Test that composition name is derived from template, not hardcoded."""
+        template = parse_opt(self.sample_opt_path)
+        generator = BuilderGenerator()
+
+        code = generator.generate(template)
+
+        # Should derive "vital_signs" from concept "Vital Signs Encounter"
+        assert 'prefix = f"vital_signs/blood_pressure' in code
+        assert 'prefix = f"vital_signs/pulse' in code
+
+        # Verify the method exists
+        assert hasattr(generator, "_derive_composition_name")
+        composition_name = generator._derive_composition_name()
+        assert composition_name == "vital_signs"

@@ -51,6 +51,7 @@ class BuilderGenerator:
     def __init__(self) -> None:
         """Initialize the builder generator."""
         self._observations: list[ObservationMetadata] = []
+        self._template: TemplateDefinition | None = None
 
     def generate(self, template: TemplateDefinition, class_name: str | None = None) -> str:
         """Generate a complete builder class from a template.
@@ -62,6 +63,9 @@ class BuilderGenerator:
         Returns:
             Python source code for the builder class.
         """
+        # Store template for use in path generation
+        self._template = template
+
         if class_name is None:
             class_name = self._derive_class_name(template.template_id)
 
@@ -164,12 +168,31 @@ class BuilderGenerator:
     def _build_flat_path(self, node: ArchetypeNode, short_name: str) -> str:
         """Build the FLAT format path prefix for an observation.
 
-        This is simplified and assumes a standard composition structure.
-        In a real implementation, this would analyze the full path.
+        Derives the composition name from the template to build correct paths.
         """
+        # Derive composition name from template
+        composition_name = self._derive_composition_name()
+
         # Standard pattern: "composition_name/observation_name"
-        # For vital signs: "vital_signs/blood_pressure"
-        return f"vital_signs/{short_name}"
+        return f"{composition_name}/{short_name}"
+
+    def _derive_composition_name(self) -> str:
+        """Derive the composition name from the template.
+
+        Uses the template concept or template_id to create a snake_case name.
+        """
+        if not self._template:
+            return "composition"
+
+        # Use concept if available, otherwise template_id
+        name = self._template.concept or self._template.template_id
+
+        # Remove common prefixes and suffixes
+        name = re.sub(r"\s+(composition|encounter|template)$", "", name, flags=re.IGNORECASE)
+        name = re.sub(r"^(IDCR|openEHR)\s*-\s*", "", name, flags=re.IGNORECASE)
+
+        # Convert to snake_case
+        return self._derive_short_name(name)
 
     def _extract_elements(self, obs_node: ArchetypeNode) -> list[ElementMetadata]:
         """Extract ELEMENT nodes from an observation.
