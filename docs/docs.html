@@ -367,6 +367,7 @@
       <div class="sidebar-section">
         <div class="sidebar-title">Core Concepts</div>
         <a href="#rm-classes" class="sidebar-link">RM Classes</a>
+        <a href="#opt-parser" class="sidebar-link">OPT Parser</a>
         <a href="#template-builders" class="sidebar-link">Template Builders</a>
         <a href="#serialization" class="sidebar-link">Serialization</a>
       </div>
@@ -425,6 +426,7 @@ temperature = DV_QUANTITY(
       <p>oehrpy is a comprehensive Python SDK for openEHR that provides:</p>
       <ul>
         <li><strong>Type-safe RM Classes:</strong> 134 Pydantic models for openEHR Reference Model 1.1.0 (includes BASE types)</li>
+        <li><strong>OPT Parser &amp; Code Generation:</strong> Parse OPT 1.4 XML files and auto-generate type-safe Python builder classes</li>
         <li><strong>Template Builders:</strong> Pre-built composition builders for common clinical templates</li>
         <li><strong>FLAT Format Support:</strong> Full support for EHRBase FLAT format serialization</li>
         <li><strong>Canonical JSON:</strong> Convert between RM objects and openEHR canonical JSON</li>
@@ -500,6 +502,123 @@ bp_cluster = CLUSTER(
     name=DV_TEXT(value=<span class="string">"Blood Pressure"</span>),
     items=[bp_element, ...]
 )</code></pre>
+
+      <h2 id="opt-parser">OPT Parser &amp; Builder Generator</h2>
+      <p>oehrpy provides powerful tools for working with OPT (Operational Template) files. OPT files are XML documents that define constraints on openEHR archetypes for specific clinical use cases. With oehrpy, you can parse OPT files and automatically generate type-safe Python builder classes.</p>
+
+      <div class="note">
+        <p><strong>Key Feature:</strong> Generate template-specific builders with full IDE autocomplete from your OPT files - no manual FLAT path construction required!</p>
+      </div>
+
+      <h3>Parsing OPT Files</h3>
+      <p>Use the <code>parse_opt()</code> function to parse an OPT file and extract template metadata:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> parse_opt
+
+<span class="comment"># Parse an OPT file</span>
+template = parse_opt(<span class="string">"path/to/vital_signs.opt"</span>)
+
+<span class="comment"># Access template metadata</span>
+<span class="keyword">print</span>(<span class="string">f"Template ID: {template.template_id}"</span>)
+<span class="keyword">print</span>(<span class="string">f"Concept: {template.concept}"</span>)
+<span class="keyword">print</span>(<span class="string">f"Language: {template.language}"</span>)
+
+<span class="comment"># List all observations in the template</span>
+<span class="keyword">for</span> obs <span class="keyword">in</span> template.list_observations():
+    <span class="keyword">print</span>(<span class="string">f"  - {obs.name} ({obs.archetype_id})"</span>)
+
+<span class="comment"># List all entry types (OBSERVATION, EVALUATION, etc.)</span>
+entries = template.list_entries()
+<span class="keyword">print</span>(<span class="string">f"Found {len(entries)} entries"</span>)</code></pre>
+
+      <h3>Template Definition</h3>
+      <p>The parsed <code>TemplateDefinition</code> provides access to:</p>
+      <ul>
+        <li><code>template_id</code> - The unique template identifier</li>
+        <li><code>concept</code> - Human-readable template concept name</li>
+        <li><code>description</code> - Template description/purpose</li>
+        <li><code>language</code> - Primary language (e.g., "en")</li>
+        <li><code>archetype_id</code> - Root archetype ID</li>
+        <li><code>rm_type</code> - Reference Model type (usually "COMPOSITION")</li>
+        <li><code>root</code> - The root archetype node tree</li>
+        <li><code>all_nodes</code> - Dictionary of all nodes by path</li>
+      </ul>
+
+      <h3>Generating Builder Classes</h3>
+      <p>The most powerful feature is automatic builder generation. This creates type-safe Python classes with methods for each observation type:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> generate_builder_from_opt
+
+<span class="comment"># Generate builder code from OPT file</span>
+code = generate_builder_from_opt(<span class="string">"vital_signs.opt"</span>)
+
+<span class="comment"># Save to file for use in your project</span>
+generate_builder_from_opt(
+    <span class="string">"vital_signs.opt"</span>,
+    output_path=<span class="string">"my_project/builders/vital_signs_builder.py"</span>
+)
+
+<span class="comment"># Use a custom class name</span>
+generate_builder_from_opt(
+    <span class="string">"vital_signs.opt"</span>,
+    output_path=<span class="string">"vital_signs_builder.py"</span>,
+    class_name=<span class="string">"MyVitalSignsBuilder"</span>
+)</code></pre>
+
+      <h3>Using the BuilderGenerator Class</h3>
+      <p>For more control, use the <code>BuilderGenerator</code> class directly:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> parse_opt, BuilderGenerator
+
+<span class="comment"># Parse the template</span>
+template = parse_opt(<span class="string">"vital_signs.opt"</span>)
+
+<span class="comment"># Create generator and generate code</span>
+generator = BuilderGenerator()
+code = generator.generate(template)
+
+<span class="comment"># Or generate directly to a file</span>
+generator.generate_to_file(
+    template,
+    output_path=<span class="string">"generated_builder.py"</span>,
+    class_name=<span class="string">"VitalSignsBuilder"</span>
+)</code></pre>
+
+      <h3>Complete Workflow Example</h3>
+      <p>Here's a complete example of the OPT-to-composition workflow:</p>
+      <pre><code><span class="comment"># Step 1: Generate the builder (do this once)</span>
+<span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> generate_builder_from_opt
+
+generate_builder_from_opt(
+    <span class="string">"vital_signs.opt"</span>,
+    output_path=<span class="string">"vital_signs_builder.py"</span>
+)
+
+<span class="comment"># Step 2: Use the generated builder in your application</span>
+<span class="keyword">from</span> vital_signs_builder <span class="keyword">import</span> VitalSignsBuilder
+
+<span class="comment"># Create the builder</span>
+builder = VitalSignsBuilder(composer_name=<span class="string">"Dr. Smith"</span>)
+
+<span class="comment"># Add clinical observations (type-safe with IDE autocomplete!)</span>
+builder.add_blood_pressure(systolic=<span class="string">120</span>, diastolic=<span class="string">80</span>)
+builder.add_pulse(rate=<span class="string">72</span>)
+builder.add_temperature(magnitude=<span class="string">37.2</span>)
+builder.add_respiration(rate=<span class="string">16</span>)
+builder.add_oxygen_saturation(spo2=<span class="string">98</span>)
+
+<span class="comment"># Build FLAT format data</span>
+flat_data = builder.build()
+
+<span class="comment"># Submit to EHRBase</span>
+<span class="keyword">async with</span> EHRBaseClient(...) <span class="keyword">as</span> client:
+    result = <span class="keyword">await</span> client.create_composition(
+        ehr_id=ehr_id,
+        template_id=builder.template_id,
+        composition=flat_data,
+        format=<span class="string">"FLAT"</span>
+    )</code></pre>
+
+      <div class="warning">
+        <p><strong>Note:</strong> The generated builder classes extend <code>TemplateBuilder</code> and automatically handle FLAT path construction, event indexing, and time formatting.</p>
+      </div>
 
       <h2 id="template-builders">Template Builders</h2>
       <p>Template builders provide a high-level API for creating compositions without knowing FLAT paths.</p>
