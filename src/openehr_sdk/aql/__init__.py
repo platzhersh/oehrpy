@@ -5,7 +5,7 @@ This module provides a fluent API for building type-safe AQL queries
 for openEHR Clinical Data Repositories.
 
 Example:
-    >>> from openehr_sdk.aql import AQLBuilder, Select, From
+    >>> from openehr_sdk.aql import AQLBuilder
     >>>
     >>> query = (
     ...     AQLBuilder()
