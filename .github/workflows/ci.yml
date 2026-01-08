@@ -137,7 +137,7 @@ jobs:
 
       - name: Wait for EHRBase
         run: |
-          timeout 120 bash -c 'until curl -f http://localhost:8080/ehrbase/rest/status; do echo "Waiting for EHRBase..."; sleep 5; done'
+          timeout 120 bash -c 'until curl -f -u ehrbase-user:SuperSecretPassword http://localhost:8080/ehrbase/rest/status; do echo "Waiting for EHRBase..."; sleep 5; done'
           echo "EHRBase is ready!"
 
       - name: Run integration tests
