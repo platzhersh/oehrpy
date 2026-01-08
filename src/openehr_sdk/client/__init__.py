@@ -7,6 +7,7 @@ openEHR Clinical Data Repositories.
 
 from .ehrbase import (
     AuthenticationError,
+    CompositionFormat,
     CompositionResponse,
     EHRBaseClient,
     EHRBaseConfig,
@@ -22,6 +23,7 @@ __all__ = [
     "EHRBaseConfig",
     "EHRResponse",
     "CompositionResponse",
+    "CompositionFormat",
     "QueryResponse",
     "EHRBaseError",
     "AuthenticationError",
