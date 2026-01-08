@@ -82,7 +82,9 @@ class TestAQLQueries:
         # Verify we got our composition
         results_dict = result.as_dicts()
         composition_ids = [r.get("composition_id") for r in results_dict]
-        assert composition.uid.split("::")[0] in [cid.split("::")[0] for cid in composition_ids if cid]
+        base_uid = composition.uid.split("::")[0]
+        result_base_uids = [cid.split("::")[0] for cid in composition_ids if cid]
+        assert base_uid in result_base_uids
 
     async def test_query_observation_data(
         self,

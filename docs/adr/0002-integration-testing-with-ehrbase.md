@@ -41,7 +41,7 @@ We will implement integration testing with the following approach:
 - Integration tests: `@pytest.mark.integration` (requires EHRBase)
 
 **File structure:**
-```
+```text
 tests/
 ├── test_rm_types.py           # Unit tests
 ├── test_serialization.py      # Unit tests

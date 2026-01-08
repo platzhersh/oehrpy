@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from openehr_sdk.client import EHRBaseClient
+from openehr_sdk.client import EHRBaseClient, ValidationError
 
 
 @pytest.fixture
@@ -87,15 +87,17 @@ async def vital_signs_template(
     try:
         response = await ehrbase_client.upload_template(template_xml)
         return response.template_id
-    except Exception as e:
+    except ValidationError:
         # Template might already exist, try to list and find it
         templates = await ehrbase_client.list_templates()
         vital_signs_templates = [
-            t for t in templates if "vital" in t.template_id.lower() or "vital" in (t.concept or "").lower()
+            t
+            for t in templates
+            if "vital" in t.template_id.lower() or "vital" in (t.concept or "").lower()
         ]
 
         if vital_signs_templates:
             return vital_signs_templates[0].template_id
 
         # Re-raise if we couldn't find it
-        raise e
+        raise

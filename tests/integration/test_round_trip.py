@@ -56,11 +56,11 @@ class TestRoundTripWorkflows:
 
         # Check vital signs data preserved
         # Note: Exact paths may vary based on EHRBase version
-        systolic_keys = [k for k in flat_data.keys() if "systolic" in k and "magnitude" in k]
+        systolic_keys = [k for k in flat_data if "systolic" in k and "magnitude" in k]
         assert len(systolic_keys) > 0
         assert flat_data[systolic_keys[0]] == systolic
 
-        diastolic_keys = [k for k in flat_data.keys() if "diastolic" in k and "magnitude" in k]
+        diastolic_keys = [k for k in flat_data if "diastolic" in k and "magnitude" in k]
         assert len(diastolic_keys) > 0
         assert flat_data[diastolic_keys[0]] == diastolic
 
@@ -146,14 +146,14 @@ class TestRoundTripWorkflows:
 
         # Verify new values
         flat_data = retrieved.composition
-        systolic_keys = [k for k in flat_data.keys() if "systolic" in k and "magnitude" in k]
+        systolic_keys = [k for k in flat_data if "systolic" in k and "magnitude" in k]
         assert flat_data[systolic_keys[0]] == new_systolic
 
-        diastolic_keys = [k for k in flat_data.keys() if "diastolic" in k and "magnitude" in k]
+        diastolic_keys = [k for k in flat_data if "diastolic" in k and "magnitude" in k]
         assert flat_data[diastolic_keys[0]] == new_diastolic
 
         # Verify pulse was added
-        pulse_keys = [k for k in flat_data.keys() if "pulse" in k.lower() and "rate" in k and "magnitude" in k]
+        pulse_keys = [k for k in flat_data if "pulse" in k.lower() and "rate" in k and "magnitude" in k]
         assert len(pulse_keys) > 0
 
         # Verify composer updated
@@ -272,7 +272,7 @@ class TestRoundTripWorkflows:
         )
         assert flat_retrieved.composition is not None
         # FLAT has pipe-separated keys
-        assert any("|" in str(key) for key in flat_retrieved.composition.keys())
+        assert any("|" in str(key) for key in flat_retrieved.composition)
 
         # Retrieve in CANONICAL
         canonical_retrieved = await ehrbase_client.get_composition(
@@ -318,7 +318,7 @@ class TestRoundTripWorkflows:
         )
 
         flat_data = retrieved.composition
-        time_keys = [k for k in flat_data.keys() if k.endswith("/time") and "blood_pressure" in k]
+        time_keys = [k for k in flat_data if k.endswith("/time") and "blood_pressure" in k]
 
         assert len(time_keys) > 0
         # Check that the timestamp is preserved (allowing for formatting differences)
