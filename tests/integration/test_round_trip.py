@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from openehr_sdk.client import EHRBaseClient, CompositionFormat
+from openehr_sdk.client import CompositionFormat, EHRBaseClient
 from openehr_sdk.templates import VitalSignsBuilder
 
 
@@ -153,7 +153,9 @@ class TestRoundTripWorkflows:
         assert flat_data[diastolic_keys[0]] == new_diastolic
 
         # Verify pulse was added
-        pulse_keys = [k for k in flat_data if "pulse" in k.lower() and "rate" in k and "magnitude" in k]
+        pulse_keys = [
+            k for k in flat_data if "pulse" in k.lower() and "rate" in k and "magnitude" in k
+        ]
         assert len(pulse_keys) > 0
 
         # Verify composer updated
