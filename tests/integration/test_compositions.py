@@ -2,7 +2,7 @@
 
 import pytest
 
-from openehr_sdk.client import EHRBaseClient, CompositionFormat, NotFoundError, ValidationError
+from openehr_sdk.client import CompositionFormat, EHRBaseClient, NotFoundError, ValidationError
 from openehr_sdk.templates import VitalSignsBuilder
 
 
@@ -94,8 +94,8 @@ class TestCompositionOperations:
 
         # Check that blood pressure values are present in FLAT format
         flat_composition = retrieved.composition
-        assert any("systolic" in str(key) for key in flat_composition.keys())
-        assert any("diastolic" in str(key) for key in flat_composition.keys())
+        assert any("systolic" in str(key) for key in flat_composition)
+        assert any("diastolic" in str(key) for key in flat_composition)
 
     async def test_get_composition_canonical_format(
         self,
@@ -264,6 +264,6 @@ class TestCompositionOperations:
 
         flat_composition = retrieved.composition
         # Should have blood_pressure:0, blood_pressure:1, blood_pressure:2
-        assert any("blood_pressure:0" in str(key) for key in flat_composition.keys())
-        assert any("blood_pressure:1" in str(key) for key in flat_composition.keys())
-        assert any("blood_pressure:2" in str(key) for key in flat_composition.keys())
+        assert any("blood_pressure:0" in str(key) for key in flat_composition)
+        assert any("blood_pressure:1" in str(key) for key in flat_composition)
+        assert any("blood_pressure:2" in str(key) for key in flat_composition)
