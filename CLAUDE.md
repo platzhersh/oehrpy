@@ -141,22 +141,55 @@ Tests are organized by component:
 
 Tests use `pytest-asyncio` for async client tests.
 
-### Integration Testing (Missing - In Progress)
+### Integration Testing
 
-**Note:** Integration tests with EHRBase CDR are not yet implemented. There's a branch `feat/integration-testing-with-ehrbase` that appears to be a placeholder for this work.
+**Status:** Fully implemented with conditional CI execution
 
-According to PRD-0000 Phase 3, integration testing should include:
-- EHR creation via REST API
-- Composition submission in FLAT format
-- Composition retrieval and validation
-- AQL query execution with real data
-- Round-trip validation (create → retrieve → deserialize)
+Integration tests validate the SDK against a real EHRBase CDR instance. Tests are located in `tests/integration/` and cover:
+- **EHR operations** (`test_ehr_operations.py`): Create, retrieve, and query EHRs
+- **Composition operations** (`test_compositions.py`): CRUD operations with VitalSignsBuilder and FLAT format
+- **AQL queries** (`test_aql_queries.py`): Query execution, parameters, aggregations, pagination
+- **Round-trip workflows** (`test_round_trip.py`): End-to-end scenarios including template upload
 
-This requires:
-- Docker Compose setup with EHRBase instance
-- Test fixtures with real OPT templates
-- Integration test markers (e.g., `@pytest.mark.integration`)
-- CI configuration to run integration tests conditionally
+**Running integration tests locally:**
+
+```bash
+# Start EHRBase with Docker Compose
+docker-compose up -d
+
+# Wait for services to be healthy (may take 60-90 seconds)
+docker-compose ps
+
+# Run integration tests
+pytest tests/ -m integration -v
+
+# Run specific integration test file
+pytest tests/integration/test_ehr_operations.py -v
+
+# Clean up when done
+docker-compose down -v
+```
+
+**Note:** The `docker-compose.yml` uses `ehrbase/ehrbase:2.0.0` and `ehrbase/ehrbase-v2-postgres:16.2` images. If you encounter database initialization issues, ensure the PostgreSQL image has the required extensions (`uuid-ossp`, `temporal_tables`).
+
+**CI Execution:**
+- Integration tests run conditionally (not on every PR):
+  - Automatically on pushes to `main` or `develop` branches
+  - On PRs labeled with `integration`
+  - Uses GitHub Actions service containers for EHRBase + PostgreSQL
+- Unit tests always run (fast feedback on every PR)
+
+**Test Configuration:**
+- Tests use `@pytest.mark.integration` marker
+- Fixtures in `tests/integration/conftest.py` handle:
+  - EHRBase client setup with authentication
+  - Test EHR creation
+  - Template upload (Vital Signs OPT)
+  - Health checks before running tests
+- Environment variables (auto-configured in CI, customizable locally):
+  - `EHRBASE_URL`: Default `http://localhost:8080/ehrbase`
+  - `EHRBASE_USER`: Default `ehrbase-user`
+  - `EHRBASE_PASSWORD`: Default `SuperSecretPassword`
 
 ## Ruff Configuration
 

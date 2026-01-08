@@ -49,7 +49,7 @@ jobs:
         run: mypy src/openehr_sdk
 
   test:
-    name: Test
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,8 +65,8 @@ jobs:
           pip install -e ".[dev]"
           pip install pytest-cov
 
-      - name: Run tests with coverage
-        run: pytest tests/ -v --tb=short --cov=src/openehr_sdk --cov-report=term-missing --cov-report=xml
+      - name: Run unit tests with coverage
+        run: pytest tests/ -m "not integration" -v --tb=short --cov=src/openehr_sdk --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage reports
         if: env.CODECOV_TOKEN != ''
@@ -77,3 +77,76 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    # Only run on main/develop or PRs with 'integration' label
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/develop' ||
+      contains(github.event.pull_request.labels.*.name, 'integration')
+
+    services:
+      postgres:
+        image: ehrbase/ehrbase-v2-postgres:16.2
+        env:
+          POSTGRES_DB: ehrbase
+          POSTGRES_USER: ehrbase
+          POSTGRES_PASSWORD: ehrbase
+          EHRBASE_USER_ADMIN: ehrbase
+          EHRBASE_PASSWORD_ADMIN: ehrbase
+          EHRBASE_USER: ehrbase
+          EHRBASE_PASSWORD: ehrbase
+        options: >-
+          --health-cmd "pg_isready -U ehrbase"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      ehrbase:
+        image: ehrbase/ehrbase:2.0.0
+        env:
+          DB_URL: jdbc:postgresql://postgres:5432/ehrbase
+          DB_USER: ehrbase
+          DB_PASS: ehrbase
+          DB_USER_ADMIN: ehrbase
+          DB_PASS_ADMIN: ehrbase
+          SECURITY_AUTHTYPE: BASIC
+          SECURITY_AUTHUSER: ehrbase-user
+          SECURITY_AUTHPASSWORD: SuperSecretPassword
+          SECURITY_AUTHADMINUSER: ehrbase-admin
+          SECURITY_AUTHADMINPASSWORD: EvenMoreSecretPassword
+        ports:
+          - 8080:8080
+        options: >-
+          --health-cmd "curl -f http://localhost:8080/ehrbase/rest/status || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Wait for EHRBase
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:8080/ehrbase/rest/status; do sleep 2; done'
+
+      - name: Run integration tests
+        run: pytest tests/ -m integration -v --tb=short
+        env:
+          EHRBASE_URL: http://localhost:8080/ehrbase
+          EHRBASE_USER: ehrbase-user
+          EHRBASE_PASSWORD: SuperSecretPassword
