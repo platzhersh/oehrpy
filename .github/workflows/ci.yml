@@ -91,15 +91,14 @@ jobs:
       postgres:
         image: ehrbase/ehrbase-v2-postgres:16.2
         env:
-          POSTGRES_DB: ehrbase
-          POSTGRES_USER: ehrbase
-          POSTGRES_PASSWORD: ehrbase
-          EHRBASE_USER_ADMIN: ehrbase
-          EHRBASE_PASSWORD_ADMIN: ehrbase
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           EHRBASE_USER: ehrbase
           EHRBASE_PASSWORD: ehrbase
+          EHRBASE_USER_ADMIN: ehrbase_admin
+          EHRBASE_PASSWORD_ADMIN: ehrbase_admin
         options: >-
-          --health-cmd "pg_isready -U ehrbase"
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -127,8 +126,8 @@ jobs:
             -e DB_URL=jdbc:postgresql://localhost:5432/ehrbase \
             -e DB_USER=ehrbase \
             -e DB_PASS=ehrbase \
-            -e DB_USER_ADMIN=ehrbase \
-            -e DB_PASS_ADMIN=ehrbase \
+            -e DB_USER_ADMIN=ehrbase_admin \
+            -e DB_PASS_ADMIN=ehrbase_admin \
             -e SECURITY_AUTHTYPE=BASIC \
             -e SECURITY_AUTHUSER=ehrbase-user \
             -e SECURITY_AUTHPASSWORD=SuperSecretPassword \
