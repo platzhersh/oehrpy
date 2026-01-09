@@ -153,10 +153,9 @@ jobs:
             http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4 || echo "Template upload may have failed or template already exists"
 
           echo "Fetching Web Template (JSON format)..."
-          # Fetch the Web Template as JSON - use application/json Accept header
+          # Fetch the Web Template using the /webtemplate endpoint
           curl -v -u ehrbase-user:SuperSecretPassword \
-            -H "Accept: application/json" \
-            "http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4/IDCR%20-%20Vital%20Signs%20Encounter.v1" \
+            "http://localhost:8080/ehrbase/rest/definition/template/adl1.4/IDCR%20-%20Vital%20Signs%20Encounter.v1/webtemplate" \
             -o web_template.json
 
           # Check if file has content

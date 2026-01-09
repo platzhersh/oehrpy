@@ -41,9 +41,9 @@ class TestVitalSignsBuilder:
         builder.add_pulse(rate=72)
         result = builder.build()
 
-        assert "vital_signs/pulse_heart_beat:0/any_event:0/rate|magnitude" in result
-        assert result["vital_signs/pulse_heart_beat:0/any_event:0/rate|magnitude"] == 72
-        assert result["vital_signs/pulse_heart_beat:0/any_event:0/rate|unit"] == "/min"
+        assert "vital_signs/pulse:0/any_event:0/rate|magnitude" in result
+        assert result["vital_signs/pulse:0/any_event:0/rate|magnitude"] == 72
+        assert result["vital_signs/pulse:0/any_event:0/rate|unit"] == "/min"
 
     def test_add_temperature(self) -> None:
         """Test adding temperature reading."""
@@ -61,8 +61,8 @@ class TestVitalSignsBuilder:
         builder.add_respiration(rate=16)
         result = builder.build()
 
-        assert "vital_signs/respirations:0/any_event:0/rate|magnitude" in result
-        assert result["vital_signs/respirations:0/any_event:0/rate|magnitude"] == 16
+        assert "vital_signs/respiration:0/any_event:0/rate|magnitude" in result
+        assert result["vital_signs/respiration:0/any_event:0/rate|magnitude"] == 16
 
     def test_add_oxygen_saturation(self) -> None:
         """Test adding SpO2 reading."""
@@ -89,9 +89,9 @@ class TestVitalSignsBuilder:
 
         # Check all vitals are present
         assert "vital_signs/blood_pressure:0/any_event:0/systolic|magnitude" in result
-        assert "vital_signs/pulse_heart_beat:0/any_event:0/rate|magnitude" in result
+        assert "vital_signs/pulse:0/any_event:0/rate|magnitude" in result
         assert "vital_signs/body_temperature:0/any_event:0/temperature|magnitude" in result
-        assert "vital_signs/respirations:0/any_event:0/rate|magnitude" in result
+        assert "vital_signs/respiration:0/any_event:0/rate|magnitude" in result
         assert "vital_signs/indirect_oximetry:0/any_event:0/spo2|magnitude" in result
 
     def test_method_chaining(self) -> None:
