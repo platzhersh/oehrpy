@@ -49,7 +49,7 @@ jobs:
         run: mypy src/openehr_sdk
 
   test:
-    name: Test
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,8 +65,8 @@ jobs:
           pip install -e ".[dev]"
           pip install pytest-cov
 
-      - name: Run tests with coverage
-        run: pytest tests/ -v --tb=short --cov=src/openehr_sdk --cov-report=term-missing --cov-report=xml
+      - name: Run unit tests with coverage
+        run: pytest tests/ -m "not integration" -v --tb=short --cov=src/openehr_sdk --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage reports
         if: env.CODECOV_TOKEN != ''
@@ -77,3 +77,116 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    # Only run on main/develop or PRs with 'integration' label
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/develop' ||
+      contains(github.event.pull_request.labels.*.name, 'integration')
+
+    services:
+      postgres:
+        image: ehrbase/ehrbase-v2-postgres:16.2
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          EHRBASE_USER: ehrbase
+          EHRBASE_PASSWORD: ehrbase
+          EHRBASE_USER_ADMIN: ehrbase_admin
+          EHRBASE_PASSWORD_ADMIN: ehrbase_admin
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Start EHRBase
+        run: |
+          docker run -d \
+            --name ehrbase \
+            --network host \
+            -e DB_URL=jdbc:postgresql://localhost:5432/ehrbase \
+            -e DB_USER=ehrbase \
+            -e DB_PASS=ehrbase \
+            -e DB_USER_ADMIN=ehrbase_admin \
+            -e DB_PASS_ADMIN=ehrbase_admin \
+            -e SECURITY_AUTHTYPE=BASIC \
+            -e SECURITY_AUTHUSER=ehrbase-user \
+            -e SECURITY_AUTHPASSWORD=SuperSecretPassword \
+            -e SECURITY_AUTHADMINUSER=ehrbase-admin \
+            -e SECURITY_AUTHADMINPASSWORD=EvenMoreSecretPassword \
+            ehrbase/ehrbase:2.26.0
+
+      - name: Wait for EHRBase
+        run: |
+          timeout 120 bash -c 'until curl -f -u ehrbase-user:SuperSecretPassword http://localhost:8080/ehrbase/rest/status; do echo "Waiting for EHRBase..."; sleep 5; done'
+          echo "EHRBase is ready!"
+
+      - name: Fetch Web Template for debugging
+        if: always()
+        continue-on-error: true
+        run: |
+          # Upload the template first (conftest.py does this in tests, but let's ensure it's there)
+          echo "Uploading template..."
+          curl -v -X POST -u ehrbase-user:SuperSecretPassword \
+            -H "Content-Type: application/xml" \
+            -H "Accept: */*" \
+            --data @tests/fixtures/vital_signs.opt \
+            http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4 || echo "Template upload may have failed or template already exists"
+
+          echo "Fetching Web Template (JSON format)..."
+          # Fetch the Web Template using the /webtemplate endpoint
+          curl -v -u ehrbase-user:SuperSecretPassword \
+            "http://localhost:8080/ehrbase/rest/definition/template/adl1.4/IDCR%20-%20Vital%20Signs%20Encounter.v1/webtemplate" \
+            -o web_template.json
+
+          # Check if file has content
+          if [ -s web_template.json ]; then
+            echo "Web Template file size: $(wc -c < web_template.json) bytes"
+            echo "First 100 chars:"
+            head -c 100 web_template.json
+            echo ""
+
+            # Try to pretty print (may fail if not JSON)
+            python3 -m json.tool web_template.json > web_template_formatted.json 2>&1 || \
+              cp web_template.json web_template_formatted.json
+          else
+            echo "Error: web_template.json is empty"
+            echo "ERROR: Failed to fetch web template" > web_template_formatted.json
+          fi
+
+      - name: Upload Web Template artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-template
+          path: web_template*.json
+
+      - name: Run integration tests
+        run: pytest tests/ -m integration -v --tb=short
+        env:
+          EHRBASE_URL: http://localhost:8080/ehrbase
+          EHRBASE_USER: ehrbase-user
+          EHRBASE_PASSWORD: SuperSecretPassword
+
+      - name: Show EHRBase logs on failure
+        if: failure()
+        run: docker logs ehrbase

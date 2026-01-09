@@ -171,11 +171,15 @@ class VitalSignsBuilder(TemplateBuilder):
     template_id = "IDCR - Vital Signs Encounter.v1"
 
     # FLAT path prefixes for each observation type
-    _BP_PREFIX = "vital_signs/blood_pressure"
-    _PULSE_PREFIX = "vital_signs/pulse_heart_beat"
-    _TEMP_PREFIX = "vital_signs/body_temperature"
-    _RESP_PREFIX = "vital_signs/respirations"
-    _SPO2_PREFIX = "vital_signs/indirect_oximetry"
+    # Based on the EHRBase FLAT format structure: section/section:0/observation:0/event:0
+    # The template structure is:
+    # COMPOSITION > content[SECTION.vital_signs] > items[OBSERVATION.*]
+    # In FLAT format, this becomes: vital_signs/vital_signs:0/observation:0/...
+    _BP_PREFIX = "vital_signs/vital_signs:0/blood_pressure"
+    _PULSE_PREFIX = "vital_signs/vital_signs:0/pulse"
+    _TEMP_PREFIX = "vital_signs/vital_signs:0/body_temperature"
+    _RESP_PREFIX = "vital_signs/vital_signs:0/respiration"
+    _SPO2_PREFIX = "vital_signs/vital_signs:0/indirect_oximetry"
 
     def add_blood_pressure(
         self,

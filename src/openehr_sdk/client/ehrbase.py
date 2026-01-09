@@ -26,6 +26,7 @@ from enum import Enum
 from typing import Any
 
 import httpx
+from defusedxml import ElementTree as ET
 
 
 class CompositionFormat(str, Enum):
@@ -278,8 +279,15 @@ class EHRBaseClient:
                 response=error_data,
             )
         if response.status_code >= 400:
+            try:
+                # Truncate response to avoid logging sensitive data (PII/PHI)
+                error_text = response.text[:200] if response.text else ""
+                suffix = "..." if len(response.text) > 200 else ""
+                error_body = f" - {error_text}{suffix}"
+            except Exception:
+                error_body = ""
             raise EHRBaseError(
-                f"Request failed: {response.status_code}",
+                f"Request failed: {response.status_code}{error_body}",
                 status_code=response.status_code,
             )
 
@@ -614,8 +622,40 @@ class EHRBaseClient:
         response = await self.client.post(
             "/rest/openehr/v1/definition/template/adl1.4",
             content=template_xml,
-            headers={"Content-Type": "application/xml"},
+            headers={
+                "Content-Type": "application/xml",
+                "Accept": "*/*",
+            },
         )
+
+        # EHRBase 2.0.0 returns 201 Created with no body on successful upload
+        if response.status_code == 201 or response.status_code == 204:
+            # Extract template_id from request XML
+            try:
+                root = ET.fromstring(template_xml)
+                # Template ID is in <template_id><value>...</value></template_id>
+                ns_path = ".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value"
+                template_id_elem = root.find(ns_path)
+                if template_id_elem is None:
+                    # Try without namespace
+                    template_id_elem = root.find(".//template_id/value")
+
+                template_id = ""
+                if template_id_elem is not None and template_id_elem.text:
+                    template_id = template_id_elem.text
+
+                if not template_id:
+                    raise ValidationError(
+                        "Template uploaded but could not extract template_id from XML",
+                        status_code=response.status_code,
+                    )
+
+                return TemplateResponse(template_id=template_id)
+            except ET.ParseError as e:
+                raise ValidationError(
+                    f"Template uploaded but XML parsing failed: {e}",
+                    status_code=response.status_code,
+                ) from e
 
         data = self._handle_response(response)
         return TemplateResponse.from_response(data)
