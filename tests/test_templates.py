@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from openehr_sdk.templates import (
     BuilderGenerator,
     VitalSignsBuilder,
