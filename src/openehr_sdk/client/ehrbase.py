@@ -631,18 +631,19 @@ class EHRBaseClient:
 
             root = ET.fromstring(template_xml)
             # Template ID is in <template_id><value>...</value></template_id>
-            template_id_elem = root.find(
+            ns_path = (
                 ".//{http://schemas.openehr.org/v1}template_id/"
                 "{http://schemas.openehr.org/v1}value"
             )
+            template_id_elem = root.find(ns_path)
             if template_id_elem is None:
                 # Try without namespace
                 template_id_elem = root.find(".//template_id/value")
-            template_id = (
-                template_id_elem.text
-                if template_id_elem is not None and template_id_elem.text
-                else ""
-            )
+
+            template_id = ""
+            if template_id_elem is not None and template_id_elem.text:
+                template_id = template_id_elem.text
+
             return TemplateResponse(template_id=template_id)
 
         data = self._handle_response(response)
