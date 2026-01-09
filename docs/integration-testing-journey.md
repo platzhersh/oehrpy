@@ -8,7 +8,13 @@ This document captures the complete journey of implementing integration tests fo
 
 **Date**: 2026-01-09
 
-**Update**: 2026-01-09 - Upgraded to EHRBase 2.26.0 for latest bug fixes. PostgreSQL remains at 16.2 (only available version for ehrbase-v2-postgres image). The newer EHRBase version may help resolve FLAT format issues in future iterations.
+**Update**: 2026-01-09 - Upgraded to EHRBase 2.26.0 for latest bug fixes. PostgreSQL remains at 16.2 (only available version for ehrbase-v2-postgres image).
+
+**RESOLUTION**: 2026-01-09 - Successfully retrieved Web Template from EHRBase 2.26.0 using `Accept: application/openehr.wt+json` header! Updated FLAT paths based on web template structure. Key fixes:
+- Pulse observation ID: `pulse_heart_beat` (not `pulse`), data element: `heart_rate` (not `rate`)
+- Respiration observation ID: `respirations` (plural)
+- Removed double nesting: `vital_signs/observation:0/...` (not `vital_signs/vital_signs:0/observation:0/...`)
+- Web template endpoint: `/rest/openehr/v1/definition/template/adl1.4/{template_id}` with Accept header `application/openehr.wt+json`
 
 ---
 
