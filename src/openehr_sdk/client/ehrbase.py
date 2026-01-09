@@ -278,8 +278,13 @@ class EHRBaseClient:
                 response=error_data,
             )
         if response.status_code >= 400:
+            error_body = ""
+            try:
+                error_body = f" - {response.text}"
+            except Exception:
+                pass
             raise EHRBaseError(
-                f"Request failed: {response.status_code}",
+                f"Request failed: {response.status_code}{error_body}",
                 status_code=response.status_code,
             )
 
