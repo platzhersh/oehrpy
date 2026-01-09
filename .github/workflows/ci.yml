@@ -153,19 +153,11 @@ jobs:
             http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4 || echo "Template upload may have failed or template already exists"
 
           echo "Fetching Web Template (JSON format)..."
-          # Fetch the Web Template as JSON using the Web Template Accept header
+          # Fetch the Web Template as JSON - use application/json Accept header
           curl -v -u ehrbase-user:SuperSecretPassword \
-            -H "Accept: application/openehr.wt+json" \
+            -H "Accept: application/json" \
             "http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4/IDCR%20-%20Vital%20Signs%20Encounter.v1" \
-            -o web_template.json || echo "Web template fetch failed"
-
-          # Try alternative endpoint if first fails
-          if [ ! -s web_template.json ] || grep -q "<template" web_template.json; then
-            echo "First endpoint returned XML, trying alternative endpoint..."
-            curl -v -u ehrbase-user:SuperSecretPassword \
-              "http://localhost:8080/ehrbase/rest/ecis/v1/template/IDCR%20-%20Vital%20Signs%20Encounter.v1" \
-              -o web_template.json || echo "Alternative endpoint also failed"
-          fi
+            -o web_template.json
 
           # Check if file has content
           if [ -s web_template.json ]; then
