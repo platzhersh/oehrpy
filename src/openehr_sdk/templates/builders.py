@@ -171,10 +171,16 @@ class VitalSignsBuilder(TemplateBuilder):
     template_id = "IDCR - Vital Signs Encounter.v1"
 
     # FLAT path prefixes for each observation type
+    # These match the archetype IDs in the ehrbase vital signs template:
+    # - openEHR-EHR-OBSERVATION.blood_pressure.v1 -> blood_pressure
+    # - openEHR-EHR-OBSERVATION.pulse.v1 -> pulse
+    # - openEHR-EHR-OBSERVATION.body_temperature.v1 -> body_temperature
+    # - openEHR-EHR-OBSERVATION.respiration.v1 -> respiration
+    # - openEHR-EHR-OBSERVATION.indirect_oximetry.v1 -> indirect_oximetry
     _BP_PREFIX = "vital_signs/blood_pressure"
-    _PULSE_PREFIX = "vital_signs/pulse_heart_beat"
+    _PULSE_PREFIX = "vital_signs/pulse"
     _TEMP_PREFIX = "vital_signs/body_temperature"
-    _RESP_PREFIX = "vital_signs/respirations"
+    _RESP_PREFIX = "vital_signs/respiration"
     _SPO2_PREFIX = "vital_signs/indirect_oximetry"
 
     def add_blood_pressure(
