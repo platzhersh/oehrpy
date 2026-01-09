@@ -26,6 +26,7 @@ from enum import Enum
 from typing import Any
 
 import httpx
+from defusedxml import ElementTree as ET
 
 
 class CompositionFormat(str, Enum):
@@ -630,8 +631,6 @@ class EHRBaseClient:
         # EHRBase 2.0.0 returns 201 Created with no body on successful upload
         if response.status_code == 201 or response.status_code == 204:
             # Extract template_id from request XML
-            import xml.etree.ElementTree as ET
-
             try:
                 root = ET.fromstring(template_xml)
                 # Template ID is in <template_id><value>...</value></template_id>
