@@ -308,11 +308,117 @@ _SPO2_PREFIX = "vital_signs/vital_signs:0/indirect_oximetry"
 
 ---
 
+## 2026-01-09 Update: Web Template Retrieved and FLAT Format Testing
+
+### Web Template Successfully Retrieved
+
+After upgrading to **EHRBase 2.26.0** (from 2.0.0), we successfully retrieved the Web Template JSON using:
+
+```bash
+curl -u ehrbase-user:SuperSecretPassword \
+  -H "Accept: application/openehr.wt+json" \
+  "http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4/IDCR%20-%20Vital%20Signs%20Encounter.v1"
+```
+
+**Key Finding**: The `application/openehr.wt+json` media type was not available in EHRBase 2.0.0 but works in 2.26.0.
+
+### Web Template Analysis
+
+The web template shows a flattened structure where data elements are direct children of observations:
+
+```
+vital_signs (SECTION)
+  └─ blood_pressure (OBSERVATION)
+      ├─ systolic (DV_QUANTITY)
+      ├─ diastolic (DV_QUANTITY)
+      ├─ time (DV_DATE_TIME) - required
+      ├─ subject (PARTY_PROXY) - required
+      ├─ language (CODE_PHRASE) - required
+      └─ encoding (CODE_PHRASE) - required
+```
+
+**Note**: The `aqlPath` in the web template shows the full RM hierarchy including `/data[at0001]/events[at0006]/data[at0003]/items[...]`, but the FLAT format `id` fields suggest paths like `vital_signs/blood_pressure:0/systolic|magnitude`.
+
+### FLAT Format Testing Results
+
+**Test 1: Without Event Hierarchy**
+```json
+{
+  "vital_signs/blood_pressure:0/systolic|magnitude": 120,
+  "vital_signs/blood_pressure:0/systolic|unit": "mm[Hg]",
+  "vital_signs/blood_pressure:0/diastolic|magnitude": 80,
+  "vital_signs/blood_pressure:0/diastolic|unit": "mm[Hg]"
+}
+```
+**Result**: ❌ `Could not consume Parts` error
+
+**Test 2: With /any_event:0/**
+```json
+{
+  "vital_signs/blood_pressure:0/any_event:0/systolic|magnitude": 120,
+  "vital_signs/blood_pressure:0/any_event:0/systolic|unit": "mm[Hg]",
+  ...
+}
+```
+**Result**: ❌ `Could not consume Parts` error
+
+**Test 3: With All Required Fields**
+```json
+{
+  "vital_signs/blood_pressure:0/systolic|magnitude": 120,
+  "vital_signs/blood_pressure:0/systolic|unit": "mm[Hg]",
+  "vital_signs/blood_pressure:0/diastolic|magnitude": 80,
+  "vital_signs/blood_pressure:0/diastolic|unit": "mm[Hg]",
+  "vital_signs/blood_pressure:0/time": "2026-01-09T12:00:00Z",
+  "vital_signs/blood_pressure:0/language|code": "en",
+  "vital_signs/blood_pressure:0/language|terminology": "ISO_639-1",
+  "vital_signs/blood_pressure:0/encoding|code": "UTF-8",
+  "vital_signs/blood_pressure:0/encoding|terminology": "IANA_character-sets"
+}
+```
+**Result**: ❌ `Could not consume Parts` error
+
+### Documentation vs Reality Discrepancy
+
+Official EHRBase documentation (https://github.com/ehrbase/documentation) shows examples like:
+```json
+{
+  "vital_signs/body_temperature:0/any_event:0/temperature|magnitude": 37.1,
+  "vital_signs/body_temperature:0/any_event:0/temperature|unit": "°C"
+}
+```
+
+However, this template's web template structure doesn't include `any_event` as an ID in the tree. The `aqlPath` uses `events[at0006]` (archetype node ID), not `any_event`.
+
+### Current Blocker
+
+**FLAT format paths are consistently rejected by EHRBase 2.26.0** regardless of:
+- Including or excluding event hierarchy
+- Adding required fields (time, language, encoding)
+- Following web template structure
+- Following documentation examples
+
+**Hypothesis**: The FLAT format implementation in EHRBase 2.26.0 may:
+1. Require a different path structure not documented in the web template
+2. Have different requirements for this specific "IDCR - Vital Signs Encounter.v1" template
+3. Need additional context or composition-level fields we haven't identified
+
+### Solution: CANONICAL Format
+
+Created comprehensive integration tests using **CANONICAL JSON format** (`tests/integration/test_canonical_format.py`), which:
+- ✅ Uses RM classes directly (COMPOSITION, OBSERVATION, SECTION, DV_QUANTITY)
+- ✅ Doesn't require web template knowledge
+- ✅ Maps directly to openEHR specifications
+- ✅ Provides reliable baseline for composition CRUD operations
+
 ## Conclusion
 
-Integration testing infrastructure is **complete and working**. All CI checks pass except integration tests, which fail due to FLAT format path structure issues. The root cause is the inability to obtain the Web Template JSON from EHRBase 2.0.0, which is essential for constructing correct FLAT paths.
+Integration testing infrastructure is **complete and working**. CANONICAL format tests provide a solid baseline for composition operations. FLAT format remains blocked despite retrieving the web template and testing multiple path structures based on both documentation and web template analysis.
 
-**Recommended Next Step**: Refactor integration tests to use CANONICAL JSON format, which doesn't require Web Template knowledge and directly leverages the SDK's existing Reference Model classes.
+**Recommended Actions**:
+1. ✅ **DONE**: Use CANONICAL format for integration tests
+2. ⏸️ **DEFERRED**: Investigate FLAT format with EHRBase team or wait for clearer documentation/examples
+3. ⏸️ **DEFERRED**: Consider FLAT format as a "nice-to-have" rather than essential feature
 
 ---
 
