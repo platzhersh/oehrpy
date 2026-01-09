@@ -192,6 +192,29 @@ Based on our findings, it appears:
 
 ---
 
+## Critical Context: No Formal FLAT Format Specification
+
+### Vendor-Specific Implementation
+
+According to [openEHR Discourse](https://discourse.openehr.org/t/understanding-flat-composition-json/1720/4), **there is NO single formal specification for FLAT format** across the openEHR ecosystem:
+
+- FLAT format is **vendor-specific** - implementations differ between EHRScape, EHRbase, and other servers
+- The `ctx/` prefix represents "shortcuts for RM fields extracted from deeper canonical structures"
+- Formats are "purely concrete" (implementation-driven, not specification-driven)
+- The [openEHR Serial Data Formats specification](https://specifications.openehr.org/releases/SM/latest/serial_data_formats.html) covers JSON serialization of RM types, **NOT FLAT path construction**
+
+### Why This Matters
+
+**Without a formal specification:**
+- You **cannot** rely on documentation from one vendor for another
+- Format changes may not be announced or documented (as we discovered)
+- The `/example?format=FLAT` endpoint is your **only reliable source of truth**
+
+**This explains why:**
+- EHRBase docs are outdated - no spec to enforce documentation standards
+- No migration guide exists - format changes are implementation details
+- We had to reverse-engineer from `/example` endpoint - no alternative approach
+
 ## Conclusion
 
 The EHRBase FLAT format has **evolved significantly** between versions. The current documentation describes an **older format** that EHRBase 2.26.0 **does not accept**.

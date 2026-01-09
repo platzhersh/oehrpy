@@ -254,11 +254,49 @@ Before submitting FLAT format to EHRBase 2.26.0:
 - [ ] All DV_QUANTITY have both `|magnitude` and `|unit`
 - [ ] All DV_CODED_TEXT have `|code`, `|value`, and `|terminology`
 
+## Important Context: No Formal FLAT Format Specification
+
+### Key Finding from openEHR Community
+
+**There is NO single formal specification for FLAT format across the openEHR ecosystem.**
+
+According to [openEHR Discourse discussions](https://discourse.openehr.org/t/understanding-flat-composition-json/1720/4):
+
+- FLAT format is **vendor-specific** - implementations differ between EHRScape, EHRbase, and other servers
+- The `ctx/` prefix represents "shortcuts for RM fields extracted from deeper canonical structures"
+- Formats are "purely concrete" (implementation-driven, not specification-driven)
+- Ongoing harmonization efforts exist but no unified standard
+
+### Why This Matters
+
+**Without a formal specification:**
+1. You **cannot** rely on documentation from one vendor for another vendor's implementation
+2. You **must** use the `/example?format=FLAT` endpoint to discover actual format requirements
+3. Format changes between versions (like EHRBase 1.x → 2.x) may not be documented
+4. The "source of truth" is the running CDR instance, not documentation
+
+**This explains:**
+- Why EHRBase documentation shows outdated format (see [FLAT_FORMAT_VERSIONS.md](FLAT_FORMAT_VERSIONS.md))
+- Why there's no migration guide for FLAT format changes
+- Why we had to reverse-engineer the format from the `/example` endpoint
+
+### Recommended Approach
+
+**Always verify FLAT format against your specific CDR version:**
+
+1. ✅ **Use `/example?format=FLAT` endpoint** - most reliable source
+2. ✅ **Inspect WebTemplate `tree.id` values** - basis for path construction
+3. ✅ **Test against real CDR instance** - verify format acceptance
+4. ❌ **Don't assume documentation is current** - may describe different version/vendor
+
 ## Resources
 
 ### Official Documentation
 - EHRBase 2.26.0: https://hub.docker.com/r/ehrbase/ehrbase
 - openEHR Discourse: https://discourse.openehr.org/
+- openEHR Serial Data Formats: https://specifications.openehr.org/releases/SM/latest/serial_data_formats.html
+  - **Note:** This spec covers JSON serialization of RM types, NOT FLAT path construction
+- FLAT Format Discussion: https://discourse.openehr.org/t/understanding-flat-composition-json/1720
 
 ### Key Endpoints
 - Web Template: `GET /rest/openehr/v1/definition/template/adl1.4/{template_id}`

@@ -137,8 +137,20 @@ We conducted extensive research to understand this issue:
 3. **UPDATING.md** - Migration guide silent on FLAT format changes
 4. **GitHub Issues** - Issue #1117 (May 2023) still shows OLD format!
 5. **GitHub PRs** - All FLAT format work was 2021-2022, no PRs about structure changes
+6. **openEHR Specifications** - Serial Data Formats spec does NOT include FLAT path construction rules
 
 **Conclusion:** The format change is **completely undocumented**.
+
+### Critical Context: No Formal FLAT Format Specification
+
+According to [openEHR Discourse](https://discourse.openehr.org/t/understanding-flat-composition-json/1720/4):
+
+> There is **NO single formal specification** for FLAT format across the openEHR ecosystem. Implementations are **vendor-specific** and vary between EHRScape, EHRbase, and other servers. The formats are "purely concrete" (implementation-driven, not specification-driven).
+
+**This makes the documentation gap even more critical:**
+- Without a formal spec, users **must** rely on vendor documentation
+- EHRBase's documentation shows outdated format, leaving users with no guidance
+- The `/example?format=FLAT` endpoint becomes the **only** source of truth
 
 ### Timeline (Inferred)
 
