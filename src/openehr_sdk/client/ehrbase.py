@@ -614,7 +614,10 @@ class EHRBaseClient:
         response = await self.client.post(
             "/rest/openehr/v1/definition/template/adl1.4",
             content=template_xml,
-            headers={"Content-Type": "application/xml"},
+            headers={
+                "Content-Type": "application/xml",
+                "Accept": "application/json",
+            },
         )
 
         data = self._handle_response(response)
