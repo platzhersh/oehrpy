@@ -348,13 +348,9 @@ class FlatBuilder:
             # Add context/setting if not already set
             context_setting_code = f"{self._composition_prefix}/context/setting|code"
             if context_setting_code not in result and context_setting_code not in self._data:
-                result[f"{self._composition_prefix}/context/setting|terminology"] = (
-                    "openehr"
-                )
+                result[f"{self._composition_prefix}/context/setting|terminology"] = "openehr"
                 result[context_setting_code] = "238"
-                result[f"{self._composition_prefix}/context/setting|value"] = (
-                    "other care"
-                )
+                result[f"{self._composition_prefix}/context/setting|value"] = "other care"
 
         result.update(self._data)
         return result
