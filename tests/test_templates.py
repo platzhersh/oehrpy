@@ -31,9 +31,18 @@ class TestVitalSignsBuilder:
         result = builder.build()
 
         assert "vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude" in result
-        assert result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude"] == 120
-        assert result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|unit"] == "mm[Hg]"
-        assert result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/diastolic|magnitude"] == 80
+        assert (
+            result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude"]
+            == 120
+        )
+        assert (
+            result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|unit"]
+            == "mm[Hg]"
+        )
+        assert (
+            result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/diastolic|magnitude"]
+            == 80
+        )
 
     def test_add_pulse(self) -> None:
         """Test adding pulse reading."""
@@ -51,9 +60,18 @@ class TestVitalSignsBuilder:
         builder.add_temperature(temperature=37.2)
         result = builder.build()
 
-        assert "vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude" in result
-        assert result["vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude"] == 37.2
-        assert result["vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|unit"] == "Cel"
+        assert (
+            "vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude"
+            in result
+        )
+        assert (
+            result["vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude"]
+            == 37.2
+        )
+        assert (
+            result["vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|unit"]
+            == "Cel"
+        )
 
     def test_add_respiration(self) -> None:
         """Test adding respiration reading."""
@@ -71,7 +89,9 @@ class TestVitalSignsBuilder:
         result = builder.build()
 
         assert "vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|magnitude" in result
-        assert result["vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|magnitude"] == 98
+        assert (
+            result["vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|magnitude"] == 98
+        )
         assert result["vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|unit"] == "%"
 
     def test_add_all_vitals(self) -> None:
@@ -90,7 +110,10 @@ class TestVitalSignsBuilder:
         # Check all vitals are present
         assert "vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude" in result
         assert "vital_signs/vital_signs:0/pulse:0/any_event:0/rate|magnitude" in result
-        assert "vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude" in result
+        assert (
+            "vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude"
+            in result
+        )
         assert "vital_signs/vital_signs:0/respiration:0/any_event:0/rate|magnitude" in result
         assert "vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|magnitude" in result
 
