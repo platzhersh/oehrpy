@@ -316,6 +316,14 @@ class FlatBuilder:
         self._data[f"{path}|terminology"] = terminology
         return self
 
+    def set_proportion(
+        self, path: str, numerator: float, denominator: float
+    ) -> FlatBuilder:
+        """Set a DV_PROPORTION at the given path."""
+        self._data[f"{path}|numerator"] = numerator
+        self._data[f"{path}|denominator"] = denominator
+        return self
+
     def set_text(self, path: str, value: str) -> FlatBuilder:
         """Set a DV_TEXT at the given path."""
         self._data[path] = value

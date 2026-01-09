@@ -133,7 +133,7 @@ class BodyTemperatureReading:
     """Body temperature measurement data."""
 
     temperature: float
-    unit: str = "Cel"  # Celsius
+    unit: str = "°C"  # Celsius
     time: datetime | str | None = None
     site: str | None = None  # e.g., "oral", "axillary", "ear"
 
@@ -292,7 +292,7 @@ class VitalSignsBuilder(TemplateBuilder):
     def add_temperature(
         self,
         temperature: float,
-        unit: str = "Cel",
+        unit: str = "°C",
         time: datetime | str | None = None,
         site: str | None = None,
     ) -> VitalSignsBuilder:
@@ -300,7 +300,7 @@ class VitalSignsBuilder(TemplateBuilder):
 
         Args:
             temperature: Temperature value.
-            unit: Temperature unit (Cel or [degF]).
+            unit: Temperature unit (°C or °F).
             time: Measurement time.
             site: Measurement site (oral, axillary, ear, rectal).
 
@@ -354,7 +354,7 @@ class VitalSignsBuilder(TemplateBuilder):
         """Add an oxygen saturation (SpO2) reading.
 
         Args:
-            spo2: Oxygen saturation percentage.
+            spo2: Oxygen saturation percentage (0-100).
             time: Measurement time.
             supplemental_oxygen: Whether patient is on supplemental O2.
 
@@ -365,7 +365,8 @@ class VitalSignsBuilder(TemplateBuilder):
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
-        self._flat.set_quantity(f"{prefix}/spo2", spo2, "%")
+        # SpO2 is a DV_PROPORTION with fixed denominator of 100
+        self._flat.set_proportion(f"{prefix}/spo2", numerator=spo2, denominator=100.0)
 
         if supplemental_oxygen:
             self._flat.set_coded_text(

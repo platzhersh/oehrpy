@@ -60,7 +60,7 @@ class TestVitalSignsBuilder:
         temp_prefix = "vital_signs_observations/vital_signs/body_temperature"
         assert f"{temp_prefix}/temperature|magnitude" in result
         assert result[f"{temp_prefix}/temperature|magnitude"] == 37.2
-        assert result[f"{temp_prefix}/temperature|unit"] == "Cel"
+        assert result[f"{temp_prefix}/temperature|unit"] == "°C"
 
     def test_add_respiration(self) -> None:
         """Test adding respiration reading."""
@@ -79,9 +79,9 @@ class TestVitalSignsBuilder:
         result = builder.build()
 
         spo2_prefix = "vital_signs_observations/vital_signs/indirect_oximetry"
-        assert f"{spo2_prefix}/spo2|magnitude" in result
-        assert result[f"{spo2_prefix}/spo2|magnitude"] == 98
-        assert result[f"{spo2_prefix}/spo2|unit"] == "%"
+        assert f"{spo2_prefix}/spo2|numerator" in result
+        assert result[f"{spo2_prefix}/spo2|numerator"] == 98
+        assert result[f"{spo2_prefix}/spo2|denominator"] == 100.0
 
     def test_add_all_vitals(self) -> None:
         """Test adding all vitals at once."""
@@ -102,7 +102,7 @@ class TestVitalSignsBuilder:
         assert f"{base}/pulse_heart_beat/heart_rate|magnitude" in result
         assert f"{base}/body_temperature/temperature|magnitude" in result
         assert f"{base}/respirations/rate|magnitude" in result
-        assert f"{base}/indirect_oximetry/spo2|magnitude" in result
+        assert f"{base}/indirect_oximetry/spo2|numerator" in result
 
     def test_method_chaining(self) -> None:
         """Test that methods return self for chaining."""
