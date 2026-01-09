@@ -20,9 +20,13 @@ class TestVitalSignsBuilder:
         builder = VitalSignsBuilder(composer_name="Dr. Smith")
         result = builder.build()
 
-        assert result["ctx/language"] == "en"
-        assert result["ctx/territory"] == "US"
-        assert result["ctx/composer_name"] == "Dr. Smith"
+        # VitalSignsBuilder uses composition prefix format
+        prefix = "vital_signs_observations"
+        assert result[f"{prefix}/language|code"] == "en"
+        assert result[f"{prefix}/territory|code"] == "US"
+        assert result[f"{prefix}/composer|name"] == "Dr. Smith"
+        # Should also have category fields
+        assert result[f"{prefix}/category|code"] == "433"
 
     def test_add_blood_pressure(self) -> None:
         """Test adding blood pressure reading."""
@@ -30,19 +34,11 @@ class TestVitalSignsBuilder:
         builder.add_blood_pressure(systolic=120, diastolic=80)
         result = builder.build()
 
-        assert "vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude" in result
-        assert (
-            result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude"]
-            == 120
-        )
-        assert (
-            result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|unit"]
-            == "mm[Hg]"
-        )
-        assert (
-            result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/diastolic|magnitude"]
-            == 80
-        )
+        bp_prefix = "vital_signs_observations/vital_signs/blood_pressure"
+        assert f"{bp_prefix}/systolic|magnitude" in result
+        assert result[f"{bp_prefix}/systolic|magnitude"] == 120
+        assert result[f"{bp_prefix}/systolic|unit"] == "mm[Hg]"
+        assert result[f"{bp_prefix}/diastolic|magnitude"] == 80
 
     def test_add_pulse(self) -> None:
         """Test adding pulse reading."""
@@ -50,9 +46,10 @@ class TestVitalSignsBuilder:
         builder.add_pulse(rate=72)
         result = builder.build()
 
-        assert "vital_signs/vital_signs:0/pulse:0/any_event:0/rate|magnitude" in result
-        assert result["vital_signs/vital_signs:0/pulse:0/any_event:0/rate|magnitude"] == 72
-        assert result["vital_signs/vital_signs:0/pulse:0/any_event:0/rate|unit"] == "/min"
+        pulse_prefix = "vital_signs_observations/vital_signs/pulse_heart_beat"
+        assert f"{pulse_prefix}/heart_rate|magnitude" in result
+        assert result[f"{pulse_prefix}/heart_rate|magnitude"] == 72
+        assert result[f"{pulse_prefix}/heart_rate|unit"] == "/min"
 
     def test_add_temperature(self) -> None:
         """Test adding temperature reading."""
@@ -60,18 +57,10 @@ class TestVitalSignsBuilder:
         builder.add_temperature(temperature=37.2)
         result = builder.build()
 
-        assert (
-            "vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude"
-            in result
-        )
-        assert (
-            result["vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude"]
-            == 37.2
-        )
-        assert (
-            result["vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|unit"]
-            == "Cel"
-        )
+        temp_prefix = "vital_signs_observations/vital_signs/body_temperature"
+        assert f"{temp_prefix}/temperature|magnitude" in result
+        assert result[f"{temp_prefix}/temperature|magnitude"] == 37.2
+        assert result[f"{temp_prefix}/temperature|unit"] == "°C"
 
     def test_add_respiration(self) -> None:
         """Test adding respiration reading."""
@@ -79,8 +68,9 @@ class TestVitalSignsBuilder:
         builder.add_respiration(rate=16)
         result = builder.build()
 
-        assert "vital_signs/vital_signs:0/respiration:0/any_event:0/rate|magnitude" in result
-        assert result["vital_signs/vital_signs:0/respiration:0/any_event:0/rate|magnitude"] == 16
+        resp_prefix = "vital_signs_observations/vital_signs/respirations"
+        assert f"{resp_prefix}/rate|magnitude" in result
+        assert result[f"{resp_prefix}/rate|magnitude"] == 16
 
     def test_add_oxygen_saturation(self) -> None:
         """Test adding SpO2 reading."""
@@ -88,11 +78,10 @@ class TestVitalSignsBuilder:
         builder.add_oxygen_saturation(spo2=98)
         result = builder.build()
 
-        assert "vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|magnitude" in result
-        assert (
-            result["vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|magnitude"] == 98
-        )
-        assert result["vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|unit"] == "%"
+        spo2_prefix = "vital_signs_observations/vital_signs/indirect_oximetry"
+        assert f"{spo2_prefix}/spo2|numerator" in result
+        assert result[f"{spo2_prefix}/spo2|numerator"] == 98
+        assert result[f"{spo2_prefix}/spo2|denominator"] == 100.0
 
     def test_add_all_vitals(self) -> None:
         """Test adding all vitals at once."""
@@ -108,14 +97,12 @@ class TestVitalSignsBuilder:
         result = builder.build()
 
         # Check all vitals are present
-        assert "vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude" in result
-        assert "vital_signs/vital_signs:0/pulse:0/any_event:0/rate|magnitude" in result
-        assert (
-            "vital_signs/vital_signs:0/body_temperature:0/any_event:0/temperature|magnitude"
-            in result
-        )
-        assert "vital_signs/vital_signs:0/respiration:0/any_event:0/rate|magnitude" in result
-        assert "vital_signs/vital_signs:0/indirect_oximetry:0/any_event:0/spo2|magnitude" in result
+        base = "vital_signs_observations/vital_signs"
+        assert f"{base}/blood_pressure/systolic|magnitude" in result
+        assert f"{base}/pulse_heart_beat/heart_rate|magnitude" in result
+        assert f"{base}/body_temperature/temperature|magnitude" in result
+        assert f"{base}/respirations/rate|magnitude" in result
+        assert f"{base}/indirect_oximetry/spo2|numerator" in result
 
     def test_method_chaining(self) -> None:
         """Test that methods return self for chaining."""
@@ -131,9 +118,11 @@ class TestVitalSignsBuilder:
         builder.add_blood_pressure(118, 78)
         result = builder.build()
 
-        # Should have two BP readings with different indices
-        assert "vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude" in result
-        assert "vital_signs/vital_signs:0/blood_pressure:1/any_event:1/systolic|magnitude" in result
+        # New format doesn't support multiple readings, only last one persists
+        bp_prefix = "vital_signs_observations/vital_signs/blood_pressure"
+        assert f"{bp_prefix}/systolic|magnitude" in result
+        # Latest value should be present (118, 78)
+        assert result[f"{bp_prefix}/systolic|magnitude"] == 118
 
     def test_custom_time(self) -> None:
         """Test setting custom measurement time."""
@@ -142,7 +131,8 @@ class TestVitalSignsBuilder:
         builder.add_blood_pressure(120, 80, time=time_str)
         result = builder.build()
 
-        assert result["vital_signs/vital_signs:0/blood_pressure:0/any_event:0/time"] == time_str
+        bp_prefix = "vital_signs_observations/vital_signs/blood_pressure"
+        assert result[f"{bp_prefix}/time"] == time_str
 
 
 class TestOPTParser:

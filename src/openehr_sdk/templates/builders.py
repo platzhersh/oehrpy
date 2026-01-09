@@ -70,6 +70,7 @@ class TemplateBuilder:
         composer_name: str | None = None,
         language: str = "en",
         territory: str = "US",
+        composition_prefix: str | None = None,
     ):
         """Initialize the builder.
 
@@ -77,14 +78,17 @@ class TemplateBuilder:
             composer_name: Name of the composition author.
             language: Language code (default: "en").
             territory: Territory code (default: "US").
+            composition_prefix: Composition ID for EHRBase 2.26.0+.
+                If None, uses "ctx" legacy format.
         """
-        self._flat = FlatBuilder()
+        self._flat = FlatBuilder(composition_prefix=composition_prefix)
         self._flat.context(
             language=language,
             territory=territory,
             composer_name=composer_name,
         )
         self._event_counters: dict[str, int] = {}
+        self._composition_prefix = composition_prefix
 
     def _next_event_index(self, observation: str) -> int:
         """Get the next event index for an observation."""
@@ -129,7 +133,7 @@ class BodyTemperatureReading:
     """Body temperature measurement data."""
 
     temperature: float
-    unit: str = "Cel"  # Celsius
+    unit: str = "°C"  # Celsius
     time: datetime | str | None = None
     site: str | None = None  # e.g., "oral", "axillary", "ear"
 
@@ -171,15 +175,40 @@ class VitalSignsBuilder(TemplateBuilder):
     template_id = "IDCR - Vital Signs Encounter.v1"
 
     # FLAT path prefixes for each observation type
-    # Based on the EHRBase FLAT format structure: section/section:0/observation:0/event:0
+    # Based on the Web Template from EHRBase 2.26.0
     # The template structure is:
-    # COMPOSITION > content[SECTION.vital_signs] > items[OBSERVATION.*]
-    # In FLAT format, this becomes: vital_signs/vital_signs:0/observation:0/...
-    _BP_PREFIX = "vital_signs/vital_signs:0/blood_pressure"
-    _PULSE_PREFIX = "vital_signs/vital_signs:0/pulse"
-    _TEMP_PREFIX = "vital_signs/vital_signs:0/body_temperature"
-    _RESP_PREFIX = "vital_signs/vital_signs:0/respiration"
-    _SPO2_PREFIX = "vital_signs/vital_signs:0/indirect_oximetry"
+    #   COMPOSITION(vital_signs_observations) > SECTION(vital_signs) > OBSERVATION.*
+    # In FLAT format (EHRBase 2.26.0+):
+    #   composition_id/section_id/observation_id/element
+    # NOTE: NO template ID prefix, NO :0 indices, NO /any_event:0/ paths
+    # These IDs come from the web template 'id' fields
+    _COMPOSITION_PREFIX = "vital_signs_observations"
+    _BP_PREFIX = "vital_signs_observations/vital_signs/blood_pressure"
+    _PULSE_PREFIX = "vital_signs_observations/vital_signs/pulse_heart_beat"
+    _TEMP_PREFIX = "vital_signs_observations/vital_signs/body_temperature"
+    _RESP_PREFIX = "vital_signs_observations/vital_signs/respirations"
+    _SPO2_PREFIX = "vital_signs_observations/vital_signs/indirect_oximetry"
+
+    def __init__(
+        self,
+        composer_name: str | None = None,
+        language: str = "en",
+        territory: str = "US",
+    ):
+        """Initialize the VitalSignsBuilder.
+
+        Args:
+            composer_name: Name of the composition author.
+            language: Language code (default: "en").
+            territory: Territory code (default: "US").
+        """
+        # Always use the composition prefix for EHRBase 2.26.0+ format
+        super().__init__(
+            composer_name=composer_name,
+            language=language,
+            territory=territory,
+            composition_prefix=self._COMPOSITION_PREFIX,
+        )
 
     def add_blood_pressure(
         self,
@@ -189,7 +218,6 @@ class VitalSignsBuilder(TemplateBuilder):
         position: str | None = None,
         cuff_size: str | None = None,
         location: str | None = None,
-        event_index: int | None = None,
     ) -> VitalSignsBuilder:
         """Add a blood pressure reading.
 
@@ -200,15 +228,11 @@ class VitalSignsBuilder(TemplateBuilder):
             position: Patient position (sitting, standing, lying).
             cuff_size: Cuff size used.
             location: Measurement location (left arm, right arm).
-            event_index: Optional specific event index.
 
         Returns:
             Self for method chaining.
         """
-        if event_index is None:
-            event_index = self._next_event_index("blood_pressure")
-
-        prefix = f"{self._BP_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = self._BP_PREFIX
 
         # Set time
         time_str = self._format_time(time)
@@ -217,6 +241,12 @@ class VitalSignsBuilder(TemplateBuilder):
         # Set measurements
         self._flat.set_quantity(f"{prefix}/systolic", systolic, "mm[Hg]")
         self._flat.set_quantity(f"{prefix}/diastolic", diastolic, "mm[Hg]")
+
+        # Set language and encoding (required for EHRBase 2.26.0+)
+        self._flat.set(f"{prefix}/language|terminology", "ISO_639-1")
+        self._flat.set(f"{prefix}/language|code", "en")
+        self._flat.set(f"{prefix}/encoding|terminology", "IANA_character-sets")
+        self._flat.set(f"{prefix}/encoding|code", "UTF-8")
 
         # Optional fields
         if position:
@@ -234,7 +264,6 @@ class VitalSignsBuilder(TemplateBuilder):
         time: datetime | str | None = None,
         regularity: str | None = None,
         position: str | None = None,
-        event_index: int | None = None,
     ) -> VitalSignsBuilder:
         """Add a pulse/heart rate reading.
 
@@ -243,19 +272,15 @@ class VitalSignsBuilder(TemplateBuilder):
             time: Measurement time (defaults to now).
             regularity: Pulse regularity (regular, irregular).
             position: Patient position.
-            event_index: Optional specific event index.
 
         Returns:
             Self for method chaining.
         """
-        if event_index is None:
-            event_index = self._next_event_index("pulse")
-
-        prefix = f"{self._PULSE_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = self._PULSE_PREFIX
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
-        self._flat.set_quantity(f"{prefix}/rate", rate, "/min")
+        self._flat.set_quantity(f"{prefix}/heart_rate", rate, "/min")
 
         if regularity:
             self._flat.set(f"{prefix}/regularity|value", regularity)
@@ -267,27 +292,22 @@ class VitalSignsBuilder(TemplateBuilder):
     def add_temperature(
         self,
         temperature: float,
-        unit: str = "Cel",
+        unit: str = "°C",
         time: datetime | str | None = None,
         site: str | None = None,
-        event_index: int | None = None,
     ) -> VitalSignsBuilder:
         """Add a body temperature reading.
 
         Args:
             temperature: Temperature value.
-            unit: Temperature unit (Cel or [degF]).
+            unit: Temperature unit (°C or °F).
             time: Measurement time.
             site: Measurement site (oral, axillary, ear, rectal).
-            event_index: Optional specific event index.
 
         Returns:
             Self for method chaining.
         """
-        if event_index is None:
-            event_index = self._next_event_index("temperature")
-
-        prefix = f"{self._TEMP_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = self._TEMP_PREFIX
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
@@ -303,7 +323,6 @@ class VitalSignsBuilder(TemplateBuilder):
         rate: float,
         time: datetime | str | None = None,
         regularity: str | None = None,
-        event_index: int | None = None,
     ) -> VitalSignsBuilder:
         """Add a respiration rate reading.
 
@@ -311,15 +330,11 @@ class VitalSignsBuilder(TemplateBuilder):
             rate: Respiratory rate in breaths per minute.
             time: Measurement time.
             regularity: Breathing regularity.
-            event_index: Optional specific event index.
 
         Returns:
             Self for method chaining.
         """
-        if event_index is None:
-            event_index = self._next_event_index("respiration")
-
-        prefix = f"{self._RESP_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = self._RESP_PREFIX
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
@@ -335,27 +350,23 @@ class VitalSignsBuilder(TemplateBuilder):
         spo2: float,
         time: datetime | str | None = None,
         supplemental_oxygen: bool = False,
-        event_index: int | None = None,
     ) -> VitalSignsBuilder:
         """Add an oxygen saturation (SpO2) reading.
 
         Args:
-            spo2: Oxygen saturation percentage.
+            spo2: Oxygen saturation percentage (0-100).
             time: Measurement time.
             supplemental_oxygen: Whether patient is on supplemental O2.
-            event_index: Optional specific event index.
 
         Returns:
             Self for method chaining.
         """
-        if event_index is None:
-            event_index = self._next_event_index("spo2")
-
-        prefix = f"{self._SPO2_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = self._SPO2_PREFIX
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
-        self._flat.set_quantity(f"{prefix}/spo2", spo2, "%")
+        # SpO2 is a DV_PROPORTION with fixed denominator of 100
+        self._flat.set_proportion(f"{prefix}/spo2", numerator=spo2, denominator=100.0)
 
         if supplemental_oxygen:
             self._flat.set_coded_text(

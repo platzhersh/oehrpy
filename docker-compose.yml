@@ -4,13 +4,8 @@ services:
   postgres:
     image: ehrbase/ehrbase-v2-postgres:16.2
     environment:
-      POSTGRES_DB: ehrbase
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      EHRBASE_USER_ADMIN: ehrbase
-      EHRBASE_PASSWORD_ADMIN: ehrbase
-      EHRBASE_USER: ehrbase
-      EHRBASE_PASSWORD: ehrbase
     ports:
       - "5433:5432"
     healthcheck:

@@ -99,39 +99,46 @@ class FlatContext:
     participation_mode: str | None = None
     participation_id: str | None = None
 
-    def to_flat(self) -> dict[str, Any]:
-        """Convert context to FLAT format."""
+    def to_flat(self, prefix: str = "ctx") -> dict[str, Any]:
+        """Convert context to FLAT format.
+
+        Args:
+            prefix: Path prefix to use. Use "ctx" for legacy format,
+                   or composition ID (e.g., "vital_signs_observations") for EHRBase 2.26.0+.
+        """
         result: dict[str, Any] = {
-            "ctx/language": self.language,
-            "ctx/territory": self.territory,
+            f"{prefix}/language|terminology": "ISO_639-1",
+            f"{prefix}/language|code": self.language,
+            f"{prefix}/territory|terminology": "ISO_3166-1",
+            f"{prefix}/territory|code": self.territory,
         }
 
         if self.composer_name:
-            result["ctx/composer_name"] = self.composer_name
+            result[f"{prefix}/composer|name"] = self.composer_name
         if self.composer_id:
-            result["ctx/composer_id"] = self.composer_id
+            result[f"{prefix}/composer|id"] = self.composer_id
         if self.id_scheme:
-            result["ctx/id_scheme"] = self.id_scheme
+            result[f"{prefix}/id_scheme"] = self.id_scheme
         if self.id_namespace:
-            result["ctx/id_namespace"] = self.id_namespace
+            result[f"{prefix}/id_namespace"] = self.id_namespace
         if self.health_care_facility_name:
-            result["ctx/health_care_facility|name"] = self.health_care_facility_name
+            result[f"{prefix}/health_care_facility|name"] = self.health_care_facility_name
         if self.health_care_facility_id:
-            result["ctx/health_care_facility|id"] = self.health_care_facility_id
+            result[f"{prefix}/health_care_facility|id"] = self.health_care_facility_id
         if self.time:
-            result["ctx/time"] = self.time
+            result[f"{prefix}/time"] = self.time
         if self.end_time:
-            result["ctx/end_time"] = self.end_time
+            result[f"{prefix}/end_time"] = self.end_time
         if self.history_origin:
-            result["ctx/history_origin"] = self.history_origin
+            result[f"{prefix}/history_origin"] = self.history_origin
         if self.participation_name:
-            result["ctx/participation_name"] = self.participation_name
+            result[f"{prefix}/participation_name"] = self.participation_name
         if self.participation_function:
-            result["ctx/participation_function"] = self.participation_function
+            result[f"{prefix}/participation_function"] = self.participation_function
         if self.participation_mode:
-            result["ctx/participation_mode"] = self.participation_mode
+            result[f"{prefix}/participation_mode"] = self.participation_mode
         if self.participation_id:
-            result["ctx/participation_id"] = self.participation_id
+            result[f"{prefix}/participation_id"] = self.participation_id
 
         return result
 
@@ -249,9 +256,16 @@ class FlatBuilder:
         >>> flat_data = builder.build()
     """
 
-    def __init__(self) -> None:
+    def __init__(self, composition_prefix: str | None = None) -> None:
+        """Initialize the builder.
+
+        Args:
+            composition_prefix: Composition ID prefix for EHRBase 2.26.0+ format.
+                              If None, uses legacy "ctx" format.
+        """
         self._data: dict[str, Any] = {}
         self._context = FlatContext()
+        self._composition_prefix = composition_prefix
 
     def context(
         self,
@@ -302,6 +316,12 @@ class FlatBuilder:
         self._data[f"{path}|terminology"] = terminology
         return self
 
+    def set_proportion(self, path: str, numerator: float, denominator: float) -> FlatBuilder:
+        """Set a DV_PROPORTION at the given path."""
+        self._data[f"{path}|numerator"] = numerator
+        self._data[f"{path}|denominator"] = denominator
+        return self
+
     def set_text(self, path: str, value: str) -> FlatBuilder:
         """Set a DV_TEXT at the given path."""
         self._data[path] = value
@@ -314,7 +334,30 @@ class FlatBuilder:
 
     def build(self) -> dict[str, Any]:
         """Build the final FLAT format dictionary."""
-        result = self._context.to_flat()
+        prefix = self._composition_prefix if self._composition_prefix else "ctx"
+        result = self._context.to_flat(prefix=prefix)
+
+        # Add category and context fields for EHRBase 2.26.0+ format
+        if self._composition_prefix:
+            from datetime import datetime, timezone
+
+            # Add category
+            result[f"{self._composition_prefix}/category|terminology"] = "openehr"
+            result[f"{self._composition_prefix}/category|code"] = "433"
+            result[f"{self._composition_prefix}/category|value"] = "event"
+
+            # Add context/start_time if not already set
+            context_time_key = f"{self._composition_prefix}/context/start_time"
+            if context_time_key not in result and context_time_key not in self._data:
+                result[context_time_key] = datetime.now(timezone.utc).isoformat()
+
+            # Add context/setting if not already set
+            context_setting_code = f"{self._composition_prefix}/context/setting|code"
+            if context_setting_code not in result and context_setting_code not in self._data:
+                result[f"{self._composition_prefix}/context/setting|terminology"] = "openehr"
+                result[context_setting_code] = "238"
+                result[f"{self._composition_prefix}/context/setting|value"] = "other care"
+
         result.update(self._data)
         return result
 
