@@ -254,29 +254,70 @@ Before submitting FLAT format to EHRBase 2.26.0:
 - [ ] All DV_QUANTITY have both `|magnitude` and `|unit`
 - [ ] All DV_CODED_TEXT have `|code`, `|value`, and `|terminology`
 
-## Important Context: No Formal FLAT Format Specification
+## Important Context: FLAT Format Specification and Variants
 
-### Key Finding from openEHR Community
+### Key Finding: Specification Exists But EHRBase 2.26.0 Diverges
 
-**There is NO single formal specification for FLAT format across the openEHR ecosystem.**
+**Correcting earlier assessment:** A formal specification DOES exist, but EHRBase 2.26.0 doesn't follow it completely.
 
-According to [openEHR Discourse discussions](https://discourse.openehr.org/t/understanding-flat-composition-json/1720/4):
+#### Official Specification: simSDT
 
-- FLAT format is **vendor-specific** - implementations differ between EHRScape, EHRbase, and other servers
-- The `ctx/` prefix represents "shortcuts for RM fields extracted from deeper canonical structures"
-- Formats are "purely concrete" (implementation-driven, not specification-driven)
-- Ongoing harmonization efforts exist but no unified standard
+The **[simSDT (Simplified Data Template)](https://specifications.openehr.org/releases/ITS-REST/latest/simplified_data_template.html)** was standardized in 2019:
+
+- Based on Marand's (Better platform) "web template" FLAT format
+- **Uses `:0`, `:1` indexing notation** for array elements
+- Part of official openEHR ITS-REST specifications
+- Standardization closed [GitHub issue #56](https://github.com/openEHR/specifications-ITS-REST/issues/56)
+
+**Example from specification:**
+```json
+{
+  "/context/participation:0": "Nurse|1345678::Jessica|...",
+  "/context/participation:1": "Assistant|1345678::2.16.840.1.113883.2.1.4.3..."
+}
+```
+
+#### FLAT Format Variants in the Ecosystem
+
+According to [EtherCIS documentation](https://github.com/ethercis/ethercis/blob/master/doc/flat%20json.md):
+
+**1. Marand FLAT Format** (Better Platform):
+- Path/value pairs with human-readable node names
+- Uses `:0`, `:1` indexing notation
+- Template-dependent format
+- Basis for simSDT specification
+
+**2. ECISFLAT Format** (EtherCIS):
+- AQL-based paths with archetype node IDs
+- Uses bracket notation: `/content[openEHR-EHR-EVALUATION.name.v1]`
+- Template-independent format
+- More verbose
+
+#### EHRBase 2.26.0's Divergence
+
+**EHRBase 2.26.0 appears to have evolved beyond the 2019 simSDT spec:**
+
+- ✅ Based on Marand's approach (composition tree IDs)
+- ❌ **Does NOT use `:0` indexing for single observations** (diverges from spec)
+- ✅ Uses human-readable paths
+- ❌ No `/any_event/` nodes (diverges from RM structure)
+
+**This creates a three-way mismatch:**
+1. **Official simSDT spec (2019)** → uses `:0` indexing
+2. **EHRBase docs** → outdated format with template IDs
+3. **EHRBase 2.26.0** → no indexing for single items, composition tree IDs
 
 ### Why This Matters
 
-**Without a formal specification:**
-1. You **cannot** rely on documentation from one vendor for another vendor's implementation
-2. You **must** use the `/example?format=FLAT` endpoint to discover actual format requirements
-3. Format changes between versions (like EHRBase 1.x → 2.x) may not be documented
-4. The "source of truth" is the running CDR instance, not documentation
+**Despite having a specification:**
+1. EHRBase 2.26.0 **diverges from the official spec** (removed `:0` indexing)
+2. EHRBase documentation is **outdated** (matches neither spec nor implementation)
+3. Format changes between versions may not be documented
+4. The "source of truth" is the running CDR instance, not spec or docs
 
 **This explains:**
 - Why EHRBase documentation shows outdated format (see [FLAT_FORMAT_VERSIONS.md](FLAT_FORMAT_VERSIONS.md))
+- Why the official spec doesn't match EHRBase behavior
 - Why there's no migration guide for FLAT format changes
 - Why we had to reverse-engineer the format from the `/example` endpoint
 
@@ -284,19 +325,38 @@ According to [openEHR Discourse discussions](https://discourse.openehr.org/t/und
 
 **Always verify FLAT format against your specific CDR version:**
 
-1. ✅ **Use `/example?format=FLAT` endpoint** - most reliable source
+1. ✅ **Use `/example?format=FLAT` endpoint** - most reliable source (implementation trumps spec)
 2. ✅ **Inspect WebTemplate `tree.id` values** - basis for path construction
 3. ✅ **Test against real CDR instance** - verify format acceptance
-4. ❌ **Don't assume documentation is current** - may describe different version/vendor
+4. ❌ **Don't assume spec/docs are current** - implementations may diverge
+
+### Historical Context
+
+According to [openEHR Discourse](https://discourse.openehr.org/t/understanding-flat-composition-json/1720/4):
+
+- The `ctx/` prefix represents "shortcuts for RM fields extracted from deeper canonical structures"
+- Multiple vendors developed different variants before 2019 standardization
+- EHRBase appears to have evolved its implementation post-standardization
+- Formats are somewhat "implementation-driven" despite formal specification
 
 ## Resources
 
-### Official Documentation
-- EHRBase 2.26.0: https://hub.docker.com/r/ehrbase/ehrbase
-- openEHR Discourse: https://discourse.openehr.org/
+### Official Specifications
+- **simSDT (Simplified Data Template)**: https://specifications.openehr.org/releases/ITS-REST/latest/simplified_data_template.html
+  - Official openEHR FLAT format specification (2019)
+  - **Note:** EHRBase 2.26.0 diverges from this spec (no `:0` indexing)
 - openEHR Serial Data Formats: https://specifications.openehr.org/releases/SM/latest/serial_data_formats.html
   - **Note:** This spec covers JSON serialization of RM types, NOT FLAT path construction
+
+### Vendor Documentation
+- EHRBase 2.26.0: https://hub.docker.com/r/ehrbase/ehrbase
+- EtherCIS FLAT Format: https://github.com/ethercis/ethercis/blob/master/doc/flat%20json.md
+  - Documents both Marand FLAT and ECISFLAT variants
+
+### Community Discussion
+- openEHR Discourse: https://discourse.openehr.org/
 - FLAT Format Discussion: https://discourse.openehr.org/t/understanding-flat-composition-json/1720
+- GitHub Issue #56 (Standardization): https://github.com/openEHR/specifications-ITS-REST/issues/56
 
 ### Key Endpoints
 - Web Template: `GET /rest/openehr/v1/definition/template/adl1.4/{template_id}`

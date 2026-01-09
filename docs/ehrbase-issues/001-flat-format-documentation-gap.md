@@ -141,34 +141,81 @@ We conducted extensive research to understand this issue:
 
 **Conclusion:** The format change is **completely undocumented**.
 
-### Critical Context: No Formal FLAT Format Specification
+### Critical Context: Specification Exists But EHRBase Diverges
 
-According to [openEHR Discourse](https://discourse.openehr.org/t/understanding-flat-composition-json/1720/4):
+**Update:** A formal specification DOES exist, making this issue even more severe.
 
-> There is **NO single formal specification** for FLAT format across the openEHR ecosystem. Implementations are **vendor-specific** and vary between EHRScape, EHRbase, and other servers. The formats are "purely concrete" (implementation-driven, not specification-driven).
+#### Official Specification
 
-**This makes the documentation gap even more critical:**
-- Without a formal spec, users **must** rely on vendor documentation
-- EHRBase's documentation shows outdated format, leaving users with no guidance
-- The `/example?format=FLAT` endpoint becomes the **only** source of truth
+The **[simSDT (Simplified Data Template)](https://specifications.openehr.org/releases/ITS-REST/latest/simplified_data_template.html)** specification was standardized in 2019:
+- Based on Marand's (Better platform) FLAT format
+- **Uses `:0`, `:1` indexing notation** for array elements
+- Part of official openEHR ITS-REST specifications
+
+#### EHRBase 2.26.0 Diverges from Specification
+
+**EHRBase 2.26.0 does NOT follow the official simSDT spec:**
+- ❌ **Does NOT use `:0` indexing** for single observations
+- ❌ Uses composition tree ID prefix (not template ID like spec examples)
+- ❌ No `/any_event/` nodes in paths
+
+#### Three-Way Mismatch
+
+1. **Official simSDT spec (2019)** → uses `:0` indexing, template ID prefix
+2. **EHRBase docs** → outdated format (pre-2.0 era)
+3. **EHRBase 2.26.0** → evolved format diverging from both
+
+**This makes the documentation gap CRITICAL:**
+- Official openEHR spec doesn't match EHRBase behavior
+- EHRBase docs don't match EHRBase behavior OR the spec
+- Users following either spec or docs will fail
+- The `/example?format=FLAT` endpoint is the **only** source of truth
+
+#### FLAT Format Variants
+
+According to [EtherCIS documentation](https://github.com/ethercis/ethercis/blob/master/doc/flat%20json.md), there are two main variants:
+
+**1. Marand FLAT** (Better Platform, basis for simSDT):
+- Uses `:0`, `:1` indexing
+- Human-readable paths
+- Template-dependent
+
+**2. ECISFLAT** (EtherCIS):
+- AQL-based paths with archetype IDs
+- Bracket notation: `/content[openEHR-EHR-EVALUATION.name.v1]`
+- Template-independent
+
+EHRBase 2.26.0 appears to use a **hybrid/evolved variant** not documented anywhere.
 
 ### Timeline (Inferred)
 
 | Date | Event | Evidence |
 |------|-------|----------|
-| 2021-2022 | FLAT format development | Multiple PRs adding support |
-| May 2023 | OLD format still in use | Issue #1117 shows `:0` indices |
-| 2.0.0 (2023?) | **Format changed** | "Overhauled data structure" (not detailed) |
-| 2.26.0 (2024+) | NEW format standard | `/example` endpoint shows new format |
+| Pre-2019 | Multiple vendor implementations | Marand, EtherCIS, EHRScape each had variants |
+| **2019** | **simSDT spec standardized** | Based on Marand's format, uses `:0` indexing |
+| 2021-2022 | EHRBase FLAT format development | Multiple PRs adding support |
+| May 2023 | OLD format still in use | Issue #1117 shows `:0` indices (matches spec) |
+| 2.0.0 (2023?) | **Format changed (undocumented)** | "Overhauled data structure", diverged from spec |
+| 2.26.0 (2024+) | **NEW format standard** | `/example` endpoint shows evolved format (no `:0`) |
 
 ### Related Resources
 
-- **Our Research:** [RESEARCH_FLAT_FORMAT_DISCOURSE.md](../RESEARCH_FLAT_FORMAT_DISCOURSE.md)
-- **Our Format Guide:** [FLAT_FORMAT_VERSIONS.md](../FLAT_FORMAT_VERSIONS.md)
-- **Our Implementation Guide:** [flat-format-learnings.md](../flat-format-learnings.md)
-- **Outdated Docs:** https://docs.ehrbase.org/docs/EHRbase/Explore/Simplified-data-template/WebTemplate
+**Official Specifications:**
+- **simSDT Specification (2019):** https://specifications.openehr.org/releases/ITS-REST/latest/simplified_data_template.html
+- **Standardization GitHub Issue:** https://github.com/openEHR/specifications-ITS-REST/issues/56
+
+**Vendor Documentation:**
+- **EtherCIS FLAT Format:** https://github.com/ethercis/ethercis/blob/master/doc/flat%20json.md (documents Marand & ECISFLAT variants)
+- **Outdated EHRBase Docs:** https://docs.ehrbase.org/docs/EHRbase/Explore/Simplified-data-template/WebTemplate
+
+**Our Research:**
+- [RESEARCH_FLAT_FORMAT_DISCOURSE.md](../RESEARCH_FLAT_FORMAT_DISCOURSE.md) - Community research
+- [FLAT_FORMAT_VERSIONS.md](../FLAT_FORMAT_VERSIONS.md) - Comprehensive format comparison
+- [flat-format-learnings.md](../flat-format-learnings.md) - Implementation guide
+
+**EHRBase References:**
 - **EHRBase Release 2.0.0:** https://github.com/ehrbase/ehrbase/releases/tag/v2.0.0
-- **GitHub Issue #1117:** https://github.com/ehrbase/ehrbase/issues/1117 (shows old format)
+- **GitHub Issue #1117:** https://github.com/ehrbase/ehrbase/issues/1117 (May 2023, shows old format)
 
 ---
 
