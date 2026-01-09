@@ -75,7 +75,7 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
 "src/openehr_sdk/rm/*.py" = ["N801", "N817", "E402", "SIM105"]  # Generated code
 "generator/*.py" = ["E501", "F541", "F401"]  # Generator code (long lines, f-strings, unused imports)
 "src/openehr_sdk/templates/opt_parser.py" = ["N817"]  # Allow ET as acronym for ElementTree
-"tests/*.py" = ["E501"]  # Test assertions with long FLAT paths
+"tests/**/*.py" = ["E501"]  # Test assertions with long FLAT paths
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
