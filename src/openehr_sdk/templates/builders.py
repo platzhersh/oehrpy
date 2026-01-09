@@ -78,7 +78,8 @@ class TemplateBuilder:
             composer_name: Name of the composition author.
             language: Language code (default: "en").
             territory: Territory code (default: "US").
-            composition_prefix: Composition ID for EHRBase 2.26.0+. If None, uses "ctx" legacy format.
+            composition_prefix: Composition ID for EHRBase 2.26.0+.
+                If None, uses "ctx" legacy format.
         """
         self._flat = FlatBuilder(composition_prefix=composition_prefix)
         self._flat.context(
@@ -175,8 +176,10 @@ class VitalSignsBuilder(TemplateBuilder):
 
     # FLAT path prefixes for each observation type
     # Based on the Web Template from EHRBase 2.26.0
-    # The template structure is: COMPOSITION(vital_signs_observations) > SECTION(vital_signs) > OBSERVATION.*
-    # In FLAT format (EHRBase 2.26.0+): composition_id/section_id/observation_id/element
+    # The template structure is:
+    #   COMPOSITION(vital_signs_observations) > SECTION(vital_signs) > OBSERVATION.*
+    # In FLAT format (EHRBase 2.26.0+):
+    #   composition_id/section_id/observation_id/element
     # NOTE: NO template ID prefix, NO :0 indices, NO /any_event:0/ paths
     # These IDs come from the web template 'id' fields
     _COMPOSITION_PREFIX = "vital_signs_observations"

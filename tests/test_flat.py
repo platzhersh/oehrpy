@@ -37,10 +37,12 @@ class TestFlatContext:
     def test_default_context(self) -> None:
         """Test default context values."""
         ctx = FlatContext()
-        flat = ctx.to_flat()
+        flat = ctx.to_flat()  # Uses default "ctx" prefix
 
-        assert flat["ctx/language"] == "en"
-        assert flat["ctx/territory"] == "US"
+        assert flat["ctx/language|code"] == "en"
+        assert flat["ctx/language|terminology"] == "ISO_639-1"
+        assert flat["ctx/territory|code"] == "US"
+        assert flat["ctx/territory|terminology"] == "ISO_3166-1"
 
     def test_custom_context(self) -> None:
         """Test custom context values."""
@@ -51,9 +53,9 @@ class TestFlatContext:
         )
         flat = ctx.to_flat()
 
-        assert flat["ctx/language"] == "de"
-        assert flat["ctx/territory"] == "DE"
-        assert flat["ctx/composer_name"] == "Dr. Mueller"
+        assert flat["ctx/language|code"] == "de"
+        assert flat["ctx/territory|code"] == "DE"
+        assert flat["ctx/composer|name"] == "Dr. Mueller"
 
     def test_from_flat(self) -> None:
         """Test creating context from flat data."""
@@ -75,13 +77,13 @@ class TestFlatBuilder:
 
     def test_basic_builder(self) -> None:
         """Test basic builder usage."""
-        builder = FlatBuilder()
+        builder = FlatBuilder()  # Uses default "ctx" prefix
         builder.context(language="en", territory="US")
         builder.set("test/path", "value")
 
         result = builder.build()
 
-        assert result["ctx/language"] == "en"
+        assert result["ctx/language|code"] == "en"
         assert result["test/path"] == "value"
 
     def test_set_quantity(self) -> None:
