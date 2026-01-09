@@ -279,7 +279,10 @@ class EHRBaseClient:
             )
         if response.status_code >= 400:
             try:
-                error_body = f" - {response.text}"
+                # Truncate response to avoid logging sensitive data (PII/PHI)
+                error_text = response.text[:200] if response.text else ""
+                suffix = "..." if len(response.text) > 200 else ""
+                error_body = f" - {error_text}{suffix}"
             except Exception:
                 error_body = ""
             raise EHRBaseError(
@@ -629,21 +632,31 @@ class EHRBaseClient:
             # Extract template_id from request XML
             import xml.etree.ElementTree as ET
 
-            root = ET.fromstring(template_xml)
-            # Template ID is in <template_id><value>...</value></template_id>
-            ns_path = (
-                ".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value"
-            )
-            template_id_elem = root.find(ns_path)
-            if template_id_elem is None:
-                # Try without namespace
-                template_id_elem = root.find(".//template_id/value")
+            try:
+                root = ET.fromstring(template_xml)
+                # Template ID is in <template_id><value>...</value></template_id>
+                ns_path = ".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value"
+                template_id_elem = root.find(ns_path)
+                if template_id_elem is None:
+                    # Try without namespace
+                    template_id_elem = root.find(".//template_id/value")
 
-            template_id = ""
-            if template_id_elem is not None and template_id_elem.text:
-                template_id = template_id_elem.text
+                template_id = ""
+                if template_id_elem is not None and template_id_elem.text:
+                    template_id = template_id_elem.text
 
-            return TemplateResponse(template_id=template_id)
+                if not template_id:
+                    raise ValidationError(
+                        "Template uploaded but could not extract template_id from XML",
+                        status_code=response.status_code,
+                    )
+
+                return TemplateResponse(template_id=template_id)
+            except ET.ParseError as e:
+                raise ValidationError(
+                    f"Template uploaded but XML parsing failed: {e}",
+                    status_code=response.status_code,
+                ) from e
 
         data = self._handle_response(response)
         return TemplateResponse.from_response(data)
