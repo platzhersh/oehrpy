@@ -635,7 +635,11 @@ class EHRBaseClient:
             if template_id_elem is None:
                 # Try without namespace
                 template_id_elem = root.find(".//template_id/value")
-            template_id = template_id_elem.text if template_id_elem is not None and template_id_elem.text else ""
+            template_id = (
+                template_id_elem.text
+                if template_id_elem is not None and template_id_elem.text
+                else ""
+            )
             return TemplateResponse(template_id=template_id)
 
         data = self._handle_response(response)
