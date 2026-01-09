@@ -51,8 +51,12 @@ class TestVitalSignsBuilder:
         result = builder.build()
 
         assert "vital_signs/pulse_heart_beat:0/any_event:0/heart_rate|magnitude" in result
-        assert result["vital_signs/pulse_heart_beat:0/any_event:0/heart_rate|magnitude"] == 72
-        assert result["vital_signs/pulse_heart_beat:0/any_event:0/heart_rate|unit"] == "/min"
+        assert (
+            result["vital_signs/pulse_heart_beat:0/any_event:0/heart_rate|magnitude"] == 72
+        )
+        assert (
+            result["vital_signs/pulse_heart_beat:0/any_event:0/heart_rate|unit"] == "/min"
+        )
 
     def test_add_temperature(self) -> None:
         """Test adding temperature reading."""
@@ -80,7 +84,9 @@ class TestVitalSignsBuilder:
         result = builder.build()
 
         assert "vital_signs/respirations:0/any_event:0/rate|magnitude" in result
-        assert result["vital_signs/respirations:0/any_event:0/rate|magnitude"] == 16
+        assert (
+            result["vital_signs/respirations:0/any_event:0/rate|magnitude"] == 16
+        )
 
     def test_add_oxygen_saturation(self) -> None:
         """Test adding SpO2 reading."""
@@ -92,7 +98,9 @@ class TestVitalSignsBuilder:
         assert (
             result["vital_signs/indirect_oximetry:0/any_event:0/spo2|magnitude"] == 98
         )
-        assert result["vital_signs/indirect_oximetry:0/any_event:0/spo2|unit"] == "%"
+        assert (
+            result["vital_signs/indirect_oximetry:0/any_event:0/spo2|unit"] == "%"
+        )
 
     def test_add_all_vitals(self) -> None:
         """Test adding all vitals at once."""
@@ -109,18 +117,28 @@ class TestVitalSignsBuilder:
 
         # Check all vitals are present
         assert "vital_signs/blood_pressure:0/any_event:0/systolic|magnitude" in result
-        assert "vital_signs/pulse_heart_beat:0/any_event:0/heart_rate|magnitude" in result
+        assert (
+            "vital_signs/pulse_heart_beat:0/any_event:0/heart_rate|magnitude"
+            in result
+        )
         assert (
             "vital_signs/body_temperature:0/any_event:0/temperature|magnitude"
             in result
         )
         assert "vital_signs/respirations:0/any_event:0/rate|magnitude" in result
-        assert "vital_signs/indirect_oximetry:0/any_event:0/spo2|magnitude" in result
+        assert (
+            "vital_signs/indirect_oximetry:0/any_event:0/spo2|magnitude" in result
+        )
 
     def test_method_chaining(self) -> None:
         """Test that methods return self for chaining."""
         builder = VitalSignsBuilder(composer_name="Dr. Smith")
-        result = builder.add_blood_pressure(120, 80).add_pulse(72).add_temperature(37.0).build()
+        result = (
+            builder.add_blood_pressure(120, 80)
+            .add_pulse(72)
+            .add_temperature(37.0)
+            .build()
+        )
 
         assert len(result) > 3  # Context + vitals
 
