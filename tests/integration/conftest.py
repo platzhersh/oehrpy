@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from openehr_sdk.client import EHRBaseClient, ValidationError
+from openehr_sdk.client import EHRBaseClient, EHRBaseError, ValidationError
 
 
 @pytest.fixture
@@ -87,8 +87,23 @@ async def vital_signs_template(
     try:
         response = await ehrbase_client.upload_template(template_xml)
         return response.template_id
-    except ValidationError:
-        # Template might already exist, try to list and find it
+    except (ValidationError, EHRBaseError) as e:
+        # Template might already exist (409 Conflict) or have validation issues
+        # Try to extract template ID from XML if we got a 409
+        if isinstance(e, EHRBaseError) and e.status_code == 409:
+            # Extract template_id from the XML
+            import xml.etree.ElementTree as ET
+
+            root = ET.fromstring(template_xml)
+            template_id_elem = root.find(
+                ".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value"
+            )
+            if template_id_elem is None:
+                template_id_elem = root.find(".//template_id/value")
+            if template_id_elem is not None and template_id_elem.text:
+                return template_id_elem.text
+
+        # Otherwise, try to list and find it
         templates = await ehrbase_client.list_templates()
         vital_signs_templates = [
             t
