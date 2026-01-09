@@ -278,11 +278,10 @@ class EHRBaseClient:
                 response=error_data,
             )
         if response.status_code >= 400:
-            error_body = ""
             try:
                 error_body = f" - {response.text}"
             except Exception:
-                pass
+                error_body = ""
             raise EHRBaseError(
                 f"Request failed: {response.status_code}{error_body}",
                 status_code=response.status_code,
@@ -619,16 +618,24 @@ class EHRBaseClient:
         response = await self.client.post(
             "/rest/openehr/v1/definition/template/adl1.4",
             content=template_xml,
-            headers={"Content-Type": "application/xml"},
+            headers={
+                "Content-Type": "application/xml",
+                "Accept": "*/*",
+            },
         )
 
-        # EHRBase 2.0.0 returns 201 with no body on successful template upload
-        if response.status_code == 201:
+        # EHRBase 2.0.0 returns 201 Created with no body on successful upload
+        if response.status_code == 201 or response.status_code == 204:
             # Extract template_id from request XML
             import xml.etree.ElementTree as ET
 
             root = ET.fromstring(template_xml)
-            template_id = root.get("template_id", "")
+            # Template ID is in <template_id><value>...</value></template_id>
+            template_id_elem = root.find(".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value")
+            if template_id_elem is None:
+                # Try without namespace
+                template_id_elem = root.find(".//template_id/value")
+            template_id = template_id_elem.text if template_id_elem is not None else ""
             return TemplateResponse(template_id=template_id)
 
         data = self._handle_response(response)
