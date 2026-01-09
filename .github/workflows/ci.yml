@@ -140,6 +140,34 @@ jobs:
           timeout 120 bash -c 'until curl -f -u ehrbase-user:SuperSecretPassword http://localhost:8080/ehrbase/rest/status; do echo "Waiting for EHRBase..."; sleep 5; done'
           echo "EHRBase is ready!"
 
+      - name: Fetch Web Template for debugging
+        if: always()
+        continue-on-error: true
+        run: |
+          # Upload the template first (conftest.py does this in tests, but let's ensure it's there)
+          curl -X POST -u ehrbase-user:SuperSecretPassword \
+            -H "Content-Type: application/xml" \
+            -H "Accept: */*" \
+            --data @tests/fixtures/vital_signs.opt \
+            http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4 || echo "Template may already exist"
+
+          # Fetch the Web Template
+          curl -u ehrbase-user:SuperSecretPassword \
+            "http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4/IDCR%20-%20Vital%20Signs%20Encounter.v1" \
+            -o web_template.json
+
+          # Pretty print it
+          python3 -m json.tool web_template.json > web_template_formatted.json
+
+          echo "Web Template fetched successfully"
+
+      - name: Upload Web Template artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-template
+          path: web_template_formatted.json
+
       - name: Run integration tests
         run: pytest tests/ -m integration -v --tb=short
         env:
