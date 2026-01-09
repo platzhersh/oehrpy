@@ -47,10 +47,12 @@ class TestCanonicalFormat:
         diastolic = DV_QUANTITY(magnitude=80.0, units="mm[Hg]")
 
         bp_data = ITEM_TREE(
+            archetype_node_id="at0003",
+            name=DV_TEXT(value="Blood pressure"),
             items=[
                 {"name": DV_TEXT(value="Systolic"), "value": systolic},
                 {"name": DV_TEXT(value="Diastolic"), "value": diastolic},
-            ]
+            ],
         )
 
         bp_event = POINT_EVENT(
@@ -122,7 +124,9 @@ class TestCanonicalFormat:
 
         pulse_rate = DV_QUANTITY(magnitude=72.0, units="/min")
         pulse_data = ITEM_TREE(
-            items=[{"name": DV_TEXT(value="Heart Rate"), "value": pulse_rate}]
+            archetype_node_id="at0002",
+            name=DV_TEXT(value="Event Series"),
+            items=[{"name": DV_TEXT(value="Heart Rate"), "value": pulse_rate}],
         )
 
         pulse_event = POINT_EVENT(
@@ -197,7 +201,9 @@ class TestCanonicalFormat:
         # Create simple temperature observation
         temp = DV_QUANTITY(magnitude=37.2, units="°C")
         temp_data = ITEM_TREE(
-            items=[{"name": DV_TEXT(value="Temperature"), "value": temp}]
+            archetype_node_id="at0003",
+            name=DV_TEXT(value="Any event"),
+            items=[{"name": DV_TEXT(value="Temperature"), "value": temp}],
         )
 
         temp_event = POINT_EVENT(
