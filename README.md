@@ -22,12 +22,20 @@ cd oehrpy
 pip install -e .
 ```
 
+## Compatibility
+
+- **Python:** 3.10+
+- **openEHR RM:** 1.1.0
+- **EHRBase:** 2.26.0+ (uses new FLAT format with composition tree IDs)
+
+> **Note:** EHRBase 2.0+ introduced breaking changes to the FLAT format. This SDK implements the **new format** used by EHRBase 2.26.0. For details, see [FLAT Format Versions](docs/FLAT_FORMAT_VERSIONS.md).
+
 ## Features
 
 - **Type-safe RM Classes**: 134 Pydantic models for openEHR Reference Model 1.1.0 types (includes BASE types)
 - **Template Builders**: Pre-built composition builders for common templates (Vital Signs)
 - **OPT Parser & Generator**: Parse OPT files and auto-generate type-safe builder classes
-- **FLAT Format**: Full support for EHRBase FLAT format serialization
+- **FLAT Format**: Full support for EHRBase 2.26.0+ FLAT format serialization
 - **Canonical JSON**: Convert RM objects to/from openEHR canonical JSON format
 - **EHRBase Client**: Async REST client for EHRBase CDR operations
 - **AQL Builder**: Fluent API for building type-safe AQL queries
@@ -77,11 +85,13 @@ builder.add_oxygen_saturation(spo2=98)
 # Get FLAT format for EHRBase submission
 flat_data = builder.build()
 # {
-#   "ctx/language": "en",
-#   "ctx/territory": "US",
-#   "ctx/composer_name": "Dr. Smith",
-#   "vital_signs/blood_pressure:0/any_event:0/systolic|magnitude": 120,
-#   "vital_signs/blood_pressure:0/any_event:0/systolic|unit": "mm[Hg]",
+#   "vital_signs_observations/language|code": "en",
+#   "vital_signs_observations/territory|code": "US",
+#   "vital_signs_observations/composer|name": "Dr. Smith",
+#   "vital_signs_observations/category|code": "433",
+#   "vital_signs_observations/vital_signs/blood_pressure/systolic|magnitude": 120,
+#   "vital_signs_observations/vital_signs/blood_pressure/systolic|unit": "mm[Hg]",
+#   "vital_signs_observations/vital_signs/body_temperature/temperature|unit": "°C",
 #   ...
 # }
 ```
@@ -136,12 +146,14 @@ restored = from_canonical(canonical, expected_type=DV_QUANTITY)
 ```python
 from openehr_sdk.serialization import FlatBuilder
 
-builder = FlatBuilder()
+# For EHRBase 2.26.0+, use composition tree ID as prefix
+builder = FlatBuilder(composition_prefix="vital_signs_observations")
 builder.context(language="en", territory="US", composer_name="Dr. Smith")
-builder.set_quantity("vital_signs/bp/systolic", 120.0, "mm[Hg]")
-builder.set_coded_text("vital_signs/status", "Normal", "at0001")
+builder.set_quantity("vital_signs_observations/vital_signs/blood_pressure/systolic", 120.0, "mm[Hg]")
+builder.set_coded_text("vital_signs_observations/vital_signs/blood_pressure/position", "Sitting", "at0001")
 
 flat_data = builder.build()
+# Automatically includes required fields: category, context/start_time, context/setting
 ```
 
 ### EHRBase REST Client
@@ -296,9 +308,17 @@ Contributions are welcome! Please see the documentation for guidelines.
 
 MIT
 
+## Documentation
+
+- [FLAT Format Versions](docs/FLAT_FORMAT_VERSIONS.md) - Understanding EHRBase 2.0+ FLAT format changes
+- [FLAT Format Learnings](docs/flat-format-learnings.md) - Comprehensive FLAT format guide
+- [ADR-0001: RM 1.1.0 Support](docs/adr/0001-odin-parsing-and-rm-1.1.0-support.md)
+- [ADR-0002: Integration Testing](docs/adr/0002-integration-testing-with-ehrbase.md)
+- [PRD-0000: Python openEHR SDK](docs/prd/PRD-0000-python-openehr-sdk.md)
+
 ## References
 
 - [openEHR BMM Specifications](https://github.com/openEHR/specifications-ITS-BMM)
 - [openEHR RM Specification](https://specifications.openehr.org/releases/RM/latest)
 - [EHRBase](https://ehrbase.org/)
-- [PRD-0000: Python openEHR SDK](docs/prd/PRD-0000-python-openehr-sdk.md)
+- [EHRBase Documentation](https://docs.ehrbase.org/) *(Note: FLAT format docs may be outdated, see our [FLAT Format Versions](docs/FLAT_FORMAT_VERSIONS.md) guide)*
