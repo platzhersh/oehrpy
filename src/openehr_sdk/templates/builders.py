@@ -208,7 +208,7 @@ class VitalSignsBuilder(TemplateBuilder):
         if event_index is None:
             event_index = self._next_event_index("blood_pressure")
 
-        prefix = f"{self._BP_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = f"{self._BP_PREFIX}:{event_index}"
 
         # Set time
         time_str = self._format_time(time)
@@ -251,7 +251,7 @@ class VitalSignsBuilder(TemplateBuilder):
         if event_index is None:
             event_index = self._next_event_index("pulse")
 
-        prefix = f"{self._PULSE_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = f"{self._PULSE_PREFIX}:{event_index}"
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
@@ -287,7 +287,7 @@ class VitalSignsBuilder(TemplateBuilder):
         if event_index is None:
             event_index = self._next_event_index("temperature")
 
-        prefix = f"{self._TEMP_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = f"{self._TEMP_PREFIX}:{event_index}"
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
@@ -319,7 +319,7 @@ class VitalSignsBuilder(TemplateBuilder):
         if event_index is None:
             event_index = self._next_event_index("respiration")
 
-        prefix = f"{self._RESP_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = f"{self._RESP_PREFIX}:{event_index}"
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
@@ -351,7 +351,7 @@ class VitalSignsBuilder(TemplateBuilder):
         if event_index is None:
             event_index = self._next_event_index("spo2")
 
-        prefix = f"{self._SPO2_PREFIX}:{event_index}/any_event:{event_index}"
+        prefix = f"{self._SPO2_PREFIX}:{event_index}"
 
         time_str = self._format_time(time)
         self._flat.set(f"{prefix}/time", time_str)
