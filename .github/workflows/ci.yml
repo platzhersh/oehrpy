@@ -145,28 +145,40 @@ jobs:
         continue-on-error: true
         run: |
           # Upload the template first (conftest.py does this in tests, but let's ensure it's there)
-          curl -X POST -u ehrbase-user:SuperSecretPassword \
+          echo "Uploading template..."
+          curl -v -X POST -u ehrbase-user:SuperSecretPassword \
             -H "Content-Type: application/xml" \
             -H "Accept: */*" \
             --data @tests/fixtures/vital_signs.opt \
-            http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4 || echo "Template may already exist"
+            http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4 || echo "Template upload may have failed or template already exists"
 
-          # Fetch the Web Template
-          curl -u ehrbase-user:SuperSecretPassword \
+          echo "Fetching Web Template..."
+          # Fetch the Web Template - save with verbose output
+          curl -v -u ehrbase-user:SuperSecretPassword \
             "http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4/IDCR%20-%20Vital%20Signs%20Encounter.v1" \
-            -o web_template.json
+            -o web_template.json || echo "Web template fetch failed"
 
-          # Pretty print it
-          python3 -m json.tool web_template.json > web_template_formatted.json
+          # Check if file has content
+          if [ -s web_template.json ]; then
+            echo "Web Template file size: $(wc -c < web_template.json) bytes"
+            echo "First 100 chars:"
+            head -c 100 web_template.json
+            echo ""
 
-          echo "Web Template fetched successfully"
+            # Try to pretty print (may fail if not JSON)
+            python3 -m json.tool web_template.json > web_template_formatted.json 2>&1 || \
+              cp web_template.json web_template_formatted.json
+          else
+            echo "Error: web_template.json is empty"
+            echo "ERROR: Failed to fetch web template" > web_template_formatted.json
+          fi
 
       - name: Upload Web Template artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: web-template
-          path: web_template_formatted.json
+          path: web_template*.json
 
       - name: Run integration tests
         run: pytest tests/ -m integration -v --tb=short
