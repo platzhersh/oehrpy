@@ -632,8 +632,7 @@ class EHRBaseClient:
             root = ET.fromstring(template_xml)
             # Template ID is in <template_id><value>...</value></template_id>
             ns_path = (
-                ".//{http://schemas.openehr.org/v1}template_id/"
-                "{http://schemas.openehr.org/v1}value"
+                ".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value"
             )
             template_id_elem = root.find(ns_path)
             if template_id_elem is None:
