@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: ehrbase/ehrbase-v2-postgres:16.2
+    image: ehrbase/ehrbase-v2-postgres:16.11
     environment:
       POSTGRES_DB: ehrbase
       POSTGRES_USER: postgres
@@ -21,7 +21,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   ehrbase:
-    image: ehrbase/ehrbase:2.0.0
+    image: ehrbase/ehrbase:2.26.0
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/ehrbase
       DB_USER: ehrbase

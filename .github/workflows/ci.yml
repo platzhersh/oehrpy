@@ -89,7 +89,7 @@ jobs:
 
     services:
       postgres:
-        image: ehrbase/ehrbase-v2-postgres:16.2
+        image: ehrbase/ehrbase-v2-postgres:16.11
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -133,7 +133,7 @@ jobs:
             -e SECURITY_AUTHPASSWORD=SuperSecretPassword \
             -e SECURITY_AUTHADMINUSER=ehrbase-admin \
             -e SECURITY_AUTHADMINPASSWORD=EvenMoreSecretPassword \
-            ehrbase/ehrbase:2.0.0
+            ehrbase/ehrbase:2.26.0
 
       - name: Wait for EHRBase
         run: |

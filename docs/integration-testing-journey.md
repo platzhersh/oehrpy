@@ -2,11 +2,13 @@
 
 ## Overview
 
-This document captures the complete journey of implementing integration tests for the oehrpy SDK with EHRBase 2.0.0, including challenges encountered, solutions implemented, and outstanding issues with FLAT format.
+This document captures the complete journey of implementing integration tests for the oehrpy SDK with EHRBase (currently v2.26.0), including challenges encountered, solutions implemented, and outstanding issues with FLAT format.
 
 **Status**: Integration tests infrastructure complete. FLAT format path structure remains unresolved.
 
 **Date**: 2026-01-09
+
+**Update**: 2026-01-09 - Upgraded to EHRBase 2.26.0 and PostgreSQL 16.11 for latest security fixes and bug fixes. The newer EHRBase version may help resolve FLAT format issues in future iterations.
 
 ---
 
@@ -16,7 +18,7 @@ This document captures the complete journey of implementing integration tests fo
 
 Successfully implemented GitHub Actions CI workflow with:
 
-- **Docker Compose Setup**: PostgreSQL + EHRBase 2.0.0
+- **Docker Compose Setup**: PostgreSQL 16.11 + EHRBase 2.26.0
 - **Service Containers**: GitHub Actions service containers for postgres
 - **EHRBase Container**: Docker run with `--network host` for EHRBase
 - **Health Checks**: Proper wait mechanisms for both postgres and EHRBase
