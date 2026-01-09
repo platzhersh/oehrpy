@@ -619,11 +619,17 @@ class EHRBaseClient:
         response = await self.client.post(
             "/rest/openehr/v1/definition/template/adl1.4",
             content=template_xml,
-            headers={
-                "Content-Type": "application/xml",
-                "Accept": "application/json",
-            },
+            headers={"Content-Type": "application/xml"},
         )
+
+        # EHRBase 2.0.0 returns 201 with no body on successful template upload
+        if response.status_code == 201:
+            # Extract template_id from request XML
+            import xml.etree.ElementTree as ET
+
+            root = ET.fromstring(template_xml)
+            template_id = root.get("template_id", "")
+            return TemplateResponse(template_id=template_id)
 
         data = self._handle_response(response)
         return TemplateResponse.from_response(data)
