@@ -315,7 +315,7 @@ _SPO2_PREFIX = "vital_signs/vital_signs:0/indirect_oximetry"
 After upgrading to **EHRBase 2.26.0** (from 2.0.0), we successfully retrieved the Web Template JSON using:
 
 ```bash
-curl -u ehrbase-user:SuperSecretPassword \
+curl -u "$EHRBASE_USER:$EHRBASE_PASSWORD" \
   -H "Accept: application/openehr.wt+json" \
   "http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4/IDCR%20-%20Vital%20Signs%20Encounter.v1"
 ```
@@ -326,7 +326,7 @@ curl -u ehrbase-user:SuperSecretPassword \
 
 The web template shows a flattened structure where data elements are direct children of observations:
 
-```
+```text
 vital_signs (SECTION)
   └─ blood_pressure (OBSERVATION)
       ├─ systolic (DV_QUANTITY)
@@ -341,7 +341,7 @@ vital_signs (SECTION)
 
 ### FLAT Format Testing Results
 
-**Test 1: Without Event Hierarchy**
+#### Test 1: Without Event Hierarchy
 ```json
 {
   "vital_signs/blood_pressure:0/systolic|magnitude": 120,
@@ -352,7 +352,7 @@ vital_signs (SECTION)
 ```
 **Result**: ❌ `Could not consume Parts` error
 
-**Test 2: With /any_event:0/**
+#### Test 2: With /any_event:0/
 ```json
 {
   "vital_signs/blood_pressure:0/any_event:0/systolic|magnitude": 120,
@@ -362,7 +362,7 @@ vital_signs (SECTION)
 ```
 **Result**: ❌ `Could not consume Parts` error
 
-**Test 3: With All Required Fields**
+#### Test 3: With All Required Fields
 ```json
 {
   "vital_signs/blood_pressure:0/systolic|magnitude": 120,
@@ -380,7 +380,7 @@ vital_signs (SECTION)
 
 ### Documentation vs Reality Discrepancy
 
-Official EHRBase documentation (https://github.com/ehrbase/documentation) shows examples like:
+Official [EHRBase documentation](https://github.com/ehrbase/documentation) shows examples like:
 ```json
 {
   "vital_signs/body_temperature:0/any_event:0/temperature|magnitude": 37.1,

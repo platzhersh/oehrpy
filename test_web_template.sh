@@ -8,13 +8,15 @@ BASE_URL="http://localhost:8080/ehrbase"
 USER="ehrbase-user"
 PASS="SuperSecretPassword"
 
-echo "=== Attempt 1: Standard openEHR REST API with JSON ===" curl -s -X GET \
+echo "=== Attempt 1: Standard openEHR REST API with JSON ==="
+curl -s -X GET \
   "${BASE_URL}/rest/openehr/v1/definition/template/adl1.4/${TEMPLATE_ID_ENCODED}" \
   -H "Accept: application/json" \
   -u "${USER}:${PASS}" \
   > /tmp/web_template_test1.json
+STATUS_1=$?
 
-echo "Status: $?"
+echo "Status: $STATUS_1"
 echo "Response:"
 cat /tmp/web_template_test1.json | head -50
 echo ""
@@ -25,8 +27,9 @@ curl -s -X GET \
   -H "Accept: application/openehr.wt+json" \
   -u "${USER}:${PASS}" \
   > /tmp/web_template_test2.json
+STATUS_2=$?
 
-echo "Status: $?"
+echo "Status: $STATUS_2"
 echo "Response:"
 cat /tmp/web_template_test2.json | head -50
 echo ""
@@ -37,8 +40,9 @@ curl -s -X GET \
   -H "Accept: application/json" \
   -u "${USER}:${PASS}" \
   > /tmp/web_template_test3.json
+STATUS_3=$?
 
-echo "Status: $?"
+echo "Status: $STATUS_3"
 echo "Response:"
 cat /tmp/web_template_test3.json | head -50
 echo ""
