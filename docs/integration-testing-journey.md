@@ -8,7 +8,7 @@ This document captures the complete journey of implementing integration tests fo
 
 **Date**: 2026-01-09
 
-**Update**: 2026-01-09 - Upgraded to EHRBase 2.26.0 and PostgreSQL 16.11 for latest security fixes and bug fixes. The newer EHRBase version may help resolve FLAT format issues in future iterations.
+**Update**: 2026-01-09 - Upgraded to EHRBase 2.26.0 for latest bug fixes. PostgreSQL remains at 16.2 (only available version for ehrbase-v2-postgres image). The newer EHRBase version may help resolve FLAT format issues in future iterations.
 
 ---
 
@@ -18,7 +18,7 @@ This document captures the complete journey of implementing integration tests fo
 
 Successfully implemented GitHub Actions CI workflow with:
 
-- **Docker Compose Setup**: PostgreSQL 16.11 + EHRBase 2.26.0
+- **Docker Compose Setup**: PostgreSQL 16.2 + EHRBase 2.26.0
 - **Service Containers**: GitHub Actions service containers for postgres
 - **EHRBase Container**: Docker run with `--network host` for EHRBase
 - **Health Checks**: Proper wait mechanisms for both postgres and EHRBase

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: ehrbase/ehrbase-v2-postgres:16.11
+    image: ehrbase/ehrbase-v2-postgres:16.2
     environment:
       POSTGRES_DB: ehrbase
       POSTGRES_USER: postgres

@@ -89,7 +89,7 @@ jobs:
 
     services:
       postgres:
-        image: ehrbase/ehrbase-v2-postgres:16.11
+        image: ehrbase/ehrbase-v2-postgres:16.2
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
