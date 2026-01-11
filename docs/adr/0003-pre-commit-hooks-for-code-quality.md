@@ -26,48 +26,35 @@ This is error-prone and often forgotten, leading to failed CI runs and additiona
 
 ## Decision
 
-We will investigate and implement pre-commit hooks using the `pre-commit` framework (https://pre-commit.com/) to automatically run code quality checks before allowing commits.
+We implemented pre-commit hooks using the `pre-commit` framework (https://pre-commit.com/) to automatically run code quality checks before allowing commits.
 
-### Proposed Configuration
+### Configuration
 
-Create `.pre-commit-config.yaml` with the following hooks:
+The `.pre-commit-config.yaml` file configures the following hooks:
 
 ```yaml
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9  # Use latest stable version
+    rev: v0.8.6
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0  # Use latest stable version
+    rev: v1.14.1
     hooks:
       - id: mypy
-        additional_dependencies: [pydantic>=2.0, httpx>=0.25]
+        additional_dependencies: [pydantic>=2.0, httpx>=0.25, types-defusedxml>=0.7]
         args: [--config-file=pyproject.toml]
         files: ^src/openehr_sdk/
 ```
 
-### Implementation Plan
+### Implementation
 
-1. Add `pre-commit` to development dependencies in `pyproject.toml`:
-   ```toml
-   [project.optional-dependencies]
-   dev = [
-       "pytest>=7.4",
-       "pytest-asyncio>=0.21",
-       "mypy>=1.7",
-       "ruff>=0.1.9",
-       "pre-commit>=3.5.0",  # Add this
-   ]
-   ```
+1. Added `pre-commit>=3.5.0` to development dependencies in `pyproject.toml`
 
-2. Document in README.md:
-   ```markdown
-   ## Development Setup
-
+2. Documented setup in README.md:
    ```bash
    # Install with development dependencies
    pip install -e ".[dev]"
@@ -76,21 +63,23 @@ repos:
    pre-commit install
    ```
 
-   Pre-commit hooks will automatically run on `git commit` to:
+   Pre-commit hooks automatically run on `git commit` to:
    - Format code with ruff
    - Check linting with ruff
    - Run type checking with mypy on SDK code
 
-   To skip hooks temporarily (not recommended):
-   ```bash
-   git commit --no-verify
-   ```
-   ```
-
-3. Add CI check to ensure hooks are up-to-date:
+3. Added CI job in `.github/workflows/ci.yml` to run hooks on all files:
    ```yaml
-   - name: Check pre-commit hooks
-     run: pre-commit run --all-files
+   pre-commit:
+     name: Pre-commit Hooks
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v4
+       - uses: actions/setup-python@v5
+         with:
+           python-version: "3.12"
+       - run: pip install pre-commit
+       - run: pre-commit run --all-files
    ```
 
 ### Benefits
@@ -131,23 +120,8 @@ repos:
 - Run checks on-demand before commit
 - Rejected: Slower feedback than local hooks, requires internet connection
 
-## Implementation Timeline
-
-1. **Research phase** (This ADR): Document decision and rationale
-2. **Proof of concept**: Test pre-commit configuration with current codebase
-3. **Team review**: Get feedback from other contributors (if any)
-4. **Implementation**: Add configuration files and documentation
-5. **Rollout**: Add to README, mention in CONTRIBUTING.md
-
 ## References
 
 - [pre-commit framework](https://pre-commit.com/)
 - [Ruff pre-commit hooks](https://github.com/astral-sh/ruff-pre-commit)
 - [mypy pre-commit hook](https://github.com/pre-commit/mirrors-mypy)
-- [GitHub discussion on pre-commit best practices](https://github.com/pre-commit/pre-commit/issues)
-
-## Notes
-
-- This ADR documents the intent to investigate and implement pre-commit hooks
-- Implementation details may change based on testing and team feedback
-- Status will be updated to "Accepted" once implementation is complete
