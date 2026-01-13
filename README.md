@@ -302,7 +302,7 @@ oehrpy/
 
 ## Contributing
 
-Contributions are welcome! Please see the documentation for guidelines.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
 
 ## License
 
