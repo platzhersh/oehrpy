@@ -66,7 +66,7 @@ class FromClause:
 
         # EHR clause
         if self.ehr_id_param:
-            parts.append(f"EHR {self.ehr_alias}[ehr_id/value=:{self.ehr_id_param}]")
+            parts.append(f"EHR {self.ehr_alias}[ehr_id/value=${self.ehr_id_param}]")
         else:
             parts.append(f"EHR {self.ehr_alias}")
 
@@ -178,7 +178,7 @@ class AQLBuilder:
         ...     .select("c/context/start_time/value", alias="time")
         ...     .from_ehr("e")
         ...     .contains_composition("c", "IDCR - Vital Signs Encounter.v1")
-        ...     .where("e/ehr_id/value = :ehr_id")
+        ...     .where("e/ehr_id/value = $ehr_id")
         ...     .order_by("c/context/start_time/value", descending=True)
         ...     .limit(10)
         ...     .build()
@@ -269,7 +269,7 @@ class AQLBuilder:
 
         if archetype_id:
             param_name = f"{alias}_archetype_id"
-            containment = f"{rm_type} {alias}[archetype_id/value=:{param_name}]"
+            containment = f"{rm_type} {alias}[archetype_id/value=${param_name}]"
             self._parameters[param_name] = archetype_id
         else:
             containment = f"{rm_type} {alias}"
@@ -299,7 +299,7 @@ class AQLBuilder:
             self._from_clause = FromClause()
 
         if archetype_id:
-            containment = f"COMPOSITION {alias}[archetype_id/value=:{alias}_archetype_id]"
+            containment = f"COMPOSITION {alias}[archetype_id/value=${alias}_archetype_id]"
             self._parameters[f"{alias}_archetype_id"] = archetype_id
         else:
             containment = f"COMPOSITION {alias}"
@@ -309,7 +309,7 @@ class AQLBuilder:
         # Add template_id filter as parameterized WHERE clause
         if template_id:
             self._where_clause.add(
-                f"{alias}/archetype_details/template_id/value = :{template_id_param}"
+                f"{alias}/archetype_details/template_id/value = ${template_id_param}"
             )
             self._parameters[template_id_param] = template_id
 
@@ -373,7 +373,7 @@ class AQLBuilder:
         Returns:
             Self for method chaining.
         """
-        return self.where(f"{ehr_alias}/ehr_id/value = :{param_name}")
+        return self.where(f"{ehr_alias}/ehr_id/value = ${param_name}")
 
     def where_template(
         self,
@@ -391,7 +391,7 @@ class AQLBuilder:
         Returns:
             Self for method chaining.
         """
-        self.where(f"{composition_alias}/archetype_details/template_id/value = :{param_name}")
+        self.where(f"{composition_alias}/archetype_details/template_id/value = ${param_name}")
         if template_id:
             self._parameters[param_name] = template_id
         return self
@@ -417,10 +417,10 @@ class AQLBuilder:
             Self for method chaining.
         """
         if start:
-            self.where(f"{path} >= :{start_param}")
+            self.where(f"{path} >= ${start_param}")
             self._parameters[start_param] = start
         if end:
-            self.where(f"{path} <= :{end_param}")
+            self.where(f"{path} <= ${end_param}")
             self._parameters[end_param] = end
         return self
 

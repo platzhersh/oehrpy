@@ -115,7 +115,7 @@ class TestAQLQueries:
             o/data[at0001]/events[at0006]/data[at0003]/items[at0005]/value/magnitude AS diastolic
         FROM EHR e[ehr_id/value='{test_ehr}']
         CONTAINS COMPOSITION c
-        CONTAINS OBSERVATION o[openEHR-EHR-OBSERVATION.blood_pressure.v2]
+        CONTAINS OBSERVATION o[openEHR-EHR-OBSERVATION.blood_pressure.v1]
         """
 
         result = await ehrbase_client.query(aql)
@@ -152,7 +152,7 @@ class TestAQLQueries:
         )
 
         # Query using parameters
-        aql = "SELECT c FROM EHR e CONTAINS COMPOSITION c WHERE e/ehr_id/value = :ehr_id"
+        aql = "SELECT c FROM EHR e CONTAINS COMPOSITION c WHERE e/ehr_id/value = $ehr_id"
 
         result = await ehrbase_client.query(
             aql=aql,
