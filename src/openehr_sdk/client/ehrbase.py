@@ -110,13 +110,25 @@ class CompositionResponse:
     @classmethod
     def from_response(cls, data: dict[str, Any], ehr_id: str | None = None) -> CompositionResponse:
         """Create from API response."""
+        # Try canonical format first (uid is a dict with "value" key)
         uid_data = data.get("uid")
         uid = uid_data.get("value", "") if isinstance(uid_data, dict) else uid_data or ""
+
+        template_id = data.get("archetype_details", {}).get("template_id", {}).get("value")
+        archetype_id = data.get("archetype_details", {}).get("archetype_id", {}).get("value")
+
+        # For FLAT format responses, extract uid from */_uid key
+        if not uid:
+            for key, value in data.items():
+                if key.endswith("/_uid") and isinstance(value, str):
+                    uid = value
+                    break
+
         return cls(
             uid=uid,
             ehr_id=ehr_id,
-            template_id=data.get("archetype_details", {}).get("template_id", {}).get("value"),
-            archetype_id=data.get("archetype_details", {}).get("archetype_id", {}).get("value"),
+            template_id=template_id,
+            archetype_id=archetype_id,
             composition=data,
         )
 
@@ -318,24 +330,37 @@ class EHRBaseClient:
         Returns:
             EHRResponse with the created EHR details.
         """
-        headers = {}
+        headers: dict[str, str] = {"Prefer": "return=representation"}
         if ehr_id:
-            headers["Prefer"] = "return=representation"
             response = await self.client.put(
                 f"/rest/openehr/v1/ehr/{ehr_id}",
                 headers=headers,
             )
         else:
-            headers["Prefer"] = "return=representation"
-            params = {}
-            if subject_id:
-                params["subject_id"] = subject_id
-            if subject_namespace:
-                params["subject_namespace"] = subject_namespace
+            body = None
+            if subject_id and subject_namespace:
+                body = {
+                    "_type": "EHR_STATUS",
+                    "archetype_node_id": "openEHR-EHR-EHR_STATUS.generic.v1",
+                    "name": {"value": "EHR Status"},
+                    "subject": {
+                        "external_ref": {
+                            "id": {
+                                "_type": "GENERIC_ID",
+                                "value": subject_id,
+                                "scheme": "id_scheme",
+                            },
+                            "namespace": subject_namespace,
+                            "type": "PERSON",
+                        }
+                    },
+                    "is_modifiable": True,
+                    "is_queryable": True,
+                }
             response = await self.client.post(
                 "/rest/openehr/v1/ehr",
                 headers=headers,
-                params=params if params else None,
+                json=body,
             )
 
         data = self._handle_response(response)
@@ -439,9 +464,17 @@ class EHRBaseClient:
         """
         format_str = format.value if isinstance(format, CompositionFormat) else format
 
+        # Extract versioned object UID (uuid::system::version -> uuid::system)
+        uid_parts = composition_uid.split("::")
+        versioned_object_uid = "::".join(uid_parts[:2]) if len(uid_parts) >= 2 else composition_uid
+
+        params: dict[str, str] = {}
+        if format_str:
+            params["format"] = format_str
+
         response = await self.client.get(
-            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{composition_uid}",
-            params={"format": format_str} if format_str else None,
+            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{versioned_object_uid}",
+            params=params if params else None,
         )
 
         data = self._handle_response(response)
@@ -469,8 +502,9 @@ class EHRBaseClient:
         """
         format_str = format.value if isinstance(format, CompositionFormat) else format
 
-        # Extract base UID without version
-        base_uid = composition_uid.split("::")[0] if "::" in composition_uid else composition_uid
+        # Extract versioned object UID (uuid::system::version -> uuid::system)
+        uid_parts = composition_uid.split("::")
+        versioned_object_uid = "::".join(uid_parts[:2]) if len(uid_parts) >= 2 else composition_uid
 
         headers = {
             "Prefer": "return=representation",
@@ -485,7 +519,7 @@ class EHRBaseClient:
             params["format"] = format_str
 
         response = await self.client.put(
-            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{base_uid}",
+            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{versioned_object_uid}",
             json=composition,
             headers=headers,
             params=params if params else None,
@@ -505,10 +539,12 @@ class EHRBaseClient:
             ehr_id: The EHR ID.
             composition_uid: The composition UID.
         """
-        base_uid = composition_uid.split("::")[0] if "::" in composition_uid else composition_uid
+        # Extract versioned object UID (uuid::system::version -> uuid::system)
+        uid_parts = composition_uid.split("::")
+        versioned_object_uid = "::".join(uid_parts[:2]) if len(uid_parts) >= 2 else composition_uid
 
         response = await self.client.delete(
-            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{base_uid}",
+            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{versioned_object_uid}",
         )
         self._handle_response(response)
 

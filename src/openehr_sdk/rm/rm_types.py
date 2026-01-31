@@ -1030,7 +1030,7 @@ class HISTORY(BaseModel):
     archetype_details: ARCHETYPED | None = None
     feeder_audit: FEEDER_AUDIT | None = None
     links: list[LINK] | None = None
-    origin: DV_DATE_TIME | None
+    origin: DV_DATE_TIME | None = None
     period: DV_DURATION | None = None
     duration: DV_DURATION | None = None
     summary: Any | None = None

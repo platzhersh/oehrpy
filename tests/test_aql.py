@@ -87,7 +87,7 @@ class TestAQLBuilder:
         query = AQLBuilder().select("c").from_ehr().contains_composition().where_ehr_id().build()
         sql = query.to_string()
 
-        assert "e/ehr_id/value = :ehr_id" in sql
+        assert "e/ehr_id/value = $ehr_id" in sql
 
     def test_order_by(self) -> None:
         """Test ORDER BY clause."""
@@ -163,7 +163,7 @@ class TestAQLBuilder:
 
         assert "CONTAINS COMPOSITION c" in sql
         assert "CONTAINS OBSERVATION o" in sql
-        assert ":o_archetype_id" in sql  # Parameterized
+        assert "$o_archetype_id" in sql  # Parameterized
         assert query.parameters["o_archetype_id"] == "openEHR-EHR-OBSERVATION.blood_pressure.v1"
 
     def test_full_query(self) -> None:

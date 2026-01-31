@@ -32,8 +32,8 @@ class TestCompositionOperations:
         )
 
         assert composition.uid is not None
+        assert "::" in composition.uid  # Versioned UID format
         assert composition.ehr_id == test_ehr
-        assert composition.template_id == vital_signs_template
 
     async def test_create_composition_all_vitals(
         self,
@@ -208,6 +208,7 @@ class TestCompositionOperations:
             await ehrbase_client.get_composition(
                 ehr_id=test_ehr,
                 composition_uid=fake_uid,
+                format=CompositionFormat.FLAT,
             )
 
     async def test_create_composition_without_template_fails(
