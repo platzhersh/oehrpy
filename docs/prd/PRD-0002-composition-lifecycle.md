@@ -46,7 +46,7 @@ oehrpy currently supports creating and deleting compositions but provides no way
 
 - Must support all three composition formats (CANONICAL, FLAT, STRUCTURED)
 - Must return the new version UID on success
-- Must raise a clear error on version conflict (HTTP 409)
+- Must raise a clear error on version conflict (HTTP 412 Precondition Failed, per RFC 7232 `If-Match` semantics)
 - Must raise a clear error if the composition has been deleted (HTTP 404)
 
 #### FR-2: Get Composition at Version
@@ -86,7 +86,7 @@ oehrpy currently supports creating and deleting compositions but provides no way
 
 - **NFR-1**: All new methods must be async (consistent with existing client)
 - **NFR-2**: Optimistic concurrency via `If-Match` must be handled transparently — the caller passes the preceding version UID and the SDK sets the header
-- **NFR-3**: Version conflict errors (HTTP 409) must raise a typed `VersionConflictError` exception
+- **NFR-3**: Version conflict errors (HTTP 412 Precondition Failed) must raise a typed `PreconditionFailedError` exception
 - **NFR-4**: Full test coverage with both unit tests (mocked HTTP) and integration tests against EHRBase
 
 ---
@@ -131,5 +131,5 @@ versions = await client.list_composition_versions(
 ## Success Criteria
 
 1. All five SDK methods implemented and passing integration tests against EHRBase 2.0
-2. Version conflict handling works correctly with `If-Match` / HTTP 409
+2. Version conflict handling works correctly with `If-Match` / HTTP 412
 3. Round-trip test: create → update → retrieve both versions → verify content differs
