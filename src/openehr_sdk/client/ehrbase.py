@@ -345,7 +345,11 @@ class EHRBaseClient:
                     "name": {"value": "EHR Status"},
                     "subject": {
                         "external_ref": {
-                            "id": {"_type": "GENERIC_ID", "value": subject_id, "scheme": "id_scheme"},
+                            "id": {
+                                "_type": "GENERIC_ID",
+                                "value": subject_id,
+                                "scheme": "id_scheme",
+                            },
                             "namespace": subject_namespace,
                             "type": "PERSON",
                         }
@@ -461,12 +465,8 @@ class EHRBaseClient:
         format_str = format.value if isinstance(format, CompositionFormat) else format
 
         # Extract versioned object UID (uuid::system::version -> uuid::system)
-        # for use in URL path
         uid_parts = composition_uid.split("::")
-        if len(uid_parts) >= 2:
-            versioned_object_uid = "::".join(uid_parts[:2])
-        else:
-            versioned_object_uid = composition_uid
+        versioned_object_uid = "::".join(uid_parts[:2]) if len(uid_parts) >= 2 else composition_uid
 
         params: dict[str, str] = {}
         if format_str:
@@ -504,10 +504,7 @@ class EHRBaseClient:
 
         # Extract versioned object UID (uuid::system::version -> uuid::system)
         uid_parts = composition_uid.split("::")
-        if len(uid_parts) >= 2:
-            versioned_object_uid = "::".join(uid_parts[:2])
-        else:
-            versioned_object_uid = composition_uid
+        versioned_object_uid = "::".join(uid_parts[:2]) if len(uid_parts) >= 2 else composition_uid
 
         headers = {
             "Prefer": "return=representation",
@@ -544,10 +541,7 @@ class EHRBaseClient:
         """
         # Extract versioned object UID (uuid::system::version -> uuid::system)
         uid_parts = composition_uid.split("::")
-        if len(uid_parts) >= 2:
-            versioned_object_uid = "::".join(uid_parts[:2])
-        else:
-            versioned_object_uid = composition_uid
+        versioned_object_uid = "::".join(uid_parts[:2]) if len(uid_parts) >= 2 else composition_uid
 
         response = await self.client.delete(
             f"/rest/openehr/v1/ehr/{ehr_id}/composition/{versioned_object_uid}",
