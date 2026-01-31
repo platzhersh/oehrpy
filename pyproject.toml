@@ -89,9 +89,6 @@ major_on_zero = false
 template_dir = "templates"
 changelog_file = "CHANGELOG.md"
 
-[tool.semantic_release.changelog.environment]
-autoescape = true
-
 [tool.semantic_release.remote]
 type = "github"
 token = { env = "GH_TOKEN" }
