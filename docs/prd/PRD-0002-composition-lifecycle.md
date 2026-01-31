@@ -54,8 +54,8 @@ oehrpy currently supports creating and deleting compositions but provides no way
 | Field | Detail |
 |---|---|
 | Endpoint | `GET /ehr/{ehr_id}/composition/{uid}` with `version_at_time` parameter |
-| SDK method | `EHRBaseClient.get_composition_at_time(ehr_id, uid, version_at_time, format)` |
-| Input | EHR ID, versioned object UID, ISO 8601 timestamp, optional format |
+| SDK method | `EHRBaseClient.get_composition_at_time(ehr_id, versioned_object_uid, version_at_time, format)` |
+| Input | EHR ID, `versioned_object_uid` (the composition's UUID), ISO 8601 timestamp, optional format |
 | Output | Composition as it existed at the given point in time |
 
 #### FR-3: Get Versioned Composition
@@ -107,7 +107,7 @@ new_version_uid = await client.update_composition(
 # Get composition as it was at a specific time
 old_composition = await client.get_composition_at_time(
     ehr_id=ehr_id,
-    uid=versioned_object_uid,
+    versioned_object_uid=versioned_object_uid,
     version_at_time="2026-01-15T10:00:00Z",
 )
 
