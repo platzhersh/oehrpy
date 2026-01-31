@@ -237,7 +237,9 @@ class TestRoundTripWorkflows:
                     elem = root.find(".//template_id/value")
                 from openehr_sdk.client.ehrbase import TemplateResponse
 
-                template_response = TemplateResponse(template_id=elem.text if elem is not None else "")
+                template_response = TemplateResponse(
+                    template_id=elem.text if elem is not None else ""
+                )
             else:
                 raise
 
