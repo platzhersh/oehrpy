@@ -41,9 +41,9 @@ After PRDs 0002–0004, three areas of the openEHR REST API remain uncovered:
 | Field | Detail |
 |---|---|
 | Endpoint | `PUT /ehr/{ehr_id}/directory` |
-| SDK method | `EHRBaseClient.update_directory(ehr_id, directory)` |
-| Input | EHR ID, FOLDER structure (name, folders, items) |
-| Output | Updated directory with version UID |
+| SDK method | `EHRBaseClient.update_directory(ehr_id, directory, preceding_version_uid=None)` |
+| Input | EHR ID, FOLDER structure (name, folders, items), optional `preceding_version_uid` (the version string sent in the `If-Match` header per RFC 7232; required for updates, omitted on first creation) |
+| Output | Updated directory with new version UID |
 
 #### FR-1.2: Get Directory
 
@@ -75,7 +75,7 @@ directory = (
     .build()
 )
 
-await client.update_directory(ehr_id, directory)
+await client.update_directory(ehr_id, directory, preceding_version_uid=dir_version_uid)
 ```
 
 ### Feature Group 2: EHR Status Updates

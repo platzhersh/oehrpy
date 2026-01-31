@@ -39,10 +39,10 @@ oehrpy currently supports creating and deleting compositions but provides no way
 | Field | Detail |
 |---|---|
 | Endpoint | `PUT /ehr/{ehr_id}/composition/{versioned_object_uid}` |
-| SDK method | `EHRBaseClient.update_composition(ehr_id, uid, template_id, composition, format)` |
-| Input | EHR ID, preceding version UID, template ID, updated composition body, format (CANONICAL / FLAT / STRUCTURED) |
+| SDK method | `EHRBaseClient.update_composition(ehr_id, versioned_object_uid, preceding_version_uid, template_id, composition, format)` |
+| Input | EHR ID, `versioned_object_uid` (the composition's UUID, used in the request path), `preceding_version_uid` (the full version string, e.g. `uuid::domain::1`, sent in the `If-Match` header per RFC 7232), template ID, updated composition body, format (CANONICAL / FLAT / STRUCTURED) |
 | Output | Updated composition with new version UID |
-| Headers | `If-Match` header with preceding version UID for optimistic concurrency |
+| Headers | `If-Match: {preceding_version_uid}` for optimistic concurrency |
 
 - Must support all three composition formats (CANONICAL, FLAT, STRUCTURED)
 - Must return the new version UID on success
@@ -97,7 +97,8 @@ oehrpy currently supports creating and deleting compositions but provides no way
 # Update a composition
 new_version_uid = await client.update_composition(
     ehr_id=ehr_id,
-    uid=preceding_version_uid,
+    versioned_object_uid=versioned_object_uid,
+    preceding_version_uid=preceding_version_uid,
     template_id="vital_signs",
     composition=updated_flat_data,
     format=CompositionFormat.FLAT,
