@@ -81,7 +81,7 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 branch = "main"
-build_command = "python -m build"
+build_command = "pip install build && python -m build"
 commit_message = "chore(release): {version}"
 major_on_zero = false
 
