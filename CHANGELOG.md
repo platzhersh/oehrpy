@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.1.1 (2026-01-31)
+
+### Bug Fixes
+
+- Resolve integration test failures against EHRBase 2.0 (#18)
+  ([#18](https://github.com/platzhersh/oehrpy/pull/18),
+  [`ca63003`](https://github.com/platzhersh/oehrpy/commit/ca6300326200e5a497f895c6a6f0ce67d4fecffc))
+
+
 ## v0.1.0 (2026-01-31)
 
 ### Bug Fixes

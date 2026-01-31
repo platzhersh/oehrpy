@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "oehrpy"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Python SDK for openEHR with type-safe Reference Model classes, template builders, and EHRBase client"
 readme = "README.md"
 requires-python = ">=3.10"
