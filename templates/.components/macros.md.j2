@@ -9,8 +9,12 @@
 {#
   MACRO: Capitalize the first letter of a string only
 #}{%  macro capitalize_first_letter_only(sentence)
-%}{{    (sentence[0] | upper) ~ sentence[1:]
-}}{%  endmacro
+%}{%    if not sentence
+%}{{      ""
+}}{%    else
+%}{{      (sentence[0] | upper) ~ sentence[1:]
+}}{%    endif
+%}{%  endmacro
 %}
 
 
