@@ -78,6 +78,24 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
 "src/openehr_sdk/client/ehrbase.py" = ["N817"]  # Allow ET as acronym for ElementTree
 "tests/**/*.py" = ["E501"]  # Test assertions with long FLAT paths
 
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+build_command = "python -m build"
+commit_message = "chore(release): {version}"
+major_on_zero = false
+
+[tool.semantic_release.changelog]
+template_dir = "templates"
+changelog_file = "CHANGELOG.md"
+
+[tool.semantic_release.remote]
+type = "github"
+token = { env = "GH_TOKEN" }
+
+[tool.semantic_release.publish]
+upload_to_vcs_release = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
