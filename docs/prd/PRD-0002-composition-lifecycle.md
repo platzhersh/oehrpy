@@ -13,7 +13,7 @@
 Extend the oehrpy SDK to support the full composition lifecycle: updating/amending existing compositions and retrieving prior versions. These capabilities are fundamental to clinical data management — without them, records are write-once and audit history is inaccessible.
 
 This PRD covers two tightly coupled gaps identified in the oehrpy gap analysis:
-1. **Composition Update/Amendment** — `PUT /ehr/{ehr_id}/composition/{uid}`
+1. **Composition Update/Amendment** — `PUT /ehr/{ehr_id}/composition/{versioned_object_uid}`
 2. **Composition Versioning** — retrieving compositions at a point in time, listing version history, and accessing the versioned composition container
 
 ---
