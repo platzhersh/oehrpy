@@ -9,13 +9,16 @@ from .ehrbase import (
     AuthenticationError,
     CompositionFormat,
     CompositionResponse,
+    CompositionVersionResponse,
     EHRBaseClient,
     EHRBaseConfig,
     EHRBaseError,
     EHRResponse,
     NotFoundError,
+    PreconditionFailedError,
     QueryResponse,
     ValidationError,
+    VersionedCompositionResponse,
 )
 
 __all__ = [
@@ -24,9 +27,12 @@ __all__ = [
     "EHRResponse",
     "CompositionResponse",
     "CompositionFormat",
+    "CompositionVersionResponse",
     "QueryResponse",
+    "VersionedCompositionResponse",
     "EHRBaseError",
     "AuthenticationError",
     "NotFoundError",
+    "PreconditionFailedError",
     "ValidationError",
 ]

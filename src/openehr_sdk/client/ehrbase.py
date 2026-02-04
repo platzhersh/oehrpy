@@ -72,6 +72,12 @@ class ValidationError(EHRBaseError):
     pass
 
 
+class PreconditionFailedError(EHRBaseError):
+    """Version conflict — the If-Match header did not match (HTTP 412)."""
+
+    pass
+
+
 # Response dataclasses
 
 
@@ -179,6 +185,58 @@ class TemplateResponse:
 
 
 @dataclass
+class VersionedCompositionResponse:
+    """Response from versioned composition metadata endpoint."""
+
+    uid: str
+    owner_id: str | None = None
+    time_created: str | None = None
+
+    @classmethod
+    def from_response(cls, data: dict[str, Any]) -> VersionedCompositionResponse:
+        """Create from API response."""
+        uid_data = data.get("uid", {})
+        uid = uid_data.get("value", "") if isinstance(uid_data, dict) else uid_data or ""
+        owner_data = data.get("owner_id", {})
+        owner_id = owner_data.get("value", "") if isinstance(owner_data, dict) else owner_data
+        time_created_data = data.get("time_created", {})
+        time_created = (
+            time_created_data.get("value", "")
+            if isinstance(time_created_data, dict)
+            else time_created_data
+        )
+        return cls(uid=uid, owner_id=owner_id, time_created=time_created)
+
+
+@dataclass
+class CompositionVersionResponse:
+    """Response from a specific composition version endpoint."""
+
+    version_uid: str
+    preceding_version_uid: str | None = None
+    lifecycle_state: str | None = None
+    commit_audit: dict[str, Any] | None = None
+    data: dict[str, Any] | None = None
+
+    @classmethod
+    def from_response(cls, data: dict[str, Any]) -> CompositionVersionResponse:
+        """Create from API response."""
+        uid_data = data.get("uid", {})
+        version_uid = uid_data.get("value", "") if isinstance(uid_data, dict) else uid_data or ""
+        preceding = data.get("preceding_version_uid", {})
+        preceding_uid = preceding.get("value", "") if isinstance(preceding, dict) else preceding
+        lifecycle = data.get("lifecycle_state", {})
+        lifecycle_state = lifecycle.get("value", "") if isinstance(lifecycle, dict) else lifecycle
+        return cls(
+            version_uid=version_uid,
+            preceding_version_uid=preceding_uid or None,
+            lifecycle_state=lifecycle_state or None,
+            commit_audit=data.get("commit_audit"),
+            data=data.get("data"),
+        )
+
+
+@dataclass
 class EHRBaseConfig:
     """Configuration for EHRBase client."""
 
@@ -278,6 +336,11 @@ class EHRBaseClient:
         if response.status_code == 404:
             raise NotFoundError(
                 "Resource not found",
+                status_code=response.status_code,
+            )
+        if response.status_code == 412:
+            raise PreconditionFailedError(
+                "Version conflict: the preceding version UID does not match the latest version",
                 status_code=response.status_code,
             )
         if response.status_code == 400 or response.status_code == 422:
@@ -483,7 +546,8 @@ class EHRBaseClient:
     async def update_composition(
         self,
         ehr_id: str,
-        composition_uid: str,
+        versioned_object_uid: str,
+        preceding_version_uid: str,
         composition: dict[str, Any],
         template_id: str | None = None,
         format: str | CompositionFormat = CompositionFormat.FLAT,
@@ -492,24 +556,27 @@ class EHRBaseClient:
 
         Args:
             ehr_id: The EHR ID.
-            composition_uid: The composition UID (versioned).
+            versioned_object_uid: The composition's UUID (used in the request path).
+            preceding_version_uid: Full version string (e.g. ``uuid::domain::1``),
+                sent as the ``If-Match`` header for optimistic concurrency.
             composition: The updated composition data.
             template_id: Template ID.
             format: Composition format.
 
         Returns:
             CompositionResponse with updated composition.
+
+        Raises:
+            PreconditionFailedError: If the preceding version UID does not match
+                the latest version (HTTP 412).
+            NotFoundError: If the composition has been deleted (HTTP 404).
         """
         format_str = format.value if isinstance(format, CompositionFormat) else format
-
-        # Extract versioned object UID (uuid::system::version -> uuid::system)
-        uid_parts = composition_uid.split("::")
-        versioned_object_uid = "::".join(uid_parts[:2]) if len(uid_parts) >= 2 else composition_uid
 
         headers = {
             "Prefer": "return=representation",
             "Content-Type": "application/json",
-            "If-Match": composition_uid,
+            "If-Match": preceding_version_uid,
         }
 
         params = {}
@@ -547,6 +614,111 @@ class EHRBaseClient:
             f"/rest/openehr/v1/ehr/{ehr_id}/composition/{versioned_object_uid}",
         )
         self._handle_response(response)
+
+    # Composition Versioning Operations
+
+    async def get_composition_at_time(
+        self,
+        ehr_id: str,
+        versioned_object_uid: str,
+        version_at_time: str,
+        format: str | CompositionFormat = CompositionFormat.CANONICAL,
+    ) -> CompositionResponse:
+        """Get a composition as it existed at a specific point in time.
+
+        Args:
+            ehr_id: The EHR ID.
+            versioned_object_uid: The composition's UUID.
+            version_at_time: ISO 8601 timestamp.
+            format: Desired response format.
+
+        Returns:
+            CompositionResponse with the composition at that time.
+        """
+        format_str = format.value if isinstance(format, CompositionFormat) else format
+
+        params: dict[str, str] = {"version_at_time": version_at_time}
+        if format_str:
+            params["format"] = format_str
+
+        response = await self.client.get(
+            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{versioned_object_uid}",
+            params=params,
+        )
+
+        data = self._handle_response(response)
+        return CompositionResponse.from_response(data, ehr_id)
+
+    async def get_versioned_composition(
+        self,
+        ehr_id: str,
+        versioned_object_uid: str,
+    ) -> VersionedCompositionResponse:
+        """Get versioned composition metadata.
+
+        Args:
+            ehr_id: The EHR ID.
+            versioned_object_uid: The composition's UUID.
+
+        Returns:
+            VersionedCompositionResponse with metadata (UID, owner ID, time created).
+        """
+        response = await self.client.get(
+            f"/rest/openehr/v1/ehr/{ehr_id}/versioned_composition/{versioned_object_uid}",
+        )
+
+        data = self._handle_response(response)
+        return VersionedCompositionResponse.from_response(data)
+
+    async def get_composition_version(
+        self,
+        ehr_id: str,
+        versioned_object_uid: str,
+        version_uid: str,
+    ) -> CompositionVersionResponse:
+        """Get a specific version of a composition.
+
+        Args:
+            ehr_id: The EHR ID.
+            versioned_object_uid: The composition's UUID.
+            version_uid: The specific version UID (e.g. ``uuid::domain::1``).
+
+        Returns:
+            CompositionVersionResponse with full version and audit metadata.
+        """
+        response = await self.client.get(
+            f"/rest/openehr/v1/ehr/{ehr_id}/versioned_composition/{versioned_object_uid}/version/{version_uid}",
+        )
+
+        data = self._handle_response(response)
+        return CompositionVersionResponse.from_response(data)
+
+    async def list_composition_versions(
+        self,
+        ehr_id: str,
+        versioned_object_uid: str,
+    ) -> list[CompositionVersionResponse]:
+        """List all versions of a composition.
+
+        Args:
+            ehr_id: The EHR ID.
+            versioned_object_uid: The composition's UUID.
+
+        Returns:
+            List of CompositionVersionResponse with version descriptors.
+        """
+        response = await self.client.get(
+            f"/rest/openehr/v1/ehr/{ehr_id}/versioned_composition/{versioned_object_uid}/version",
+        )
+
+        data = self._handle_response(response)
+        if isinstance(data, list):
+            return [CompositionVersionResponse.from_response(v) for v in data]
+        # Some servers return the list under a key
+        versions = data.get("versions", data.get("items", []))
+        if isinstance(versions, list):
+            return [CompositionVersionResponse.from_response(v) for v in versions]
+        return []
 
     # Query Operations
 

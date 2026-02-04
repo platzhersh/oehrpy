@@ -129,9 +129,12 @@ class TestRoundTripWorkflows:
         builder_v2.add_pulse(rate=75)  # Add pulse in v2
         flat_v2 = builder_v2.build()
 
+        versioned_object_uid = created.uid.split("::")[0]
+
         updated = await ehrbase_client.update_composition(
             ehr_id=test_ehr,
-            composition_uid=created.uid,
+            versioned_object_uid=versioned_object_uid,
+            preceding_version_uid=created.uid,
             composition=flat_v2,
             template_id=vital_signs_template,
             format=CompositionFormat.FLAT,

@@ -152,9 +152,13 @@ class TestCompositionOperations:
         updated_builder.add_pulse(rate=75)
         updated_flat_data = updated_builder.build()
 
+        # Extract versioned object UID (uuid part) from full version UID
+        versioned_object_uid = created.uid.split("::")[0]
+
         updated = await ehrbase_client.update_composition(
             ehr_id=test_ehr,
-            composition_uid=created.uid,
+            versioned_object_uid=versioned_object_uid,
+            preceding_version_uid=created.uid,
             composition=updated_flat_data,
             template_id=vital_signs_template,
             format=CompositionFormat.FLAT,
