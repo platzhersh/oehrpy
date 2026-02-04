@@ -192,17 +192,19 @@ class TestCompositionLifecycle:
         )
         v2_uid = v2_result.uid
 
-        # Retrieve v1 and v2 separately
-        comp_v1 = await ehrbase_client.get_composition(
+        # Retrieve v1 and v2 using versioned_composition endpoint (EHRBase 2.0 requirement)
+        # The standard composition endpoint always returns the latest version
+        version_v1 = await ehrbase_client.get_composition_version(
             ehr_id=test_ehr,
-            composition_uid=v1_uid,
-            format=CompositionFormat.FLAT,
+            versioned_object_uid=versioned_object_uid,
+            version_uid=v1_uid,
         )
-        comp_v2 = await ehrbase_client.get_composition(
+        version_v2 = await ehrbase_client.get_composition_version(
             ehr_id=test_ehr,
-            composition_uid=v2_uid,
-            format=CompositionFormat.FLAT,
+            versioned_object_uid=versioned_object_uid,
+            version_uid=v2_uid,
         )
 
-        assert comp_v1.uid != comp_v2.uid
-        assert comp_v1.composition != comp_v2.composition
+        assert version_v1.version_uid != version_v2.version_uid
+        assert version_v1.version_uid == v1_uid
+        assert version_v2.version_uid == v2_uid

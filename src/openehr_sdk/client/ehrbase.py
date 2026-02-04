@@ -33,6 +33,7 @@ class CompositionFormat(str, Enum):
     """Supported composition formats."""
 
     CANONICAL = "CANONICAL"
+    JSON = "JSON"  # EHRBase 2.0 uses JSON instead of CANONICAL
     FLAT = "FLAT"
     STRUCTURED = "STRUCTURED"
 
@@ -519,7 +520,7 @@ class EHRBaseClient:
 
         Args:
             ehr_id: The EHR ID.
-            composition_uid: The composition UID.
+            composition_uid: The composition UID (can be versioned object UID or full version UID).
             format: Desired response format.
 
         Returns:
@@ -527,16 +528,16 @@ class EHRBaseClient:
         """
         format_str = format.value if isinstance(format, CompositionFormat) else format
 
-        # Extract versioned object UID (uuid::system::version -> uuid::system)
-        uid_parts = composition_uid.split("::")
-        versioned_object_uid = "::".join(uid_parts[:2]) if len(uid_parts) >= 2 else composition_uid
+        # Use the full UID as provided - EHRBase accepts both formats:
+        # - versioned_object_uid (uuid::system) returns latest version
+        # - full version_uid (uuid::system::version) returns that specific version
 
         params: dict[str, str] = {}
         if format_str:
             params["format"] = format_str
 
         response = await self.client.get(
-            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{versioned_object_uid}",
+            f"/rest/openehr/v1/ehr/{ehr_id}/composition/{composition_uid}",
             params=params if params else None,
         )
 

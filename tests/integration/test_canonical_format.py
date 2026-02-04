@@ -131,12 +131,12 @@ class TestCanonicalFormat:
 
         canonical_data = to_canonical(composition)
 
-        # Submit to EHRBase
+        # Submit to EHRBase (use JSON format - EHRBase 2.0 uses JSON instead of CANONICAL)
         result = await ehrbase_client.create_composition(
             ehr_id=test_ehr,
             template_id=vital_signs_template,
             composition=canonical_data,
-            format=CompositionFormat.CANONICAL,
+            format=CompositionFormat.JSON,
         )
 
         assert result.uid is not None
@@ -228,19 +228,19 @@ class TestCanonicalFormat:
 
         canonical_data = to_canonical(composition)
 
-        # Create composition
+        # Create composition (use JSON format - EHRBase 2.0 uses JSON instead of CANONICAL)
         created = await ehrbase_client.create_composition(
             ehr_id=test_ehr,
             template_id=vital_signs_template,
             composition=canonical_data,
-            format=CompositionFormat.CANONICAL,
+            format=CompositionFormat.JSON,
         )
 
-        # Retrieve in CANONICAL format
+        # Retrieve in JSON format (EHRBase 2.0 canonical JSON format)
         retrieved = await ehrbase_client.get_composition(
             ehr_id=test_ehr,
             composition_uid=created.uid,
-            format=CompositionFormat.CANONICAL,
+            format=CompositionFormat.JSON,
         )
 
         assert retrieved.composition is not None
@@ -331,20 +331,20 @@ class TestCanonicalFormat:
 
         from openehr_sdk.serialization import from_canonical, to_canonical
 
-        # Create
+        # Create (use JSON format - EHRBase 2.0 uses JSON instead of CANONICAL)
         canonical_data = to_canonical(original_composition)
         created = await ehrbase_client.create_composition(
             ehr_id=test_ehr,
             template_id=vital_signs_template,
             composition=canonical_data,
-            format=CompositionFormat.CANONICAL,
+            format=CompositionFormat.JSON,
         )
 
-        # Retrieve
+        # Retrieve in JSON format (EHRBase 2.0 canonical JSON format)
         retrieved = await ehrbase_client.get_composition(
             ehr_id=test_ehr,
             composition_uid=created.uid,
-            format=CompositionFormat.CANONICAL,
+            format=CompositionFormat.JSON,
         )
 
         # Parse back to RM
