@@ -23,7 +23,7 @@ from openehr_sdk.rm import (
     ITEM_TREE,
     OBSERVATION,
     PARTY_IDENTIFIED,
-    PARTY_REF,
+    PARTY_SELF,
     POINT_EVENT,
     SECTION,
     TERMINOLOGY_ID,
@@ -86,7 +86,7 @@ class TestCanonicalFormat:
                 terminology_id=TERMINOLOGY_ID(value="IANA_character-sets"),
                 code_string="UTF-8",
             ),
-            subject=PARTY_REF(namespace="local", type="PERSON", id="patient-1"),
+            subject=PARTY_SELF(),
             data=bp_history,
         )
 
@@ -182,7 +182,7 @@ class TestCanonicalFormat:
                 terminology_id=TERMINOLOGY_ID(value="IANA_character-sets"),
                 code_string="UTF-8",
             ),
-            subject=PARTY_REF(namespace="local", type="PERSON", id="patient-1"),
+            subject=PARTY_SELF(),
             data=HISTORY(
                 archetype_node_id="at0002",
                 name=DV_TEXT(value="History"),
@@ -287,7 +287,7 @@ class TestCanonicalFormat:
                 terminology_id=TERMINOLOGY_ID(value="IANA_character-sets"),
                 code_string="UTF-8",
             ),
-            subject=PARTY_REF(namespace="local", type="PERSON", id="patient-1"),
+            subject=PARTY_SELF(),
             data=HISTORY(
                 archetype_node_id="at0002",
                 name=DV_TEXT(value="History"),
