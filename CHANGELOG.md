@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.2.1 (2026-02-04)
+
+### Bug Fixes
+
+- Support EHRBase 2.0 JSON format and improve composition retrieval (#21)
+  ([#21](https://github.com/platzhersh/oehrpy/pull/21),
+  [`9afd769`](https://github.com/platzhersh/oehrpy/commit/9afd769c073cc2dea5c084d279fd42a6c02fb691))
+
+
 ## v0.2.0 (2026-02-04)
 
 ### Documentation
