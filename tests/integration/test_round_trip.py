@@ -49,10 +49,21 @@ class TestRoundTripWorkflows:
         flat_data = retrieved.composition
         assert flat_data is not None
 
-        # Check context preserved
-        assert flat_data.get("ctx/composer_name") == composer
-        assert flat_data.get("ctx/language") == "en"
-        assert flat_data.get("ctx/territory") == "US"
+        # Check context preserved - EHRBase 2.0 returns composer in different path format
+        # Look for composer name in either ctx/ format or composition-specific format
+        composer_keys = [k for k in flat_data if "composer" in k.lower() and "name" in k.lower()]
+        composer_values = [flat_data[k] for k in composer_keys]
+        assert composer in composer_values, f"Expected composer '{composer}' in {composer_values}"
+
+        # Check language (may be in ctx/ or composition path)
+        language_keys = [k for k in flat_data if "language" in k and "code" in k]
+        language_values = [flat_data[k] for k in language_keys]
+        assert "en" in language_values, f"Expected language 'en' in {language_values}"
+
+        # Check territory (may be in ctx/ or composition path)
+        territory_keys = [k for k in flat_data if "territory" in k and "code" in k]
+        territory_values = [flat_data[k] for k in territory_keys]
+        assert "US" in territory_values, f"Expected territory 'US' in {territory_values}"
 
         # Check vital signs data preserved
         # Note: Exact paths may vary based on EHRBase version
@@ -161,8 +172,12 @@ class TestRoundTripWorkflows:
         ]
         assert len(pulse_keys) > 0
 
-        # Verify composer updated
-        assert flat_data.get("ctx/composer_name") == "Dr. Update Workflow V2"
+        # Verify composer updated - EHRBase 2.0 returns composer in different path format
+        composer_keys = [k for k in flat_data if "composer" in k.lower() and "name" in k.lower()]
+        composer_values = [flat_data[k] for k in composer_keys]
+        assert "Dr. Update Workflow V2" in composer_values, (
+            f"Expected 'Dr. Update Workflow V2' in {composer_values}"
+        )
 
     async def test_multiple_compositions_query_workflow(
         self,
@@ -268,13 +283,13 @@ class TestRoundTripWorkflows:
         assert composition.uid is not None
         assert "::" in composition.uid
 
-    async def test_canonical_to_flat_format_conversion(
+    async def test_json_to_flat_format_conversion(
         self,
         ehrbase_client: EHRBaseClient,
         test_ehr: str,
         vital_signs_template: str,
     ) -> None:
-        """Test creating in FLAT, retrieving in both FLAT and CANONICAL."""
+        """Test creating in FLAT, retrieving in both FLAT and JSON (canonical)."""
         # Create in FLAT format
         builder = VitalSignsBuilder(composer_name="Dr. Format Test")
         builder.add_blood_pressure(systolic=115, diastolic=75)
@@ -297,15 +312,15 @@ class TestRoundTripWorkflows:
         # FLAT has pipe-separated keys
         assert any("|" in str(key) for key in flat_retrieved.composition)
 
-        # Retrieve in CANONICAL
-        canonical_retrieved = await ehrbase_client.get_composition(
+        # Retrieve in JSON format (EHRBase 2.0 canonical JSON format)
+        json_retrieved = await ehrbase_client.get_composition(
             ehr_id=test_ehr,
             composition_uid=composition.uid,
-            format=CompositionFormat.CANONICAL,
+            format=CompositionFormat.JSON,
         )
-        assert canonical_retrieved.composition is not None
-        # Canonical has _type fields
-        assert "_type" in canonical_retrieved.composition
+        assert json_retrieved.composition is not None
+        # JSON/Canonical has _type fields
+        assert "_type" in json_retrieved.composition
 
     async def test_timestamp_preservation(
         self,
