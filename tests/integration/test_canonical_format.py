@@ -11,6 +11,8 @@ import pytest
 
 from openehr_sdk.client import CompositionFormat, EHRBaseClient
 from openehr_sdk.rm import (
+    ARCHETYPE_ID,
+    ARCHETYPED,
     CODE_PHRASE,
     COMPOSITION,
     DV_CODED_TEXT,
@@ -26,6 +28,7 @@ from openehr_sdk.rm import (
     PARTY_SELF,
     POINT_EVENT,
     SECTION,
+    TEMPLATE_ID,
     TERMINOLOGY_ID,
 )
 
@@ -100,6 +103,11 @@ class TestCanonicalFormat:
         # Create composition
         composition = COMPOSITION(
             archetype_node_id="openEHR-EHR-COMPOSITION.encounter.v1",
+            archetype_details=ARCHETYPED(
+                archetype_id=ARCHETYPE_ID(value="openEHR-EHR-COMPOSITION.encounter.v1"),
+                template_id=TEMPLATE_ID(value=vital_signs_template),
+                rm_version="1.1.0",
+            ),
             name=DV_TEXT(value="Vital Signs Observation"),
             language=CODE_PHRASE(
                 terminology_id=TERMINOLOGY_ID(value="ISO_639-1"), code_string="en"
@@ -192,6 +200,11 @@ class TestCanonicalFormat:
 
         composition = COMPOSITION(
             archetype_node_id="openEHR-EHR-COMPOSITION.encounter.v1",
+            archetype_details=ARCHETYPED(
+                archetype_id=ARCHETYPE_ID(value="openEHR-EHR-COMPOSITION.encounter.v1"),
+                template_id=TEMPLATE_ID(value=vital_signs_template),
+                rm_version="1.1.0",
+            ),
             name=DV_TEXT(value="Vital Signs"),
             language=CODE_PHRASE(
                 terminology_id=TERMINOLOGY_ID(value="ISO_639-1"), code_string="en"
@@ -297,6 +310,11 @@ class TestCanonicalFormat:
 
         original_composition = COMPOSITION(
             archetype_node_id="openEHR-EHR-COMPOSITION.encounter.v1",
+            archetype_details=ARCHETYPED(
+                archetype_id=ARCHETYPE_ID(value="openEHR-EHR-COMPOSITION.encounter.v1"),
+                template_id=TEMPLATE_ID(value=vital_signs_template),
+                rm_version="1.1.0",
+            ),
             name=DV_TEXT(value="Vital Signs"),
             language=CODE_PHRASE(
                 terminology_id=TERMINOLOGY_ID(value="ISO_639-1"), code_string="en"
