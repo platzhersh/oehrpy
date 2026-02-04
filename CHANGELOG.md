@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.2.0 (2026-02-04)
+
+### Documentation
+
+- Add PRDs for composition lifecycle, audit, builders, and EHR management (#19)
+  ([#19](https://github.com/platzhersh/oehrpy/pull/19),
+  [`1542994`](https://github.com/platzhersh/oehrpy/commit/1542994dd9c5319b268041ab6f114d45377a3791))
+
+### Features
+
+- Add composition versioning and update operations (PRD-0002) (#20)
+  ([#20](https://github.com/platzhersh/oehrpy/pull/20),
+  [`eadb0c9`](https://github.com/platzhersh/oehrpy/commit/eadb0c9f7714aa4bbfb0e7fce3cbd8e6481a7ce9))
+
+
 ## v0.1.1 (2026-01-31)
 
 ### Bug Fixes
