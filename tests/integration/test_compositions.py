@@ -276,7 +276,9 @@ class TestCompositionOperations:
         systolic_values = [flat_composition[k] for k in systolic_keys]
 
         # Verify we got all three blood pressure readings
-        assert len(systolic_keys) >= 3, f"Expected 3 systolic readings, got {len(systolic_keys)}: {systolic_keys}"
+        assert len(systolic_keys) >= 3, (
+            f"Expected 3 systolic readings, got {len(systolic_keys)}: {systolic_keys}"
+        )
         assert 120.0 in systolic_values or 120 in systolic_values
         assert 125.0 in systolic_values or 125 in systolic_values
         assert 118.0 in systolic_values or 118 in systolic_values

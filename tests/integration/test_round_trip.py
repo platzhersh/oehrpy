@@ -175,7 +175,9 @@ class TestRoundTripWorkflows:
         # Verify composer updated - EHRBase 2.0 returns composer in different path format
         composer_keys = [k for k in flat_data if "composer" in k.lower() and "name" in k.lower()]
         composer_values = [flat_data[k] for k in composer_keys]
-        assert "Dr. Update Workflow V2" in composer_values, f"Expected 'Dr. Update Workflow V2' in {composer_values}"
+        assert "Dr. Update Workflow V2" in composer_values, (
+            f"Expected 'Dr. Update Workflow V2' in {composer_values}"
+        )
 
     async def test_multiple_compositions_query_workflow(
         self,
