@@ -260,6 +260,24 @@ cd oehrpy
 
 # Install development dependencies
 pip install -e ".[dev,generator]"
+
+# Install pre-commit hooks (one-time setup)
+pre-commit install
+```
+
+Pre-commit hooks will automatically run on `git commit` to:
+- Format code with ruff
+- Check linting with ruff
+- Run type checking with mypy on SDK code
+
+To run hooks manually on all files:
+```bash
+pre-commit run --all-files
+```
+
+To skip hooks temporarily (not recommended):
+```bash
+git commit --no-verify
 ```
 
 ### Running Tests
@@ -314,6 +332,7 @@ MIT
 - [FLAT Format Learnings](docs/flat-format-learnings.md) - Comprehensive FLAT format guide
 - [ADR-0001: RM 1.1.0 Support](docs/adr/0001-odin-parsing-and-rm-1.1.0-support.md)
 - [ADR-0002: Integration Testing](docs/adr/0002-integration-testing-with-ehrbase.md)
+- [ADR-0003: Pre-commit Hooks](docs/adr/0003-pre-commit-hooks-for-code-quality.md)
 - [PRD-0000: Python openEHR SDK](docs/prd/PRD-0000-python-openehr-sdk.md)
 
 ## References
