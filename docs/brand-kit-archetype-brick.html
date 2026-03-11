@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open-CIS Brand Kit: The Archetype Brick</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root {
+--openehr-blue: #005EB8;
+--openehr-orange: #F39200;
+}
+.text-openehr-blue { color: var(--openehr-blue); }
+.text-openehr-orange { color: var(--openehr-orange); }
+.bg-openehr-blue { background-color: var(--openehr-blue); }
+.bg-openehr-orange { background-color: var(--openehr-orange); }
+/* Animation Keyframes */
+@keyframes slideIn {
+0% { transform: translateY(-40px); opacity: 0; }
+100% { transform: translateY(0); opacity: 1; }
+}
+.animate-brick {
+animation: slideIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+</style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans p-8">
+<div class="max-w-5xl mx-auto pb-20">
+<header class="mb-12">
+<h1 class="text-4xl font-black tracking-tight mb-2">Open-CIS <span class="text-slate-400 font-light">Brand Kit</span></h1>
+<p class="text-slate-600">Finalizing "The Archetype Brick" concept with stacked isometric studs.</p>
+</header>
+<!-- Section 1: Animation (The "Snap") -->
+<section class="mb-12">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-6">Animated Concept (Hero / Loading)</h2>
+<div class="bg-white p-16 rounded-3xl shadow-sm border border-slate-200 flex flex-col items-center justify-center">
+<div class="relative h-48 w-48 mb-8 flex items-center justify-center">
+<svg width="160" height="160" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Bottom Brick (Static Foundation) -->
+<g>
+<path d="M20 65L50 80L80 65V50L50 65L20 50V65Z" fill="#F39200"/>
+<path d="M50 35L80 50L50 65L20 50L50 35Z" fill="#F39200" fill-opacity="0.8"/>
+<ellipse cx="50" cy="43" rx="5" ry="2.5" fill="#F39200" />
+<ellipse cx="35" cy="50" rx="5" ry="2.5" fill="#F39200" />
+<ellipse cx="65" cy="50" rx="5" ry="2.5" fill="#F39200" />
+<ellipse cx="50" cy="57" rx="5" ry="2.5" fill="#F39200" />
+</g>
+<!-- Top Brick (Animated Snap) -->
+<g id="animatedBrick" class="animate-brick opacity-0">
+<path d="M20 40L50 55L80 40V25L50 40L20 25V40Z" fill="#005EB8"/>
+<path d="M50 10L80 25L50 40L20 25L50 10Z" fill="#005EB8" fill-opacity="0.8"/>
+<ellipse cx="50" cy="18" rx="5" ry="2.5" fill="#005EB8" />
+<ellipse cx="35" cy="25" rx="5" ry="2.5" fill="#005EB8" />
+<ellipse cx="65" cy="25" rx="5" ry="2.5" fill="#005EB8" />
+<ellipse cx="50" cy="32" rx="5" ry="2.5" fill="#005EB8" />
+</g>
+</svg>
+</div>
+<button id="replayBtn" onclick="replayAnimation()" class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-full hover:bg-slate-800 transition-colors uppercase tracking-widest disabled:opacity-50">Replay Animation</button>
+</div>
+</section>
+<!-- Section 2: Color Palette -->
+<section class="mb-12">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-6">Color Palette</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Primary Blue -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200">
+<div class="h-24 bg-openehr-blue rounded-xl mb-4 shadow-inner"></div>
+<div class="space-y-1">
+<p class="text-xs font-black uppercase tracking-wider text-slate-400">Archetype Blue</p>
+<p class="text-lg font-bold">#005EB8</p>
+<p class="text-[10px] font-mono text-slate-500">RGB: 0, 94, 184</p>
+<p class="text-[10px] font-mono text-slate-500">HSL: 209, 100%, 36%</p>
+</div>
+</div>
+<!-- Primary Orange -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200">
+<div class="h-24 bg-openehr-orange rounded-xl mb-4 shadow-inner"></div>
+<div class="space-y-1">
+<p class="text-xs font-black uppercase tracking-wider text-slate-400">Foundation Orange</p>
+<p class="text-lg font-bold">#F39200</p>
+<p class="text-[10px] font-mono text-slate-500">RGB: 243, 146, 0</p>
+<p class="text-[10px] font-mono text-slate-500">HSL: 36, 100%, 48%</p>
+</div>
+</div>
+<!-- Neutral Stack -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200">
+<div class="flex h-24 mb-4 rounded-xl overflow-hidden shadow-inner">
+<div class="flex-1 bg-slate-900"></div>
+<div class="flex-1 bg-slate-500"></div>
+<div class="flex-1 bg-slate-200"></div>
+<div class="flex-1 bg-slate-50"></div>
+</div>
+<div class="space-y-1">
+<p class="text-xs font-black uppercase tracking-wider text-slate-400">Clinical Neutrals</p>
+<p class="text-lg font-bold text-slate-500">Slate Scale</p>
+<p class="text-[10px] text-slate-500 italic leading-tight">Used for UI scaffolding, data high-density views, and system typography.</p>
+</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+<!-- Section 3: Light Mode Logo -->
+<div class="bg-white p-10 rounded-2xl border border-slate-200 flex flex-col items-center">
+<h3 class="text-xs font-bold uppercase text-slate-400 mb-8 self-start">Light Mode Lockup</h3>
+<div class="flex items-center space-x-6">
+<svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 65L50 80L80 65V50L50 65L20 50V65Z" fill="#F39200"/>
+<path d="M50 35L80 50L50 65L20 50L50 35Z" fill="#F39200" fill-opacity="0.8"/>
+<ellipse cx="50" cy="43" rx="4" ry="2" fill="#F39200" />
+<path d="M20 40L50 55L80 40V25L50 40L20 25V40Z" fill="#005EB8"/>
+<path d="M50 10L80 25L50 40L20 25L50 10Z" fill="#005EB8" fill-opacity="0.8"/>
+<ellipse cx="50" cy="18" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="38" cy="25" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="62" cy="25" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="50" cy="32" rx="4" ry="2" fill="#005EB8" />
+</svg>
+<div class="text-4xl font-bold tracking-tighter">
+<span class="text-slate-900 font-light">open</span><span class="text-openehr-blue font-black">cis</span>
+</div>
+</div>
+</div>
+<!-- Section 4: Dark Mode Logo -->
+<div class="bg-slate-900 p-10 rounded-2xl border border-slate-800 flex flex-col items-center">
+<h3 class="text-xs font-bold uppercase text-slate-500 mb-8 self-start">Dark Mode Lockup</h3>
+<div class="flex items-center space-x-6">
+<svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 65L50 80L80 65V50L50 65L20 50V65Z" fill="#F39200"/>
+<path d="M50 35L80 50L50 65L20 50L50 35Z" fill="#F39200" fill-opacity="0.8"/>
+<ellipse cx="50" cy="43" rx="4" ry="2" fill="#F39200" />
+<path d="M20 40L50 55L80 40V25L50 40L20 25V40Z" fill="#005EB8"/>
+<path d="M50 10L80 25L50 40L20 25L50 10Z" fill="#005EB8" fill-opacity="0.8"/>
+<ellipse cx="50" cy="18" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="38" cy="25" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="62" cy="25" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="50" cy="32" rx="4" ry="2" fill="#005EB8" />
+</svg>
+<div class="text-4xl font-bold tracking-tighter">
+<span class="text-white font-light">open</span><span class="text-openehr-blue font-black">cis</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 5: Typography Section -->
+<section class="mb-12">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-6">Typography & Hierarchy</h2>
+<div class="bg-white p-10 rounded-2xl border border-slate-200">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<div>
+<h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Primary Brand Font</h4>
+<div class="space-y-2">
+<p class="text-5xl font-black tracking-tighter">Inter Black</p>
+<p class="text-3xl font-light tracking-tight text-slate-500">Inter Light</p>
+</div>
+<div class="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-100">
+<p class="text-xs text-slate-500 leading-relaxed font-mono">
+                                Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz<br>
+                                0 1 2 3 4 5 6 7 8 9 ! @ # $ % ^ & * ( )
+</p>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Logo Construction</h4>
+<div class="flex items-baseline space-x-1">
+<span class="text-2xl font-light">open</span>
+<span class="text-2xl font-black text-openehr-blue">cis</span>
+</div>
+<p class="text-[11px] text-slate-500 mt-2">Weight contrast (Light vs Black) represents the transition from generic open-source foundations to robust clinical-specific tools.</p>
+</div>
+<div class="space-y-4 pt-4 border-t border-slate-100">
+<h1 class="text-3xl font-bold">H1 Page Title</h1>
+<h2 class="text-xl font-semibold">H2 Section Heading</h2>
+<p class="text-sm text-slate-600 leading-relaxed">Body text: Efficient clinical interfaces require high-legibility sans-serif fonts to reduce cognitive load during patient care. Inter provides excellent clarity for numerical health data.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 6: Scale & Favicons -->
+<section>
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-6">Scale Testing & Favicons</h2>
+<div class="bg-white p-10 rounded-2xl border border-slate-200 grid grid-cols-4 gap-8 items-center justify-items-center">
+<div class="flex flex-col items-center">
+<div class="w-16 h-16 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mb-2">
+<svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 65L50 80L80 65V50L50 65L20 50V65Z" fill="#F39200"/>
+<path d="M50 35L80 50L50 65L20 50L50 35Z" fill="#F39200" fill-opacity="0.8"/>
+<path d="M20 40L50 55L80 40V25L50 40L20 25V40Z" fill="#005EB8"/>
+<path d="M50 10L80 25L50 40L20 25L50 10Z" fill="#005EB8" fill-opacity="0.8"/>
+</svg>
+</div>
+<span class="text-[10px] text-slate-400 font-bold uppercase">App Icon</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mb-2">
+<svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 65L50 80L80 65V50L50 65L20 50V65Z" fill="#F39200"/>
+<path d="M50 35L80 50L50 65L20 50L50 35Z" fill="#F39200" fill-opacity="0.8"/>
+<path d="M20 40L50 55L80 40V25L50 40L20 25V40Z" fill="#005EB8"/>
+<path d="M50 10L80 25L50 40L20 25L50 10Z" fill="#005EB8" fill-opacity="0.8"/>
+</svg>
+</div>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Favicon</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-16 h-16 bg-openehr-blue rounded-xl flex items-center justify-center mb-2 shadow-lg">
+<svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 65L50 80L80 65V50L50 65L20 50V65Z" fill="white" fill-opacity="0.4"/>
+<path d="M50 35L80 50L50 65L20 50L50 35Z" fill="white" fill-opacity="0.3"/>
+<ellipse cx="50" cy="43" rx="4" ry="2" fill="#005EB8" />
+<path d="M20 40L50 55L80 40V25L50 40L20 25V40Z" fill="white"/>
+<path d="M50 10L80 25L50 40L20 25L50 10Z" fill="white" fill-opacity="0.9"/>
+<ellipse cx="50" cy="18" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="38" cy="25" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="62" cy="25" rx="4" ry="2" fill="#005EB8" />
+<ellipse cx="50" cy="32" rx="4" ry="2" fill="#005EB8" />
+</svg>
+</div>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Social Icon</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="text-3xl font-black text-openehr-blue mb-2">OC</div>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Glyph Only</span>
+</div>
+</div>
+</section>
+</div>
+<script>
+function replayAnimation() {
+const brick = document.getElementById('animatedBrick');
+const btn = document.getElementById('replayBtn');
+// Disable button during reset to prevent double-clicks
+            btn.disabled = true;
+// 1. Remove animation and force hidden state
+            brick.classList.remove('animate-brick');
+            brick.classList.add('opacity-0');
+// 2. Trigger a reflow to ensure the browser registers the reset
+void brick.offsetWidth;
+// 3. Re-add animation class and let the keyframes handle opacity
+            setTimeout(() => {
+                brick.classList.remove('opacity-0');
+                brick.classList.add('animate-brick');
+                btn.disabled = false;
+}, 50);
+}
+</script>
+</body>
+</html>

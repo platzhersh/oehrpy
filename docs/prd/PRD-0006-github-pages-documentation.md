@@ -1,6 +1,6 @@
 # PRD-0006: GitHub Pages Documentation Site
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-03-11
 **Status:** Draft
 **Owner:** Open CIS Project
@@ -41,6 +41,7 @@ Set up a GitHub Pages documentation site for oehrpy that consolidates project do
 | 3 | Surface the "Building Open CIS" article series prominently | Articles are linked on the home page and in a dedicated background section |
 | 4 | Include architecture documentation (ADRs, PRDs) with an index | Each ADR/PRD is rendered as a page with a listing page |
 | 5 | Automate deployment so docs stay in sync with `main` | GitHub Actions workflow deploys on every push to `main` |
+| 6 | Apply consistent Open CIS branding across the docs site | Brand colors, logo, favicon, and typography match the Archetype Brick brand kit |
 
 ---
 
@@ -107,6 +108,10 @@ Home (index.md)
 │       ├── FLAT Format Documentation Gap
 │       └── FLAT Format Discourse Research
 │
+├── Branding
+│   ├── Brand Kit — The Archetype Brick (interactive HTML)
+│   └── Logo Suite (interactive HTML)
+│
 ├── Contributing (CONTRIBUTING.md)
 └── Changelog (CHANGELOG.md)
 ```
@@ -164,6 +169,55 @@ This section provides context that helps users understand *why* oehrpy exists an
   - [Part 5: oehrpy — A Python SDK for openEHR](https://medium.com/@platzh1rsch/building-open-cis-part-5-oehrpy-a-python-sdk-for-openehr-c9c90f46d075) — Announcement and walkthrough of oehrpy
 - **EHRBase Issues & Learnings** — Renders existing `docs/ehrbase-issues/` content and `RESEARCH_FLAT_FORMAT_DISCOURSE.md`
 
+### Branding Section
+
+The documentation site serves as the canonical reference for Open CIS / oehrpy branding. Two interactive brand kit HTML files are already in the repository:
+
+| File | Description |
+|------|-------------|
+| `docs/brand-kit-archetype-brick.html` | **The Archetype Brick** — Current brand concept with isometric stacked bricks, animated "snap" hero, color palette, light/dark logo lockups, typography spec, and favicon/scale testing |
+| `docs/brand-kit.html` | **Logo Suite** — Earlier logo exploration with multiple variants |
+
+**Brand Guidelines page** (`branding/guidelines.md`) — A Markdown summary of the brand identity for quick reference:
+
+- **Concept:** "The Archetype Brick" — isometric interlocking bricks representing openEHR archetypes as composable building blocks
+- **Color Palette:**
+  - **Archetype Blue** `#005EB8` (RGB: 0, 94, 184) — Primary, used for top brick and "cis" wordmark
+  - **Foundation Orange** `#F39200` (RGB: 243, 146, 0) — Secondary, used for bottom brick (foundation layer)
+  - **Clinical Neutrals** — Slate scale (slate-900 through slate-50) for UI scaffolding
+- **Typography:** Inter (Light for "open", Black for "cis") — weight contrast represents the transition from open-source foundations to clinical-specific tools
+- **Logo Construction:** `open` (Inter Light) + `cis` (Inter Black, Archetype Blue) with brick icon
+- **Logo Variants:** Light mode (dark text), dark mode (white text), social icon (white-on-blue), glyph-only ("OC")
+- **Favicon:** Simplified two-brick isometric icon without studs, works at 16x16 and 32x32
+
+**Applying brand to MkDocs:**
+
+The Material theme will be customized via `docs/stylesheets/brand.css`:
+
+```css
+/* Open CIS Brand Colors — The Archetype Brick */
+:root {
+  --md-primary-fg-color: #005EB8;        /* Archetype Blue */
+  --md-primary-fg-color--light: #3380C8;
+  --md-primary-fg-color--dark: #004A93;
+  --md-accent-fg-color: #F39200;         /* Foundation Orange */
+  --md-accent-fg-color--transparent: rgba(243, 146, 0, 0.1);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #3380C8;        /* Lighter blue for dark mode */
+  --md-accent-fg-color: #F5A623;         /* Slightly lighter orange for dark mode */
+}
+```
+
+**Assets to extract from the brand kit SVGs:**
+
+| Asset | Source | Target |
+|-------|--------|--------|
+| `docs/assets/logo.svg` | Two-brick icon with studs from brand kit | MkDocs header logo |
+| `docs/assets/favicon.svg` | Simplified brick icon (no studs) | Browser tab icon |
+| `docs/assets/social-card.png` | Blue background variant from brand kit | og:image for link previews (Phase 3) |
+
 ### API Reference (Phase 2)
 
 - Use `mkdocstrings` with the Python handler to auto-generate reference pages from docstrings
@@ -201,6 +255,15 @@ oehrpy/
 │   │   ├── openehr-ecosystem.md  # (new)
 │   │   ├── articles.md           # (new — links to Medium series)
 │   │   └── ehrbase-issues/       # (existing)
+│   ├── assets/
+│   │   ├── logo.svg              # Archetype Brick icon (extracted from brand kit SVG)
+│   │   └── favicon.svg           # Simplified brick favicon
+│   ├── stylesheets/
+│   │   └── brand.css             # Open CIS brand color overrides
+│   ├── branding/
+│   │   ├── guidelines.md         # Brand guidelines summary (new)
+│   │   ├── brand-kit-archetype-brick.html  # (existing)
+│   │   └── brand-kit.html        # (existing)
 │   ├── contributing.md           # (from CONTRIBUTING.md)
 │   └── changelog.md              # (from CHANGELOG.md)
 │
@@ -219,16 +282,21 @@ repo_name: platzhersh/oehrpy
 
 theme:
   name: material
+  logo: assets/logo.svg           # Archetype Brick icon (extracted from brand kit)
+  favicon: assets/favicon.svg     # Simplified brick icon for browser tabs
+  font:
+    text: Inter                   # Brand primary font (per brand kit)
+    code: JetBrains Mono
   palette:
     - scheme: default
-      primary: teal
-      accent: amber
+      primary: custom             # Archetype Blue #005EB8 (via extra.css)
+      accent: custom              # Foundation Orange #F39200 (via extra.css)
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: teal
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -241,6 +309,9 @@ theme:
     - search.highlight
     - content.code.copy
     - content.tabs.link
+
+extra_css:
+  - stylesheets/brand.css         # Open CIS brand color overrides
 
 plugins:
   - search
@@ -294,6 +365,10 @@ nav:
       - The openEHR Ecosystem: background/openehr-ecosystem.md
       - Article Series: background/articles.md
       - EHRBase Issues: ehrbase-issues/README.md
+  - Branding:
+      - Brand Guidelines: branding/guidelines.md
+      - Brand Kit — Archetype Brick: branding/brand-kit-archetype-brick.html
+      - Logo Suite: branding/brand-kit.html
   - Contributing: contributing.md
   - Changelog: changelog.md
 ```
@@ -354,12 +429,16 @@ jobs:
 ### Phase 1: Foundation (This PRD)
 
 - Set up `mkdocs.yml` with Material theme
-- Create home page (`index.md`)
+- Apply Open CIS branding: Archetype Blue/Foundation Orange colors, Inter font, brick logo and favicon
+- Create `docs/stylesheets/brand.css` with brand color overrides
+- Extract logo and favicon SVGs from the brand kit
+- Create home page (`index.md`) with branded hero
 - Wire existing docs into the nav (ADRs, PRDs, FLAT format guides)
 - Create "Getting Started" pages from README content
 - Create "Background" section with Medium article links
+- Create "Branding" section with brand guidelines page and links to interactive brand kits
 - Add GitHub Actions deployment workflow
-- **Deliverable:** Live site at `platzhersh.github.io/oehrpy` with all existing content navigable
+- **Deliverable:** Live site at `platzhersh.github.io/oehrpy` with branded design and all existing content navigable
 
 ### Phase 2: Expanded Guides
 
@@ -370,7 +449,7 @@ jobs:
 ### Phase 3: Polish
 
 - Add versioned docs (for future SDK versions)
-- Add social cards (og:image for link previews)
+- Add branded social cards using the Archetype Brick social icon variant (og:image for link previews)
 - Add announcement banner for new releases
 - Consider custom domain if desired
 
