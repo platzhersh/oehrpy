@@ -1,4 +1,4 @@
-# PRD-0006: GitHub Pages Documentation Site
+# PRD-0007: GitHub Pages Documentation Site
 
 **Version:** 1.1
 **Date:** 2026-03-11
@@ -89,7 +89,7 @@ Home (index.md)
 │       ├── PRD-0003: Audit & Contributions
 │       ├── PRD-0004: Dynamic Composition Builders
 │       ├── PRD-0005: EHR Management & Query Extensions
-│       └── PRD-0006: GitHub Pages Documentation (this document)
+│       └── PRD-0007: GitHub Pages Documentation (this document)
 │
 ├── API Reference (future — via mkdocstrings)
 │   ├── RM Types
@@ -359,7 +359,7 @@ nav:
           - PRD-0003 — Audit & Contributions: prd/PRD-0003-audit-and-contributions.md
           - PRD-0004 — Dynamic Builders: prd/PRD-0004-dynamic-composition-builders.md
           - PRD-0005 — EHR Management: prd/PRD-0005-ehr-management-and-query-extensions.md
-          - PRD-0006 — GitHub Pages Docs: prd/PRD-0006-github-pages-documentation.md
+          - PRD-0007 — GitHub Pages Docs: prd/PRD-0007-github-pages-documentation.md
   - Background:
       - About oehrpy: background/about.md
       - The openEHR Ecosystem: background/openehr-ecosystem.md
