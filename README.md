@@ -322,3 +322,5 @@ MIT
 - [openEHR RM Specification](https://specifications.openehr.org/releases/RM/latest)
 - [EHRBase](https://ehrbase.org/)
 - [EHRBase Documentation](https://docs.ehrbase.org/) *(Note: FLAT format docs may be outdated, see our [FLAT Format Versions](docs/FLAT_FORMAT_VERSIONS.md) guide)*
+- [Building Open CIS Part 4: The openEHR SDK Landscape](https://medium.com/@platzh1rsch/building-open-cis-part-4-the-openehr-sdk-landscape-1b93411ec279)
+- [Building Open CIS Part 5: oehrpy — A Python SDK for openEHR](https://medium.com/@platzh1rsch/building-open-cis-part-5-oehrpy-a-python-sdk-for-openehr-c9c90f46d075)
