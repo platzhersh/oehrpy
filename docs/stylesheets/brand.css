@@ -1,0 +1,16 @@
+/* Open CIS Brand Colors — The Archetype Brick */
+:root {
+  --md-primary-fg-color: #005EB8;
+  --md-primary-fg-color--light: #3380C8;
+  --md-primary-fg-color--dark: #004A93;
+  --md-accent-fg-color: #F39200;
+  --md-accent-fg-color--transparent: rgba(243, 146, 0, 0.1);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #3380C8;
+  --md-primary-fg-color--light: #5599D6;
+  --md-primary-fg-color--dark: #005EB8;
+  --md-accent-fg-color: #F5A623;
+  --md-accent-fg-color--transparent: rgba(245, 166, 35, 0.1);
+}

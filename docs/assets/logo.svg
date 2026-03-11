@@ -1,0 +1,13 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bottom Brick (Foundation Orange) -->
+  <path d="M20 65L50 80L80 65V50L50 65L20 50V65Z" fill="#F39200"/>
+  <path d="M50 35L80 50L50 65L20 50L50 35Z" fill="#F39200" fill-opacity="0.8"/>
+  <ellipse cx="50" cy="43" rx="4" ry="2" fill="#F39200"/>
+  <!-- Top Brick (Archetype Blue) -->
+  <path d="M20 40L50 55L80 40V25L50 40L20 25V40Z" fill="white"/>
+  <path d="M50 10L80 25L50 40L20 25L50 10Z" fill="white" fill-opacity="0.9"/>
+  <ellipse cx="50" cy="18" rx="4" ry="2" fill="white" fill-opacity="0.7"/>
+  <ellipse cx="38" cy="25" rx="4" ry="2" fill="white" fill-opacity="0.7"/>
+  <ellipse cx="62" cy="25" rx="4" ry="2" fill="white" fill-opacity="0.7"/>
+  <ellipse cx="50" cy="32" rx="4" ry="2" fill="white" fill-opacity="0.7"/>
+</svg>

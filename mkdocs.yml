@@ -1,0 +1,105 @@
+site_name: oehrpy
+site_description: Python SDK for openEHR — Type-safe RM classes, template builders, EHRBase client, and AQL query builder
+site_url: https://platzhersh.github.io/oehrpy
+repo_url: https://github.com/platzhersh/oehrpy
+repo_name: platzhersh/oehrpy
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
+  font:
+    text: Inter
+    code: JetBrains Mono
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+
+extra_css:
+  - stylesheets/brand.css
+
+plugins:
+  - search
+
+validation:
+  links:
+    absolute_links: ignore
+    unrecognized_links: ignore
+    not_found: info
+
+not_in_nav: |
+  RESEARCH_FLAT_FORMAT_DISCOURSE.md
+  ehrbase-issues/001-flat-format-documentation-gap.md
+  legacy-*.html
+  brand-kit*.html
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quick-start.md
+      - Compatibility: getting-started/compatibility.md
+  - Guides:
+      - FLAT Format Guide: flat-format-learnings.md
+      - FLAT Format Versions: FLAT_FORMAT_VERSIONS.md
+      - Template Builders: guides/template-builders.md
+      - EHRBase Client: guides/ehrbase-client.md
+      - AQL Query Builder: guides/aql-builder.md
+      - Integration Testing: integration-testing-journey.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - ADRs:
+          - ADR-0000 — Record Architecture Decisions: adr/0000-record-architecture-decisions.md
+          - ADR-0001 — RM 1.1.0 Support: adr/0001-odin-parsing-and-rm-1.1.0-support.md
+          - ADR-0002 — Integration Testing: adr/0002-integration-testing-with-ehrbase.md
+          - ADR-0003 — Pre-commit Hooks: adr/0003-pre-commit-hooks-for-code-quality.md
+          - ADR-0004 — Semantic Release: adr/0004-python-semantic-release-for-release-automation.md
+      - PRDs:
+          - PRD-0000 — Python openEHR SDK: prd/PRD-0000-python-openehr-sdk.md
+          - PRD-0001 — ODIN Parser: prd/PRD-0001-odin-parser.md
+          - PRD-0002 — Composition Lifecycle: prd/PRD-0002-composition-lifecycle.md
+          - PRD-0003 — Audit & Contributions: prd/PRD-0003-audit-and-contributions.md
+          - PRD-0004 — Dynamic Builders: prd/PRD-0004-dynamic-composition-builders.md
+          - PRD-0005 — EHR Management: prd/PRD-0005-ehr-management-and-query-extensions.md
+          - PRD-0007 — GitHub Pages Docs: prd/PRD-0007-github-pages-documentation.md
+  - Background:
+      - About oehrpy: background/about.md
+      - The openEHR Ecosystem: background/openehr-ecosystem.md
+      - Article Series: background/articles.md
+      - EHRBase Issues: ehrbase-issues/README.md
+  - Branding:
+      - Brand Guidelines: branding/guidelines.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
