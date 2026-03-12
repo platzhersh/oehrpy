@@ -5,30 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>oehrpy · FLAT Format Validator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0f14;
-    --surface: #13161d;
-    --surface2: #1a1e28;
-    --surface3: #222736;
-    --border: #2a2f3d;
-    --border-bright: #3d4560;
-    --text: #e8eaf0;
-    --text-muted: #7a82a0;
-    --text-dim: #4a5270;
-    --accent: #5b8af0;
-    --accent-glow: rgba(91, 138, 240, 0.15);
-    --accent-dim: rgba(91, 138, 240, 0.08);
-    --green: #3dd68c;
-    --green-dim: rgba(61, 214, 140, 0.08);
-    --red: #f06060;
-    --red-dim: rgba(240, 96, 96, 0.08);
-    --yellow: #f0c060;
-    --yellow-dim: rgba(240, 192, 96, 0.08);
+    --bg: #1a1a2e;
+    --surface: #252540;
+    --surface2: #2d2d4d;
+    --surface3: #3b3b5c;
+    --border: #2d2d4d;
+    --border-bright: #4b4b6c;
+    --text: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-dim: #6b7280;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.15);
+    --accent-dim: rgba(59, 130, 246, 0.08);
+    --green: #10b981;
+    --green-dim: rgba(16, 185, 129, 0.08);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.08);
+    --yellow: #f59e0b;
+    --yellow-dim: rgba(245, 158, 11, 0.08);
     --purple: #a78bfa;
     --mono: 'JetBrains Mono', monospace;
-    --sans: 'Syne', sans-serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,72 +52,62 @@
 
   /* ── Header ── */
   header {
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
+    padding: 20px 40px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 24px;
-    height: 56px;
-    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
     position: sticky;
     top: 0;
     z-index: 100;
   }
 
-  .logo {
+  .logo-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     text-decoration: none;
+  }
+
+  .logo-header span {
+    font-size: 24px;
+    font-weight: 600;
     color: var(--text);
   }
 
-  .logo-mark {
-    width: 28px;
-    height: 28px;
-    background: var(--accent);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -1px;
-    flex-shrink: 0;
-  }
-
-  .logo-text {
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.3px;
-  }
-
-  .logo-sep { color: var(--text-dim); margin: 0 2px; }
-
-  .logo-sub {
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 400;
-  }
-
   header nav {
-    margin-left: auto;
     display: flex;
+    gap: 30px;
     align-items: center;
-    gap: 6px;
+    margin-left: auto;
   }
 
-  .nav-link {
+  header nav a {
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 13px;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: all 0.15s;
+    font-size: 15px;
+    transition: color 0.2s;
   }
-  .nav-link:hover { color: var(--text); background: var(--surface2); }
+
+  header nav a:hover,
+  header nav a.active {
+    color: var(--text);
+  }
+
+  .github-link {
+    background: var(--surface);
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: var(--text) !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .github-link:hover {
+    background: var(--surface2);
+  }
 
   .badge {
     font-family: var(--mono);
@@ -126,7 +117,7 @@
     border-radius: 4px;
     background: var(--accent-dim);
     color: var(--accent);
-    border: 1px solid rgba(91,138,240,0.2);
+    border: 1px solid rgba(59,130,246,0.2);
     letter-spacing: 0.5px;
   }
 
@@ -134,7 +125,7 @@
   .platform-bar {
     padding: 0 24px;
     border-bottom: 1px solid var(--border);
-    background: var(--surface);
+    background: var(--bg);
     display: flex;
     align-items: center;
     gap: 16px;
@@ -173,7 +164,7 @@
   .platform-btn:hover { color: var(--text); background: var(--surface3); }
 
   .platform-btn.active {
-    background: var(--accent);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: #fff;
   }
 
@@ -301,7 +292,7 @@
     padding: 9px 24px;
     border-radius: 7px;
     border: none;
-    background: var(--accent);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: #fff;
     cursor: pointer;
     transition: all 0.15s;
@@ -309,7 +300,7 @@
     align-items: center;
     gap: 8px;
   }
-  .validate-btn:hover { background: #7aa2f7; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(91,138,240,0.3); }
+  .validate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59,130,246,0.4); }
   .validate-btn:active { transform: translateY(0); }
   .validate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -572,19 +563,20 @@
 
   /* ── Footer ── */
   footer {
-    padding: 8px 24px;
+    padding: 20px 40px;
     border-top: 1px solid var(--border);
-    background: var(--surface);
+    background: var(--bg);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
-    font-family: var(--mono);
-    font-size: 10px;
+    font-size: 14px;
     color: var(--text-dim);
+    flex-wrap: wrap;
   }
 
-  footer a { color: var(--text-dim); text-decoration: none; }
-  footer a:hover { color: var(--accent); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
 
   footer .sep { color: var(--border); }
 
@@ -606,7 +598,7 @@
   .loading-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(13, 15, 20, 0.85);
+    background: rgba(26, 26, 46, 0.85);
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -725,6 +717,39 @@
   @media (max-width: 900px) {
     main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
     .panel { border-right: none; border-bottom: 1px solid var(--border); }
+    header {
+      padding: 16px 20px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    header nav {
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    header nav a:not(.github-link) {
+      font-size: 14px;
+    }
+    .github-link {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    header {
+      padding: 12px 16px;
+    }
+    header nav {
+      gap: 12px;
+    }
+    .logo-header span {
+      font-size: 20px;
+    }
+    footer {
+      padding: 16px;
+      font-size: 12px;
+    }
   }
 </style>
 </head>
@@ -733,17 +758,39 @@
 
   <!-- Header -->
   <header>
-    <a href="https://github.com/platzhersh/oehrpy" class="logo">
-      <div class="logo-mark">oe</div>
-      <span class="logo-text">oehrpy</span>
+    <a href="index.html" class="logo-header">
+      <svg viewBox="0 0 80 80" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logo-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#60a5fa"/>
+            <stop offset="100%" style="stop-color:#3b82f6"/>
+          </linearGradient>
+          <linearGradient id="logo-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fdba74"/>
+            <stop offset="100%" style="stop-color:#f97316"/>
+          </linearGradient>
+        </defs>
+        <path d="M40 10 C20 10 15 25 15 35 C15 46 28 52 40 52 C52 52 65 46 65 35 C65 25 60 10 40 10"
+              fill="url(#logo-blue)"/>
+        <circle cx="28" cy="24" r="4" fill="#fff"/>
+        <path d="M40 70 C60 70 65 55 65 45 C65 34 52 28 40 28 C28 28 15 34 15 45 C15 55 20 70 40 70"
+              fill="url(#logo-orange)"/>
+        <circle cx="52" cy="56" r="4" fill="#fff"/>
+      </svg>
+      <span>oehrpy</span>
     </a>
-    <span class="logo-sep">/</span>
-    <span class="logo-sub">FLAT Format Validator</span>
-    <span class="badge">v0.3.0</span>
     <nav>
-      <a href="https://github.com/platzhersh/oehrpy" class="nav-link">GitHub</a>
-      <a href="https://platzhersh.github.io/oehrpy" class="nav-link">Docs</a>
-      <a href="https://pypi.org/project/oehrpy/" class="nav-link">PyPI</a>
+      <a href="index.html">Features</a>
+      <a href="docs.html">Docs</a>
+      <a href="validator.html" class="active">Validator</a>
+      <a href="brand-kit.html">Brand Kit</a>
+      <span class="badge">v0.3.0</span>
+      <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
     </nav>
   </header>
 
@@ -832,16 +879,16 @@ Example paths (EHRBase 2.x):
 
   <!-- Footer -->
   <footer>
-    <span>oehrpy FLAT Validator</span>
-    <span class="sep">&middot;</span>
-    <a href="https://github.com/platzhersh/oehrpy">open source</a>
-    <span class="sep">&middot;</span>
-    <span>100% client-side &middot; no data sent to any server</span>
-    <span class="sep">&middot;</span>
-    <a href="https://specifications.openehr.org/releases/ITS-REST/latest/simplified_data_template.html">simSDT spec</a>
-    <span class="sep">&middot;</span>
-    <a href="https://discourse.openehr.org">openEHR discourse</a>
-    <span class="sep">&middot;</span>
+    <span>Built with Python and openEHR</span>
+    <span class="sep">|</span>
+    <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
+    <span class="sep">|</span>
+    <a href="docs.html">Docs</a>
+    <span class="sep">|</span>
+    <a href="brand-kit.html">Brand Kit</a>
+    <span class="sep">|</span>
+    <span>100% client-side</span>
+    <span class="sep">|</span>
     <span class="engine-status" id="engine-status">
       <span class="engine-dot loading" id="engine-dot"></span>
       <span id="engine-label">Loading Python...</span>
