@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>oehrpy · FLAT Format Validator</title>
+<title>oehrpy · Validator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -119,6 +119,105 @@
     color: var(--accent);
     border: 1px solid rgba(59,130,246,0.2);
     letter-spacing: 0.5px;
+  }
+
+  /* ── Mode toggle ── */
+  .mode-bar {
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 44px;
+  }
+
+  .mode-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  .mode-toggle {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .mode-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+
+  .mode-btn:hover { color: var(--text); background: var(--surface3); }
+
+  .mode-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #fff;
+  }
+
+  .mode-desc {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 3px 10px;
+    background: var(--surface2);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── OPT category badges ── */
+  .category-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+
+  .category-badge.wellformedness { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+  .category-badge.semantic { background: rgba(245,158,11,0.08); color: var(--yellow); border: 1px solid rgba(245,158,11,0.2); }
+  .category-badge.structural { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.2); }
+  .category-badge.flat_impact { background: rgba(167,139,250,0.08); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+
+  .error-item.error-type-info { border-left: 3px solid var(--purple); }
+
+  .issue-code {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .issue-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+
+  .issue-xpath {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    word-break: break-all;
   }
 
   /* ── Platform selector ── */
@@ -809,7 +908,7 @@
     <nav>
       <a href="index.html">Features</a>
       <a href="docs.html">Docs</a>
-      <a href="validator.html" class="active">Validator</a>
+      <a href="validator.html" class="active">Validators</a>
       <a href="brand-kit.html">Brand Kit</a>
       <span class="badge">v0.3.0</span>
       <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank">
@@ -821,15 +920,25 @@
     </nav>
   </header>
 
+  <!-- Mode bar -->
+  <div class="mode-bar">
+    <span class="mode-label">Mode</span>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-mode-flat" onclick="setMode('flat')">FLAT Composition</button>
+      <button class="mode-btn" id="btn-mode-opt" onclick="setMode('opt')">OPT Template</button>
+    </div>
+    <span class="mode-desc" id="mode-desc">Validate FLAT compositions against Web Templates</span>
+  </div>
+
   <!-- Platform bar -->
-  <div class="platform-bar">
+  <div class="platform-bar" id="platform-bar">
     <span class="platform-label">Platform</span>
     <div class="platform-toggle">
       <button class="platform-btn active" id="btn-ehrbase" onclick="setPlatform('ehrbase')">EHRBase 2.x</button>
       <button class="platform-btn" id="btn-better" onclick="setPlatform('better')">Better</button>
     </div>
     <span class="platform-hint" id="platform-hint">no :0 indexing · tree.id prefix · direct paths</span>
-    <button class="load-example-btn" onclick="loadExample()">Load example</button>
+    <button class="load-example-btn" onclick="currentMode === 'opt' ? loadOPTExample() : loadExample()">Load example</button>
   </div>
 
   <!-- Action bar -->
@@ -850,7 +959,8 @@
 
   <!-- Main panels -->
   <main>
-    <div class="panel" style="border-bottom: 1px solid var(--border);">
+    <!-- FLAT mode panels -->
+    <div class="panel flat-panel" style="border-bottom: 1px solid var(--border);">
       <div class="panel-header">
         <span class="panel-title">Web Template</span>
         <span class="panel-count" id="wt-count"></span>
@@ -865,7 +975,7 @@ The validator reads the "tree" structure to enumerate
 all valid FLAT paths for your template.' spellcheck="false" oninput="updateCounts()"></textarea>
     </div>
 
-    <div class="panel" style="border-bottom: 1px solid var(--border);">
+    <div class="panel flat-panel" style="border-bottom: 1px solid var(--border);">
       <div class="panel-header">
         <span class="panel-title">FLAT Composition</span>
         <span class="panel-count" id="flat-count"></span>
@@ -880,13 +990,34 @@ Example paths (EHRBase 2.x):
   "adverse_reaction_list/adverse_reaction/causative_agent|terminology": "SNOMED-CT"' spellcheck="false" oninput="updateCounts()"></textarea>
     </div>
 
+    <!-- OPT mode panel -->
+    <div class="panel opt-panel" style="grid-column: 1 / -1; border-bottom: 1px solid var(--border); display: none;">
+      <div class="panel-header">
+        <span class="panel-title">OPT Template (XML)</span>
+        <span class="panel-count" id="opt-count"></span>
+        <button class="clear-btn" onclick="document.getElementById('opt-input').value='';updateCounts()">clear</button>
+      </div>
+      <textarea id="opt-input" placeholder='Paste your OPT 1.4 XML here...
+
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="http://schemas.openehr.org/v1">
+  <language>...</language>
+  <description>...</description>
+  <definition>...</definition>
+  <ontology>...</ontology>
+</template>
+
+The validator checks well-formedness, semantic integrity,
+structural quality, and FLAT path impact.' spellcheck="false" oninput="updateCounts()"></textarea>
+    </div>
+
     <!-- Results spans both columns -->
     <div class="panel" style="grid-column: 1 / -1; border-right: none; border-top: 1px solid var(--border);">
       <div class="panel-header">
         <span class="panel-title">Validation Results</span>
       </div>
       <div class="results-area" id="results-area">
-        <div class="results-empty">
+        <div class="results-empty" id="results-empty">
           <div class="icon">&#9678;</div>
           <div>Paste a Web Template and a FLAT composition above, then click <strong>Validate</strong></div>
           <div style="opacity:0.5">or load an example to see the validator in action</div>
@@ -941,6 +1072,7 @@ Example paths (EHRBase 2.x):
 // ============================================================
 
 var currentPlatform = 'ehrbase';
+var currentMode = 'flat'; // 'flat' | 'opt'
 var validPathsCache = [];
 var explorerOpen = false;
 
@@ -968,6 +1100,61 @@ function setPlatform(p) {
   document.getElementById('btn-ehrbase').classList.toggle('active', p === 'ehrbase');
   document.getElementById('btn-better').classList.toggle('active', p === 'better');
   document.getElementById('platform-hint').textContent = PLATFORM_HINTS[p];
+}
+
+// ============================================================
+// === MODE SWITCHING ===
+// ============================================================
+
+var MODE_DESCS = {
+  flat: 'Validate FLAT compositions against Web Templates',
+  opt:  'Validate OPT 1.4 XML files for well-formedness, semantics & structure'
+};
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-mode-flat').classList.toggle('active', mode === 'flat');
+  document.getElementById('btn-mode-opt').classList.toggle('active', mode === 'opt');
+  document.getElementById('mode-desc').textContent = MODE_DESCS[mode];
+
+  // Toggle panel visibility
+  var flatPanels = document.querySelectorAll('.flat-panel');
+  var optPanels = document.querySelectorAll('.opt-panel');
+  for (var i = 0; i < flatPanels.length; i++) flatPanels[i].style.display = mode === 'flat' ? '' : 'none';
+  for (var j = 0; j < optPanels.length; j++) optPanels[j].style.display = mode === 'opt' ? '' : 'none';
+
+  // Toggle platform bar (only relevant for FLAT)
+  document.getElementById('platform-bar').style.display = mode === 'flat' ? '' : 'none';
+
+  // Toggle explorer (only for FLAT)
+  if (mode === 'opt') {
+    document.getElementById('explorer-toggle').style.display = 'none';
+    var explorerPanel = document.getElementById('explorer-panel');
+    explorerPanel.classList.remove('open');
+    explorerOpen = false;
+  }
+
+  // Update grid layout: two columns for FLAT, single for OPT
+  var main = document.querySelector('main');
+  main.style.gridTemplateColumns = mode === 'flat' ? '1fr 1fr' : '1fr';
+
+  // Update empty state message
+  var emptyEl = document.getElementById('results-empty');
+  if (emptyEl) {
+    emptyEl.innerHTML = mode === 'flat'
+      ? '<div class="icon">&#9678;</div>' +
+        '<div>Paste a Web Template and a FLAT composition above, then click <strong>Validate</strong></div>' +
+        '<div style="opacity:0.5">or load an example to see the validator in action</div>'
+      : '<div class="icon">&#9678;</div>' +
+        '<div>Paste an OPT 1.4 XML template above, then click <strong>Validate</strong></div>' +
+        '<div style="opacity:0.5">or load an example to see the validator in action</div>';
+  }
+
+  // Reset results
+  document.getElementById('results-area').innerHTML =
+    '<div class="results-empty" id="results-empty">' + emptyEl.innerHTML + '</div>';
+  showStatus('idle', 'Waiting for input');
+  document.getElementById('stats-text').textContent = '';
 }
 
 // ============================================================
@@ -1048,6 +1235,7 @@ async function initPyodide() {
     // Import and verify
     await pyodideInstance.runPythonAsync(
       'from openehr_sdk.validation import FlatValidator\n' +
+      'from openehr_sdk.validation.opt import OPTValidator\n' +
       'import json\n' +
       'import openehr_sdk\n'
     );
@@ -1150,6 +1338,47 @@ async function runPythonValidation(wtJson, flatObj, platform) {
     '    "checked_path_count": _result.checked_path_count,\n' +
     '    "template_id": _result.template_id,\n' +
     '    "valid_paths": _valid_paths,\n' +
+    '})\n'
+  );
+
+  return JSON.parse(resultStr);
+}
+
+// ============================================================
+// === OPT PYTHON BRIDGE ===
+// ============================================================
+
+async function runOPTValidation(xmlContent) {
+  pyodideInstance.globals.set('_opt_xml', xmlContent);
+
+  var resultStr = await pyodideInstance.runPythonAsync(
+    'import json\n' +
+    'from openehr_sdk.validation.opt import OPTValidator\n' +
+    '\n' +
+    '_validator = OPTValidator()\n' +
+    '_result = _validator.validate_string(_opt_xml)\n' +
+    '\n' +
+    'json.dumps({\n' +
+    '    "is_valid": _result.is_valid,\n' +
+    '    "template_id": _result.template_id,\n' +
+    '    "concept": _result.concept,\n' +
+    '    "node_count": _result.node_count,\n' +
+    '    "archetype_count": _result.archetype_count,\n' +
+    '    "error_count": _result.error_count,\n' +
+    '    "warning_count": _result.warning_count,\n' +
+    '    "issues": [\n' +
+    '        {\n' +
+    '            "severity": i.severity,\n' +
+    '            "category": i.category,\n' +
+    '            "code": i.code,\n' +
+    '            "message": i.message,\n' +
+    '            "xpath": i.xpath,\n' +
+    '            "node_id": i.node_id,\n' +
+    '            "archetype_id": i.archetype_id,\n' +
+    '            "suggestion": i.suggestion,\n' +
+    '        }\n' +
+    '        for i in _result.issues\n' +
+    '    ],\n' +
     '})\n'
   );
 
@@ -1420,6 +1649,36 @@ function validateFlatJS(flatObj, parsedTemplate, platform) {
 // ============================================================
 
 async function runValidation() {
+  if (currentMode === 'opt') {
+    return runOPTValidationFlow();
+  }
+  return runFlatValidationFlow();
+}
+
+async function runOPTValidationFlow() {
+  var xmlRaw = document.getElementById('opt-input').value.trim();
+  if (!xmlRaw) {
+    showStatus('idle', 'Please provide an OPT XML template');
+    return;
+  }
+
+  if (!pyodideReady) {
+    showError('OPT validation requires the Python runtime. Please wait for it to load or retry.');
+    return;
+  }
+
+  try {
+    showStatus('idle', 'Validating OPT with Python...');
+    actualEngine = 'python';
+    var result = await runOPTValidation(xmlRaw);
+    renderOPTResults(result);
+  } catch (err) {
+    console.error('OPT validation failed:', err);
+    showError('OPT validation error: ' + (err.message || String(err)));
+  }
+}
+
+async function runFlatValidationFlow() {
   var wtRaw = document.getElementById('wt-input').value.trim();
   var flatRaw = document.getElementById('flat-input').value.trim();
 
@@ -1554,6 +1813,96 @@ function renderResults(result) {
   area.innerHTML = html;
 }
 
+function renderOPTResults(result) {
+  var area = document.getElementById('results-area');
+  var errors = result.issues.filter(function(i) { return i.severity === 'error'; });
+  var warnings = result.issues.filter(function(i) { return i.severity === 'warning'; });
+  var infos = result.issues.filter(function(i) { return i.severity === 'info'; });
+
+  var engineTag = ' (Python)';
+  var templateLabel = result.template_id ? result.template_id : 'Unknown template';
+
+  showStatus(
+    result.is_valid ? 'valid' : 'invalid',
+    result.is_valid
+      ? 'Valid \u00b7 ' + templateLabel + engineTag
+      : errors.length + ' error' + (errors.length !== 1 ? 's' : '') +
+        ' \u00b7 ' + warnings.length + ' warning' + (warnings.length !== 1 ? 's' : '') + engineTag
+  );
+
+  var statsText = templateLabel;
+  if (result.concept) statsText += ' \u00b7 ' + result.concept;
+  statsText += ' \u00b7 ' + result.archetype_count + ' archetypes \u00b7 ' + result.node_count + ' nodes';
+  document.getElementById('stats-text').textContent = statsText;
+
+  if (result.issues.length === 0) {
+    area.innerHTML =
+      '<div class="results-empty">' +
+        '<div class="icon">&#10003;</div>' +
+        '<div style="color: var(--green); font-weight: 700;">OPT template is valid!</div>' +
+        '<div style="opacity:0.6">' + templateLabel + ' \u2014 ' +
+          result.archetype_count + ' archetypes, ' + result.node_count + ' nodes</div>' +
+      '</div>';
+    return;
+  }
+
+  var html = '';
+
+  // Group by severity
+  var groups = [
+    { items: errors, label: 'Errors', severity: 'error' },
+    { items: warnings, label: 'Warnings', severity: 'warning' },
+    { items: infos, label: 'Info', severity: 'info' }
+  ];
+
+  var animIdx = 0;
+  for (var g = 0; g < groups.length; g++) {
+    var group = groups[g];
+    if (group.items.length === 0) continue;
+
+    html += '<div class="section-header">' + group.label + ' (' + group.items.length + ')</div>';
+
+    for (var i = 0; i < group.items.length; i++) {
+      var issue = group.items[i];
+      var itemClass = 'error-type-' + group.severity;
+      var iconChar = group.severity === 'error' ? '&#10007;' : group.severity === 'warning' ? '&#9888;' : '&#9432;';
+      var pathClass = group.severity === 'warning' ? ' warn' : group.severity === 'info' ? ' warn' : '';
+
+      html +=
+        '<div class="error-item ' + itemClass + '" style="animation-delay:' + (animIdx * 30) + 'ms">' +
+          '<div class="issue-meta">' +
+            '<span class="category-badge ' + escHtml(issue.category) + '">' + escHtml(issue.category) + '</span>' +
+            '<span class="issue-code">' + escHtml(issue.code) + '</span>' +
+          '</div>' +
+          '<div class="error-path' + pathClass + '">' +
+            '<span class="error-icon">' + iconChar + '</span>' +
+            '<code>' + escHtml(issue.message) + '</code>' +
+          '</div>';
+
+      if (issue.xpath) {
+        html += '<div class="issue-xpath">XPath: ' + escHtml(issue.xpath) + '</div>';
+      }
+      if (issue.node_id) {
+        html += '<div class="issue-xpath">Node: ' + escHtml(issue.node_id) +
+          (issue.archetype_id ? ' in ' + escHtml(issue.archetype_id) : '') + '</div>';
+      }
+      if (issue.suggestion) {
+        html +=
+          '<div class="suggestion" title="Click to copy" onclick="copyText(\'' + escHtml(issue.suggestion).replace(/'/g, "\\'") + '\', this)">' +
+            '<span class="arrow">&rarr;</span>' +
+            '<code>' + escHtml(issue.suggestion) + '</code>' +
+            '<button class="copy-btn">copy</button>' +
+          '</div>';
+      }
+
+      html += '</div>';
+      animIdx++;
+    }
+  }
+
+  area.innerHTML = html;
+}
+
 function renderExplorer(validPaths) {
   var list = document.getElementById('explorer-list');
   var seen = {};
@@ -1627,8 +1976,10 @@ function escHtml(s) {
 function updateCounts() {
   var wt = document.getElementById('wt-input').value;
   var flat = document.getElementById('flat-input').value;
+  var opt = document.getElementById('opt-input').value;
   document.getElementById('wt-count').textContent = wt ? wt.split('\n').length + ' lines' : '';
   document.getElementById('flat-count').textContent = flat ? flat.split('\n').length + ' lines' : '';
+  document.getElementById('opt-count').textContent = opt ? opt.split('\n').length + ' lines' : '';
 }
 
 // Keyboard shortcut
@@ -1773,6 +2124,57 @@ function loadExample() {
 
   document.getElementById('wt-input').value = JSON.stringify(exampleWT, null, 2);
   document.getElementById('flat-input').value = JSON.stringify(exampleFlat, null, 2);
+  updateCounts();
+  runValidation();
+}
+
+function loadOPTExample() {
+  var exampleOPT =
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<template xmlns="http://schemas.openehr.org/v1">\n' +
+    '  <language>\n' +
+    '    <terminology_id><value>ISO_639-1</value></terminology_id>\n' +
+    '    <code_string>en</code_string>\n' +
+    '  </language>\n' +
+    '  <description>\n' +
+    '    <original_author id="name">oehrpy Example</original_author>\n' +
+    '    <lifecycle_state>Initial</lifecycle_state>\n' +
+    '    <details>\n' +
+    '      <language>\n' +
+    '        <terminology_id><value>ISO_639-1</value></terminology_id>\n' +
+    '        <code_string>en</code_string>\n' +
+    '      </language>\n' +
+    '      <purpose>Example OPT for validator demonstration</purpose>\n' +
+    '    </details>\n' +
+    '  </description>\n' +
+    '  <uid><value>d4f1c2a0-1234-5678-9abc-def012345678</value></uid>\n' +
+    '  <template_id><value>Example Vital Signs.v1</value></template_id>\n' +
+    '  <concept>Example Vital Signs</concept>\n' +
+    '  <definition>\n' +
+    '    <rm_type_name>COMPOSITION</rm_type_name>\n' +
+    '    <occurrences><lower>1</lower><upper>1</upper></occurrences>\n' +
+    '    <node_id>at0000</node_id>\n' +
+    '    <attributes xsi:type="C_SINGLE_ATTRIBUTE" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n' +
+    '      <rm_attribute_name>content</rm_attribute_name>\n' +
+    '      <children xsi:type="C_ARCHETYPE_ROOT">\n' +
+    '        <rm_type_name>OBSERVATION</rm_type_name>\n' +
+    '        <occurrences><lower>0</lower><upper>1</upper></occurrences>\n' +
+    '        <node_id>at0001</node_id>\n' +
+    '        <archetype_id><value>openEHR-EHR-OBSERVATION.blood_pressure.v2</value></archetype_id>\n' +
+    '      </children>\n' +
+    '    </attributes>\n' +
+    '  </definition>\n' +
+    '  <ontology>\n' +
+    '    <term_definitions language="en">\n' +
+    '      <items code="at0000">\n' +
+    '        <items id="text">Example Vital Signs</items>\n' +
+    '        <items id="description">Example composition</items>\n' +
+    '      </items>\n' +
+    '    </term_definitions>\n' +
+    '  </ontology>\n' +
+    '</template>';
+
+  document.getElementById('opt-input').value = exampleOPT;
   updateCounts();
   runValidation();
 }
