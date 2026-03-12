@@ -466,6 +466,8 @@ def generate_rm_models(
 
 if __name__ == "__main__":
     import sys
+    from .generate_rm_1_1_0 import main as generate_1_1_0_main
 
-    output = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("src/openehr_sdk/rm")
-    generate_rm_models(output_dir=output)
+    # Use the JSON Schema-based generator for RM 1.1.0
+    print("Using JSON Schema-based generator for RM 1.1.0...")
+    generate_1_1_0_main()

@@ -874,9 +874,11 @@ var explorerOpen = false;
 var pyodideReady = false;
 var pyodideInstance = null;
 var pyodideLoadFailed = false;
+var pyodideTimedOut = false;
 var oehrpyVersion = null;
 var pythonVersion = null;
 var engineMode = 'loading'; // 'loading' | 'python' | 'js'
+var actualEngine = null; // Tracks which engine produced the last validation results
 
 // ============================================================
 // === PLATFORM ===
@@ -939,10 +941,12 @@ function showToast(message, type, duration) {
 async function initPyodide() {
   setLoadingStep('Loading Python runtime...');
   updateEngineStatus('loading', 'Loading Python...');
+  pyodideTimedOut = false;
 
   var timeoutId = setTimeout(function() {
     if (!pyodideReady) {
       console.warn('Pyodide load timed out after ' + PYODIDE_TIMEOUT + 'ms');
+      pyodideTimedOut = true;
       fallbackToJS('Timeout: Python runtime took too long to load');
     }
   }, PYODIDE_TIMEOUT);
@@ -950,16 +954,20 @@ async function initPyodide() {
   try {
     // Load Pyodide
     pyodideInstance = await loadPyodide({ indexURL: PYODIDE_CDN });
+    if (pyodideTimedOut) return;
 
     setLoadingStep('Installing oehrpy...');
 
     // Install oehrpy via micropip
     await pyodideInstance.loadPackage('micropip');
+    if (pyodideTimedOut) return;
+
     var micropip = pyodideInstance.pyimport('micropip');
 
     var requestedVersion = getRequestedVersion();
     var packageSpec = requestedVersion ? 'oehrpy==' + requestedVersion : 'oehrpy';
     await micropip.install(packageSpec);
+    if (pyodideTimedOut) return;
 
     setLoadingStep('Importing validation module...');
 
@@ -969,14 +977,18 @@ async function initPyodide() {
       'import json\n' +
       'import openehr_sdk\n'
     );
+    if (pyodideTimedOut) return;
 
     // Get version info
     oehrpyVersion = await pyodideInstance.runPythonAsync(
       'openehr_sdk.__version__ if hasattr(openehr_sdk, "__version__") else "unknown"'
     );
+    if (pyodideTimedOut) return;
+
     pythonVersion = await pyodideInstance.runPythonAsync(
       'import sys; f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"'
     );
+    if (pyodideTimedOut) return;
 
     clearTimeout(timeoutId);
     pyodideReady = true;
@@ -990,6 +1002,7 @@ async function initPyodide() {
 
   } catch (err) {
     clearTimeout(timeoutId);
+    if (pyodideTimedOut) return;
     console.error('Pyodide initialization failed:', err);
     fallbackToJS(err.message || String(err));
   }
@@ -1007,6 +1020,7 @@ function fallbackToJS(reason) {
 
 function retryPyodide() {
   pyodideLoadFailed = false;
+  pyodideTimedOut = false;
   document.getElementById('loading-overlay').classList.remove('hidden');
   document.getElementById('loading-step').textContent = 'Retrying...';
   initPyodide();
@@ -1369,6 +1383,7 @@ async function runValidation() {
         })
       };
 
+      actualEngine = 'python';
       validPathsCache = result.validPaths;
       renderResults(result);
       renderExplorer(result.validPaths);
@@ -1382,6 +1397,7 @@ async function runValidation() {
   }
 
   // JS fallback
+  actualEngine = 'js';
   var parsedTemplate = parseWebTemplate(wtJson);
   var result = validateFlatJS(flatObj, parsedTemplate, currentPlatform);
   validPathsCache = result.validPaths;
@@ -1399,7 +1415,7 @@ function renderResults(result) {
   var validCount = result.validCount;
   var isValid = errors.length === 0;
 
-  var engineTag = pyodideReady ? ' (Python)' : ' (JS)';
+  var engineTag = actualEngine === 'python' ? ' (Python)' : ' (JS)';
 
   showStatus(
     isValid ? 'valid' : 'invalid',
