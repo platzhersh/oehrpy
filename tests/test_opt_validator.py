@@ -522,6 +522,118 @@ class TestSemanticIntegrity:
         result = validator.validate_string(xml)
         assert any(i.code == issue_codes.MANDATORY_NODE_NO_NAME for i in result.issues)
 
+    def test_unknown_terminology_id(self) -> None:
+        """Terminology binding referencing undeclared terminology ID is flagged."""
+        xml = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="http://schemas.openehr.org/v1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <language>
+    <terminology_id><value>ISO_639-1</value></terminology_id>
+    <code_string>en</code_string>
+  </language>
+  <description>
+    <lifecycle_state>published</lifecycle_state>
+    <details><language><terminology_id><value>ISO_639-1</value></terminology_id>
+    <code_string>en</code_string></language><purpose>Test</purpose></details>
+  </description>
+  <template_id><value>Test Template.v1</value></template_id>
+  <concept>test_template</concept>
+  <definition>
+    <rm_type_name>COMPOSITION</rm_type_name>
+    <occurrences>
+      <lower_unbounded>false</lower_unbounded>
+      <upper_unbounded>false</upper_unbounded>
+      <lower>1</lower>
+      <upper>1</upper>
+    </occurrences>
+    <node_id>at0000</node_id>
+    <archetype_id>
+      <value>openEHR-EHR-COMPOSITION.encounter.v1</value>
+    </archetype_id>
+  </definition>
+  <ontology>
+    <terminologies_available>
+      <e>LOINC</e>
+    </terminologies_available>
+    <term_definitions language="en">
+      <items code="at0000">
+        <items id="text"><value>Encounter</value></items>
+        <items id="description"><value>Test</value></items>
+      </items>
+    </term_definitions>
+    <term_bindings terminology="SNOMED-CT">
+      <items code="at0000">
+        <value>
+          <terminology_id><value>SNOMED-CT</value></terminology_id>
+          <code_string>12345</code_string>
+        </value>
+      </items>
+    </term_bindings>
+  </ontology>
+</template>
+"""
+        validator = OPTValidator()
+        result = validator.validate_string(xml)
+        unknown = [i for i in result.issues if i.code == issue_codes.UNKNOWN_TERMINOLOGY_ID]
+        assert len(unknown) == 1
+        assert "SNOMED-CT" in unknown[0].message
+
+    def test_known_terminology_id_passes(self) -> None:
+        """Terminology binding referencing a declared terminology ID passes."""
+        xml = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="http://schemas.openehr.org/v1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <language>
+    <terminology_id><value>ISO_639-1</value></terminology_id>
+    <code_string>en</code_string>
+  </language>
+  <description>
+    <lifecycle_state>published</lifecycle_state>
+    <details><language><terminology_id><value>ISO_639-1</value></terminology_id>
+    <code_string>en</code_string></language><purpose>Test</purpose></details>
+  </description>
+  <template_id><value>Test Template.v1</value></template_id>
+  <concept>test_template</concept>
+  <definition>
+    <rm_type_name>COMPOSITION</rm_type_name>
+    <occurrences>
+      <lower_unbounded>false</lower_unbounded>
+      <upper_unbounded>false</upper_unbounded>
+      <lower>1</lower>
+      <upper>1</upper>
+    </occurrences>
+    <node_id>at0000</node_id>
+    <archetype_id>
+      <value>openEHR-EHR-COMPOSITION.encounter.v1</value>
+    </archetype_id>
+  </definition>
+  <ontology>
+    <terminologies_available>
+      <e>LOINC</e>
+    </terminologies_available>
+    <term_definitions language="en">
+      <items code="at0000">
+        <items id="text"><value>Encounter</value></items>
+        <items id="description"><value>Test</value></items>
+      </items>
+    </term_definitions>
+    <term_bindings terminology="LOINC">
+      <items code="at0000">
+        <value>
+          <terminology_id><value>LOINC</value></terminology_id>
+          <code_string>12345-6</code_string>
+        </value>
+      </items>
+    </term_bindings>
+  </ontology>
+</template>
+"""
+        validator = OPTValidator()
+        result = validator.validate_string(xml)
+        assert not any(i.code == issue_codes.UNKNOWN_TERMINOLOGY_ID for i in result.issues)
+
 
 # ===========================================================================
 # Category C: Structural warnings

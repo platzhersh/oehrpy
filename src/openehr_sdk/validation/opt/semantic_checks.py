@@ -13,6 +13,7 @@ from .issue_codes import (
     MANDATORY_NODE_NO_NAME,
     MISSING_TERM_DEF,
     ORPHAN_TERMINOLOGY_BINDING,
+    UNKNOWN_TERMINOLOGY_ID,
 )
 
 IssueData = dict[str, str | None]
@@ -183,6 +184,32 @@ def check_ontology_completeness(
     return issues
 
 
+def _collect_terminologies_available(root: Element) -> set[str]:
+    """Return the set of terminology IDs declared in <terminologies_available>."""
+    ids: set[str] = set()
+    for el in root.iter():
+        tag = el.tag
+        if isinstance(tag, str):
+            local = tag.split("}")[-1] if "}" in tag else tag
+            if local == "terminologies_available":
+                # Each child element's text is one terminology ID
+                for child in el:
+                    if child.text and child.text.strip():
+                        ids.add(child.text.strip())
+                    # Also handle <string> children used in some OPT serialisers
+                    for sub in child:
+                        sub_tag = sub.tag
+                        if isinstance(sub_tag, str):
+                            sub_local = sub_tag.split("}")[-1] if "}" in sub_tag else sub_tag
+                            if (
+                                sub_local in ("string", "value")
+                                and sub.text
+                                and sub.text.strip()
+                            ):
+                                ids.add(sub.text.strip())
+    return ids
+
+
 def check_terminology_bindings(
     root: Element,
     ns: dict[str, str],
@@ -196,6 +223,10 @@ def check_terminology_bindings(
 
     node_ids = _collect_node_ids(definition)
     bindings = _collect_terminology_bindings(root)
+    available = _collect_terminologies_available(root)
+
+    # Track which terminology IDs we've already flagged to avoid duplicates
+    flagged_terminologies: set[str] = set()
 
     for code, terminology in bindings:
         if code.startswith("at") and code not in node_ids:
@@ -208,6 +239,25 @@ def check_terminology_bindings(
                     suggestion=(
                         f"Remove the orphan binding for '{code}' or add "
                         "the corresponding node to the definition."
+                    ),
+                )
+            )
+
+        if (
+            available
+            and terminology
+            and terminology not in available
+            and terminology not in flagged_terminologies
+        ):
+            flagged_terminologies.add(terminology)
+            issues.append(
+                _make_issue(
+                    UNKNOWN_TERMINOLOGY_ID,
+                    f"Terminology binding references '{terminology}' which is not "
+                    "declared in terminologies_available.",
+                    suggestion=(
+                        f"Add '{terminology}' to <terminologies_available> "
+                        "or correct the terminology attribute."
                     ),
                 )
             )
