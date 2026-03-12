@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.3.0 (2026-03-12)
+
+### Features
+
+- Add FLAT format validator with web UI and Python API (#24)
+  ([#24](https://github.com/platzhersh/oehrpy/pull/24),
+  [`6e18d76`](https://github.com/platzhersh/oehrpy/commit/6e18d7647c11f6c4cecd81a3c5b08017c9062d56))
+
+
 ## v0.2.1 (2026-02-04)
 
 ### Bug Fixes
