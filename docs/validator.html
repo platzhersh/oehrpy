@@ -5,30 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>oehrpy · FLAT Format Validator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0f14;
-    --surface: #13161d;
-    --surface2: #1a1e28;
-    --surface3: #222736;
-    --border: #2a2f3d;
-    --border-bright: #3d4560;
-    --text: #e8eaf0;
-    --text-muted: #7a82a0;
-    --text-dim: #4a5270;
-    --accent: #5b8af0;
-    --accent-glow: rgba(91, 138, 240, 0.15);
-    --accent-dim: rgba(91, 138, 240, 0.08);
-    --green: #3dd68c;
-    --green-dim: rgba(61, 214, 140, 0.08);
-    --red: #f06060;
-    --red-dim: rgba(240, 96, 96, 0.08);
-    --yellow: #f0c060;
-    --yellow-dim: rgba(240, 192, 96, 0.08);
+    --bg: #1a1a2e;
+    --surface: #252540;
+    --surface2: #2d2d4d;
+    --surface3: #3b3b5c;
+    --border: #2d2d4d;
+    --border-bright: #4b4b6c;
+    --text: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-dim: #6b7280;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.15);
+    --accent-dim: rgba(59, 130, 246, 0.08);
+    --green: #10b981;
+    --green-dim: rgba(16, 185, 129, 0.08);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.08);
+    --yellow: #f59e0b;
+    --yellow-dim: rgba(245, 158, 11, 0.08);
     --purple: #a78bfa;
     --mono: 'JetBrains Mono', monospace;
-    --sans: 'Syne', sans-serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,72 +52,62 @@
 
   /* ── Header ── */
   header {
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
+    padding: 20px 40px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 24px;
-    height: 56px;
-    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
     position: sticky;
     top: 0;
     z-index: 100;
   }
 
-  .logo {
+  .logo-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     text-decoration: none;
+  }
+
+  .logo-header span {
+    font-size: 24px;
+    font-weight: 600;
     color: var(--text);
   }
 
-  .logo-mark {
-    width: 28px;
-    height: 28px;
-    background: var(--accent);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -1px;
-    flex-shrink: 0;
-  }
-
-  .logo-text {
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.3px;
-  }
-
-  .logo-sep { color: var(--text-dim); margin: 0 2px; }
-
-  .logo-sub {
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 400;
-  }
-
   header nav {
-    margin-left: auto;
     display: flex;
+    gap: 30px;
     align-items: center;
-    gap: 6px;
+    margin-left: auto;
   }
 
-  .nav-link {
+  header nav a {
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 13px;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: all 0.15s;
+    font-size: 15px;
+    transition: color 0.2s;
   }
-  .nav-link:hover { color: var(--text); background: var(--surface2); }
+
+  header nav a:hover,
+  header nav a.active {
+    color: var(--text);
+  }
+
+  .github-link {
+    background: var(--surface);
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: var(--text) !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .github-link:hover {
+    background: var(--surface2);
+  }
 
   .badge {
     font-family: var(--mono);
@@ -126,7 +117,7 @@
     border-radius: 4px;
     background: var(--accent-dim);
     color: var(--accent);
-    border: 1px solid rgba(91,138,240,0.2);
+    border: 1px solid rgba(59,130,246,0.2);
     letter-spacing: 0.5px;
   }
 
@@ -134,7 +125,7 @@
   .platform-bar {
     padding: 0 24px;
     border-bottom: 1px solid var(--border);
-    background: var(--surface);
+    background: var(--bg);
     display: flex;
     align-items: center;
     gap: 16px;
@@ -173,7 +164,7 @@
   .platform-btn:hover { color: var(--text); background: var(--surface3); }
 
   .platform-btn.active {
-    background: var(--accent);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: #fff;
   }
 
@@ -301,7 +292,7 @@
     padding: 9px 24px;
     border-radius: 7px;
     border: none;
-    background: var(--accent);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: #fff;
     cursor: pointer;
     transition: all 0.15s;
@@ -309,7 +300,7 @@
     align-items: center;
     gap: 8px;
   }
-  .validate-btn:hover { background: #7aa2f7; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(91,138,240,0.3); }
+  .validate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59,130,246,0.4); }
   .validate-btn:active { transform: translateY(0); }
   .validate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -572,19 +563,20 @@
 
   /* ── Footer ── */
   footer {
-    padding: 8px 24px;
+    padding: 20px 40px;
     border-top: 1px solid var(--border);
-    background: var(--surface);
+    background: var(--bg);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
-    font-family: var(--mono);
-    font-size: 10px;
+    font-size: 14px;
     color: var(--text-dim);
+    flex-wrap: wrap;
   }
 
-  footer a { color: var(--text-dim); text-decoration: none; }
-  footer a:hover { color: var(--accent); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
 
   footer .sep { color: var(--border); }
 
@@ -602,10 +594,189 @@
 
   .error-item { animation: slide-in 0.15s ease both; }
 
+  /* ── Loading overlay ── */
+  .loading-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(26, 26, 46, 0.85);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s;
+  }
+
+  .loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .loading-step {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ── Toast notification ── */
+  .toast {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    max-width: 500px;
+    text-align: center;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .toast.warn {
+    border-color: var(--yellow);
+    color: var(--yellow);
+  }
+
+  /* ── Engine indicator ── */
+  .engine-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+  }
+
+  .engine-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-dim);
+  }
+
+  .engine-dot.python { background: var(--green); }
+  .engine-dot.js { background: var(--yellow); }
+  .engine-dot.loading {
+    background: var(--accent);
+    animation: pulse 1.5s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .retry-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .retry-btn:hover { color: var(--accent); border-color: var(--accent); }
+
   /* ── Responsive ── */
   @media (max-width: 900px) {
     main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
     .panel { border-right: none; border-bottom: 1px solid var(--border); }
+    header {
+      padding: 16px 20px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    header nav {
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    header nav a:not(.github-link) {
+      font-size: 14px;
+    }
+    .github-link {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+    .platform-bar {
+      flex-wrap: wrap;
+      height: auto;
+      padding: 10px 16px;
+      gap: 8px;
+    }
+    .platform-hint {
+      flex-basis: 100%;
+      order: 3;
+    }
+    .load-example-btn {
+      margin-left: auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    header {
+      padding: 12px 16px;
+    }
+    header nav {
+      gap: 12px;
+    }
+    .logo-header span {
+      font-size: 20px;
+    }
+    footer {
+      padding: 16px;
+      font-size: 12px;
+    }
+    .platform-bar {
+      padding: 8px 12px;
+      gap: 6px;
+    }
+    .platform-label {
+      font-size: 10px;
+    }
+    .platform-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+    }
+    .platform-hint {
+      font-size: 10px;
+    }
   }
 </style>
 </head>
@@ -614,17 +785,39 @@
 
   <!-- Header -->
   <header>
-    <a href="https://github.com/platzhersh/oehrpy" class="logo">
-      <div class="logo-mark">oe</div>
-      <span class="logo-text">oehrpy</span>
+    <a href="index.html" class="logo-header">
+      <svg viewBox="0 0 80 80" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logo-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#60a5fa"/>
+            <stop offset="100%" style="stop-color:#3b82f6"/>
+          </linearGradient>
+          <linearGradient id="logo-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fdba74"/>
+            <stop offset="100%" style="stop-color:#f97316"/>
+          </linearGradient>
+        </defs>
+        <path d="M40 10 C20 10 15 25 15 35 C15 46 28 52 40 52 C52 52 65 46 65 35 C65 25 60 10 40 10"
+              fill="url(#logo-blue)"/>
+        <circle cx="28" cy="24" r="4" fill="#fff"/>
+        <path d="M40 70 C60 70 65 55 65 45 C65 34 52 28 40 28 C28 28 15 34 15 45 C15 55 20 70 40 70"
+              fill="url(#logo-orange)"/>
+        <circle cx="52" cy="56" r="4" fill="#fff"/>
+      </svg>
+      <span>oehrpy</span>
     </a>
-    <span class="logo-sep">/</span>
-    <span class="logo-sub">FLAT Format Validator</span>
-    <span class="badge">v0.2.0</span>
     <nav>
-      <a href="https://github.com/platzhersh/oehrpy" class="nav-link">GitHub</a>
-      <a href="https://platzhersh.github.io/oehrpy" class="nav-link">Docs</a>
-      <a href="https://pypi.org/project/oehrpy/" class="nav-link">PyPI</a>
+      <a href="index.html">Features</a>
+      <a href="docs.html">Docs</a>
+      <a href="validator.html" class="active">Validator</a>
+      <a href="brand-kit.html">Brand Kit</a>
+      <span class="badge">v0.3.0</span>
+      <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
     </nav>
   </header>
 
@@ -713,26 +906,58 @@ Example paths (EHRBase 2.x):
 
   <!-- Footer -->
   <footer>
-    <span>oehrpy FLAT Validator</span>
-    <span class="sep">&middot;</span>
-    <a href="https://github.com/platzhersh/oehrpy">open source</a>
-    <span class="sep">&middot;</span>
-    <span>100% client-side &middot; no data sent to any server</span>
-    <span class="sep">&middot;</span>
-    <a href="https://specifications.openehr.org/releases/ITS-REST/latest/simplified_data_template.html">simSDT spec</a>
-    <span class="sep">&middot;</span>
-    <a href="https://discourse.openehr.org">openEHR discourse</a>
+    <span>Built with Python and openEHR</span>
+    <span class="sep">|</span>
+    <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
+    <span class="sep">|</span>
+    <a href="docs.html">Docs</a>
+    <span class="sep">|</span>
+    <a href="brand-kit.html">Brand Kit</a>
+    <span class="sep">|</span>
+    <span>100% client-side</span>
+    <span class="sep">|</span>
+    <span class="engine-status" id="engine-status">
+      <span class="engine-dot loading" id="engine-dot"></span>
+      <span id="engine-label">Loading Python...</span>
+    </span>
+    <button class="retry-btn" id="retry-btn" onclick="retryPyodide()" style="display:none">Retry Python</button>
   </footer>
 
 </div>
 
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loading-text">Loading Python runtime...</div>
+  <div class="loading-step" id="loading-step">~10 MB first load, cached afterwards</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-// State
+// ============================================================
+// === STATE ===
+// ============================================================
+
 var currentPlatform = 'ehrbase';
 var validPathsCache = [];
 var explorerOpen = false;
 
-// Platform
+// Pyodide state
+var pyodideReady = false;
+var pyodideInstance = null;
+var pyodideLoadFailed = false;
+var pyodideTimedOut = false;
+var oehrpyVersion = null;
+var pythonVersion = null;
+var engineMode = 'loading'; // 'loading' | 'python' | 'js'
+var actualEngine = null; // Tracks which engine produced the last validation results
+
+// ============================================================
+// === PLATFORM ===
+// ============================================================
+
 var PLATFORM_HINTS = {
   ehrbase: 'no :0 indexing \u00b7 tree.id prefix \u00b7 direct paths',
   better:  ':0 indexing \u00b7 template_id prefix \u00b7 /any_event:0/'
@@ -745,7 +970,195 @@ function setPlatform(p) {
   document.getElementById('platform-hint').textContent = PLATFORM_HINTS[p];
 }
 
-// Web Template Parsing
+// ============================================================
+// === PYODIDE BOOTSTRAP ===
+// ============================================================
+
+var PYODIDE_CDN = 'https://cdn.jsdelivr.net/pyodide/v0.27.1/full/';
+var PYODIDE_TIMEOUT = 30000;
+
+function getRequestedVersion() {
+  var params = new URLSearchParams(window.location.search);
+  return params.get('version') || null;
+}
+
+function setLoadingStep(text) {
+  var el = document.getElementById('loading-text');
+  if (el) el.textContent = text;
+}
+
+function hideLoadingOverlay() {
+  var overlay = document.getElementById('loading-overlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function updateEngineStatus(mode, label) {
+  engineMode = mode;
+  var dot = document.getElementById('engine-dot');
+  var labelEl = document.getElementById('engine-label');
+  dot.className = 'engine-dot ' + mode;
+  labelEl.textContent = label;
+
+  var retryBtn = document.getElementById('retry-btn');
+  retryBtn.style.display = (mode === 'js') ? 'inline-block' : 'none';
+}
+
+function showToast(message, type, duration) {
+  var toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = 'toast show' + (type ? ' ' + type : '');
+  if (duration !== 0) {
+    setTimeout(function() { toast.className = 'toast'; }, duration || 6000);
+  }
+}
+
+async function initPyodide() {
+  setLoadingStep('Loading Python runtime...');
+  updateEngineStatus('loading', 'Loading Python...');
+  pyodideTimedOut = false;
+
+  var timeoutId = setTimeout(function() {
+    if (!pyodideReady) {
+      console.warn('Pyodide load timed out after ' + PYODIDE_TIMEOUT + 'ms');
+      pyodideTimedOut = true;
+      fallbackToJS('Timeout: Python runtime took too long to load');
+    }
+  }, PYODIDE_TIMEOUT);
+
+  try {
+    // Load Pyodide
+    pyodideInstance = await loadPyodide({ indexURL: PYODIDE_CDN });
+    if (pyodideTimedOut) return;
+
+    setLoadingStep('Installing oehrpy...');
+
+    // Install oehrpy via micropip
+    await pyodideInstance.loadPackage('micropip');
+    if (pyodideTimedOut) return;
+
+    var micropip = pyodideInstance.pyimport('micropip');
+
+    var requestedVersion = getRequestedVersion();
+    var packageSpec = requestedVersion ? 'oehrpy==' + requestedVersion : 'oehrpy';
+    await micropip.install(packageSpec);
+    if (pyodideTimedOut) return;
+
+    setLoadingStep('Importing validation module...');
+
+    // Import and verify
+    await pyodideInstance.runPythonAsync(
+      'from openehr_sdk.validation import FlatValidator\n' +
+      'import json\n' +
+      'import openehr_sdk\n'
+    );
+    if (pyodideTimedOut) return;
+
+    // Get version info
+    oehrpyVersion = await pyodideInstance.runPythonAsync(
+      'openehr_sdk.__version__ if hasattr(openehr_sdk, "__version__") else "unknown"'
+    );
+    if (pyodideTimedOut) return;
+
+    pythonVersion = await pyodideInstance.runPythonAsync(
+      'import sys; f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"'
+    );
+    if (pyodideTimedOut) return;
+
+    clearTimeout(timeoutId);
+    pyodideReady = true;
+    pyodideLoadFailed = false;
+
+    hideLoadingOverlay();
+    updateEngineStatus('python', 'Python ' + pythonVersion + ' \u00b7 oehrpy ' + oehrpyVersion);
+    document.getElementById('validate-btn').disabled = false;
+
+    console.log('Pyodide ready: Python ' + pythonVersion + ', oehrpy ' + oehrpyVersion);
+
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (pyodideTimedOut) return;
+    console.error('Pyodide initialization failed:', err);
+    fallbackToJS(err.message || String(err));
+  }
+}
+
+function fallbackToJS(reason) {
+  pyodideLoadFailed = true;
+  pyodideReady = false;
+  hideLoadingOverlay();
+  updateEngineStatus('js', 'JS fallback');
+  document.getElementById('validate-btn').disabled = false;
+  showToast('Python runtime unavailable \u2014 using built-in validator (may differ from SDK)', 'warn', 8000);
+  console.warn('Falling back to JS engine. Reason:', reason);
+}
+
+function retryPyodide() {
+  pyodideLoadFailed = false;
+  pyodideTimedOut = false;
+  document.getElementById('loading-overlay').classList.remove('hidden');
+  document.getElementById('loading-step').textContent = 'Retrying...';
+  initPyodide();
+}
+
+// ============================================================
+// === PYTHON BRIDGE ===
+// ============================================================
+
+async function runPythonValidation(wtJson, flatObj, platform) {
+  // Safely serialize JSON for embedding in Python string
+  var wtStr = JSON.stringify(wtJson);
+  var flatStr = JSON.stringify(flatObj);
+
+  // Use Pyodide globals to pass data safely (avoids string escaping issues)
+  pyodideInstance.globals.set('_wt_json_str', wtStr);
+  pyodideInstance.globals.set('_flat_json_str', flatStr);
+  pyodideInstance.globals.set('_platform', platform);
+
+  var resultStr = await pyodideInstance.runPythonAsync(
+    'import json\n' +
+    'from openehr_sdk.validation import FlatValidator\n' +
+    '\n' +
+    '_wt = json.loads(_wt_json_str)\n' +
+    '_flat = json.loads(_flat_json_str)\n' +
+    '\n' +
+    '_validator = FlatValidator.from_web_template(_wt, platform=_platform)\n' +
+    '_result = _validator.validate(_flat)\n' +
+    '_valid_paths = _validator.valid_paths\n' +
+    '\n' +
+    'json.dumps({\n' +
+    '    "is_valid": _result.is_valid,\n' +
+    '    "errors": [\n' +
+    '        {\n' +
+    '            "path": e.path,\n' +
+    '            "error_type": e.error_type,\n' +
+    '            "message": e.message,\n' +
+    '            "suggestion": e.suggestion,\n' +
+    '            "valid_alternatives": e.valid_alternatives,\n' +
+    '        }\n' +
+    '        for e in _result.errors\n' +
+    '    ],\n' +
+    '    "warnings": [\n' +
+    '        {\n' +
+    '            "path": w.path,\n' +
+    '            "error_type": w.error_type,\n' +
+    '            "message": w.message,\n' +
+    '            "suggestion": w.suggestion,\n' +
+    '        }\n' +
+    '        for w in _result.warnings\n' +
+    '    ],\n' +
+    '    "valid_path_count": _result.valid_path_count,\n' +
+    '    "checked_path_count": _result.checked_path_count,\n' +
+    '    "template_id": _result.template_id,\n' +
+    '    "valid_paths": _valid_paths,\n' +
+    '})\n'
+  );
+
+  return JSON.parse(resultStr);
+}
+
+// ============================================================
+// === JS FALLBACK ENGINE (kept from v0.2.0) ===
+// ============================================================
 
 var REQUIRED_SUFFIXES = {
   DV_QUANTITY: ['|magnitude', '|unit'],
@@ -897,8 +1310,6 @@ function enumerateValidPaths(parsedTemplate, platform) {
   return result;
 }
 
-// Validation
-
 function levenshtein(a, b) {
   var m = a.length, n = b.length;
   var dp = [];
@@ -932,7 +1343,7 @@ function findSuggestion(invalidPath, validPaths) {
   return null;
 }
 
-function validateFlat(flatObj, parsedTemplate, platform) {
+function validateFlatJS(flatObj, parsedTemplate, platform) {
   var errors = [];
   var warnings = [];
   var treeId = parsedTemplate.treeId;
@@ -1004,9 +1415,11 @@ function validateFlat(flatObj, parsedTemplate, platform) {
   };
 }
 
-// UI
+// ============================================================
+// === UI LAYER ===
+// ============================================================
 
-function runValidation() {
+async function runValidation() {
   var wtRaw = document.getElementById('wt-input').value.trim();
   var flatRaw = document.getElementById('flat-input').value.trim();
 
@@ -1023,16 +1436,52 @@ function runValidation() {
     showError('FLAT Composition JSON is invalid: ' + e.message); return;
   }
 
+  // Use Python engine if available, otherwise JS fallback
+  if (pyodideReady) {
+    try {
+      showStatus('idle', 'Validating with Python...');
+      var pyResult = await runPythonValidation(wtJson, flatObj, currentPlatform);
+
+      // Normalize Python result to match the JS result format
+      var result = {
+        errors: pyResult.errors.map(function(e) {
+          return { type: 'error', path: e.path, message: e.message, suggestion: e.suggestion };
+        }),
+        warnings: pyResult.warnings.map(function(w) {
+          return { type: 'warning', path: w.path, message: w.message, suggestion: w.suggestion };
+        }),
+        checkedCount: pyResult.checked_path_count,
+        validCount: pyResult.checked_path_count - pyResult.errors.length,
+        validPaths: pyResult.valid_paths.map(function(p) {
+          return { path: p, rmType: '', name: '' };
+        })
+      };
+
+      actualEngine = 'python';
+      validPathsCache = result.validPaths;
+      renderResults(result);
+      renderExplorer(result.validPaths);
+      document.getElementById('explorer-toggle').style.display = 'block';
+      return;
+
+    } catch (err) {
+      console.error('Python validation failed, falling back to JS:', err);
+      showToast('Python validation error \u2014 using JS fallback', 'warn', 5000);
+    }
+  }
+
+  // JS fallback
+  actualEngine = 'js';
   var parsedTemplate = parseWebTemplate(wtJson);
-  var result = validateFlat(flatObj, parsedTemplate, currentPlatform);
+  var result = validateFlatJS(flatObj, parsedTemplate, currentPlatform);
   validPathsCache = result.validPaths;
 
-  renderResults(result, parsedTemplate);
+  renderResults(result);
   renderExplorer(result.validPaths);
   document.getElementById('explorer-toggle').style.display = 'block';
 }
 
-function renderResults(result, parsedTemplate) {
+function renderResults(result) {
   var area = document.getElementById('results-area');
   var errors = result.errors;
   var warnings = result.warnings;
@@ -1040,9 +1489,13 @@ function renderResults(result, parsedTemplate) {
   var validCount = result.validCount;
   var isValid = errors.length === 0;
 
+  var engineTag = actualEngine === 'python' ? ' (Python)' : ' (JS)';
+
   showStatus(
     isValid ? 'valid' : 'invalid',
-    isValid ? 'Valid \u00b7 ' + checkedCount + ' paths OK' : errors.length + ' error' + (errors.length !== 1 ? 's' : '') + ' \u00b7 ' + warnings.length + ' warning' + (warnings.length !== 1 ? 's' : '')
+    isValid
+      ? 'Valid \u00b7 ' + checkedCount + ' paths OK' + engineTag
+      : errors.length + ' error' + (errors.length !== 1 ? 's' : '') + ' \u00b7 ' + warnings.length + ' warning' + (warnings.length !== 1 ? 's' : '') + engineTag
   );
 
   document.getElementById('stats-text').textContent =
@@ -1186,7 +1639,10 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// Example data
+// ============================================================
+// === EXAMPLE DATA ===
+// ============================================================
+
 function loadExample() {
   var exampleWT = {
     "templateId": "IDCR - Adverse Reaction List.v1",
@@ -1320,6 +1776,20 @@ function loadExample() {
   updateCounts();
   runValidation();
 }
+
+// ============================================================
+// === INITIALIZATION ===
+// ============================================================
+
+// Disable validate button until engine is ready
+document.getElementById('validate-btn').disabled = true;
+
+// Load Pyodide CDN script, then bootstrap
+var pyodideScript = document.createElement('script');
+pyodideScript.src = PYODIDE_CDN + 'pyodide.js';
+pyodideScript.onload = function() { initPyodide(); };
+pyodideScript.onerror = function() { fallbackToJS('Failed to load Pyodide script from CDN'); };
+document.head.appendChild(pyodideScript);
 </script>
 </body>
 </html>
