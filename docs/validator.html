@@ -774,11 +774,27 @@ var VALID_SUFFIXES = {
   DV_BOOLEAN: [],
   DV_COUNT: ['|magnitude', '|accuracy', '|accuracy_is_percent'],
   DV_ORDINAL: ['|value', '|code', '|terminology', '|ordinal'],
+  DV_SCALE: ['|value', '|code', '|terminology', '|symbol_value'],
   DV_PROPORTION: ['|numerator', '|denominator', '|type', '|precision'],
   DV_DURATION: [],
   DV_IDENTIFIER: ['|id', '|type', '|issuer', '|assigner'],
   DV_URI: [],
-  CODE_PHRASE: ['|code', '|terminology']
+  DV_EHR_URI: [],
+  DV_MULTIMEDIA: ['|mediatype', '|alternatetext', '|uri', '|size'],
+  DV_PARSABLE: ['|value', '|formalism'],
+  CODE_PHRASE: ['|code', '|terminology'],
+  PARTY_IDENTIFIED: ['|name', '|id'],
+  PARTY_RELATED: ['|name', '|id', '|relationship'],
+  PARTY_SELF: []
+};
+
+var STRUCTURAL_RM_TYPES = {
+  COMPOSITION: true, SECTION: true, OBSERVATION: true, EVALUATION: true,
+  INSTRUCTION: true, ACTION: true, ADMIN_ENTRY: true, CLUSTER: true,
+  HISTORY: true, EVENT: true, POINT_EVENT: true, INTERVAL_EVENT: true,
+  ITEM_TREE: true, ITEM_LIST: true, ITEM_SINGLE: true, ITEM_TABLE: true,
+  ELEMENT: true, EVENT_CONTEXT: true, ACTIVITY: true, ISM_TRANSITION: true,
+  INSTRUCTION_DETAILS: true
 };
 
 var REQUIRED_COMPOSITION_FIELDS = [
@@ -811,8 +827,15 @@ function parseWebTemplate(wtJson) {
 
     if (node.localizedNames) {
       var localName = node.localizedNames['en'] || Object.values(node.localizedNames)[0];
-      if (localName && localName.toLowerCase().replace(/\s+/g, '_') !== nodeId) {
+      if (localName && localName.toLowerCase().replace(/[\s/]+/g, '_').replace(/[^a-z0-9_]/g, '') !== nodeId) {
         nodeInfo.originalName = localName;
+      }
+    }
+
+    if (!nodeInfo.originalName && node.originalName) {
+      var origSlug = node.originalName.toLowerCase().replace(/[\s/]+/g, '_').replace(/[^a-z0-9_]/g, '');
+      if (origSlug !== nodeId) {
+        nodeInfo.originalName = node.originalName;
       }
     }
 
@@ -838,10 +861,17 @@ function enumerateValidPaths(parsedTemplate, platform) {
 
   paths.forEach(function(nodeInfo, path) {
     var rmType = nodeInfo.rmType;
+
+    // Skip structural RM types — they are intermediate, not leaf paths
+    if (STRUCTURAL_RM_TYPES[rmType]) {
+      return;
+    }
+
     var suffixes = VALID_SUFFIXES[rmType];
 
     if (suffixes === undefined) {
-      result.push({ path: path, rmType: rmType, name: nodeInfo.name, isLeaf: false });
+      // Unknown RM type — accept the bare path
+      result.push({ path: path, rmType: rmType, name: nodeInfo.name, isLeaf: true });
     } else if (suffixes.length === 0) {
       result.push({ path: path, rmType: rmType, name: nodeInfo.name, isLeaf: true });
     } else {
@@ -853,12 +883,13 @@ function enumerateValidPaths(parsedTemplate, platform) {
 
     if (platform === 'better') {
       var indexedPath = path.replace(/\/([^/]+)$/g, '/$1:0');
-      if (suffixes && suffixes.length > 0) {
-        for (var j = 0; j < suffixes.length; j++) {
-          result.push({ path: indexedPath + suffixes[j], rmType: rmType, name: nodeInfo.name, isLeaf: true });
-        }
-      } else if (suffixes !== undefined) {
+      if (indexedPath !== path) {
         result.push({ path: indexedPath, rmType: rmType, name: nodeInfo.name, isLeaf: true });
+        if (suffixes && suffixes.length > 0) {
+          for (var j = 0; j < suffixes.length; j++) {
+            result.push({ path: indexedPath + suffixes[j], rmType: rmType, name: nodeInfo.name, isLeaf: true });
+          }
+        }
       }
     }
   });

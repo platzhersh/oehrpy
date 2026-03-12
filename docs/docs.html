@@ -873,7 +873,7 @@ result = validator.validate(flat_data)</code></pre>
       <p>Pass <code>platform="ehrbase"</code> or <code>platform="better"</code> to match your CDR's FLAT format dialect:</p>
       <ul>
         <li><strong>EHRBase 2.x</strong> &mdash; no <code>:0</code> indexing on single-occurrence items, no <code>/any_event/</code> nodes, <code>tree.id</code> prefix</li>
-        <li><strong>Better</strong> &mdash; <code>:0</code> indexing on all nodes, <code>/any_event:0/</code> included, <code>template_id</code> prefix</li>
+        <li><strong>Better</strong> &mdash; may include <code>:0</code> indexing on tree-based nodes (the validator and tests verify that some leaf paths carry <code>:0</code>); <code>/any_event:0/</code> and <code>template_id</code> prefix support are defined in the dialect configuration but not yet implemented in the path enumerator</li>
       </ul>
 
       <h3>Validation Result</h3>
