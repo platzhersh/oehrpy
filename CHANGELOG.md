@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.4.0 (2026-03-12)
+
+### Features
+
+- Add Pyodide integration for Python-backed FLAT validator (#26)
+  ([#26](https://github.com/platzhersh/oehrpy/pull/26),
+  [`5637e2f`](https://github.com/platzhersh/oehrpy/commit/5637e2fa6c3ad645798915af615122b5655b08e7))
+
+
 ## v0.3.0 (2026-03-12)
 
 ### Features
