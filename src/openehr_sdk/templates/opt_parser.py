@@ -360,11 +360,19 @@ def parse_opt(source: str | Path, *, validate: bool = False) -> TemplateDefiniti
         from openehr_sdk.validation.opt import OPTValidationError, OPTValidator
 
         validator = OPTValidator()
-        result = validator.validate_file(source) if is_file else validator.validate_string(source)
+        if is_file:
+            result = validator.validate_file(source)
+        else:
+            assert isinstance(source, str)
+            result = validator.validate_string(source)
         if not result.is_valid:
             raise OPTValidationError(result)
 
     parser = OPTParser()
-    template = parser.parse_file(source) if is_file else parser.parse_string(source)
+    if is_file:
+        template = parser.parse_file(source)
+    else:
+        assert isinstance(source, str)
+        template = parser.parse_string(source)
 
     return template

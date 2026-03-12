@@ -201,11 +201,7 @@ def _collect_terminologies_available(root: Element) -> set[str]:
                         sub_tag = sub.tag
                         if isinstance(sub_tag, str):
                             sub_local = sub_tag.split("}")[-1] if "}" in sub_tag else sub_tag
-                            if (
-                                sub_local in ("string", "value")
-                                and sub.text
-                                and sub.text.strip()
-                            ):
+                            if sub_local in ("string", "value") and sub.text and sub.text.strip():
                                 ids.add(sub.text.strip())
     return ids
 
