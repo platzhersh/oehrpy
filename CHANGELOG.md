@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## Unreleased
+
+### Features
+
+- Add OPT 1.4 validator with XML well-formedness, semantic integrity, structural warnings, and FLAT path impact checks
+  - Python API: `OPTValidator.validate_file()` / `validate_string()`
+  - CLI tool: `oehrpy-validate-opt`
+  - Integration with `parse_opt()` and `generate_builder_from_opt()` via `validate=True`
+
+
 ## v0.4.0 (2026-03-12)
 
 ### Features

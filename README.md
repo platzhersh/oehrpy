@@ -39,6 +39,7 @@ pip install -e .
 - **Canonical JSON**: Convert RM objects to/from openEHR canonical JSON format
 - **EHRBase Client**: Async REST client for EHRBase CDR operations
 - **AQL Builder**: Fluent API for building type-safe AQL queries
+- **OPT Validator**: Validate OPT 1.4 XML files before CDR upload (well-formedness, semantics, FLAT path impact)
 - **IDE Support**: Full autocomplete and type checking support
 - **Validation**: Pydantic v2 validation for all fields
 
@@ -125,6 +126,65 @@ python examples/generate_builder_from_opt.py path/to/template.opt
 ```
 
 This eliminates the need to manually code builders - just provide your OPT file and get a fully type-safe builder class with methods for each observation type.
+
+### OPT Validation
+
+Validate OPT 1.4 XML files before uploading to a CDR. The validator checks for XML well-formedness, semantic integrity, structural issues, and FLAT path impact:
+
+```python
+from openehr_sdk.validation import OPTValidator
+
+validator = OPTValidator()
+result = validator.validate_file("path/to/template.opt")
+
+if result.is_valid:
+    print(f"Template '{result.template_id}' is valid!")
+    print(f"  Archetypes: {result.archetype_count}, Nodes: {result.node_count}")
+else:
+    for issue in result.errors:
+        print(f"[{issue.code}] {issue.message}")
+        if issue.suggestion:
+            print(f"  -> {issue.suggestion}")
+
+# Warnings are always available even when valid
+for w in result.warnings:
+    print(f"Warning: [{w.code}] {w.message}")
+```
+
+**Validation categories:**
+
+| Category | Severity | Examples |
+|----------|----------|---------|
+| Well-formedness | Error | Invalid XML, wrong namespace, missing template_id, unknown RM types |
+| Semantic integrity | Error | Missing term definitions, orphan terminology bindings |
+| Structural | Warning | Draft lifecycle, v0 archetypes, prohibited nodes, unconstrained slots |
+| FLAT path impact | Info | Renamed nodes, path collisions, special characters in concept |
+
+**Command-line tool:**
+```bash
+# Validate one or more OPT files
+oehrpy-validate-opt path/to/template.opt
+
+# JSON output for CI/CD pipelines
+oehrpy-validate-opt template.opt --output json
+
+# Treat warnings as errors (strict mode)
+oehrpy-validate-opt template.opt --strict
+
+# Show FLAT path impact details
+oehrpy-validate-opt template.opt --show-flat-paths
+```
+
+**Integrate with OPT parsing and builder generation:**
+```python
+from openehr_sdk.templates import parse_opt, generate_builder_from_opt
+
+# Validate during parsing (raises OPTValidationError on errors)
+template = parse_opt("template.opt", validate=True)
+
+# Validate before generating builder code
+code = generate_builder_from_opt("template.opt", validate=True)
+```
 
 ### Canonical JSON Serialization
 
@@ -291,12 +351,14 @@ oehrpy/
 │   ├── serialization/     # JSON serialization (canonical + FLAT)
 │   ├── client/            # EHRBase REST client
 │   ├── templates/         # Template builders (Vital Signs, etc.)
+│   ├── validation/        # FLAT composition & OPT template validation
+│   │   └── opt/           # OPT 1.4 XML validator (4 check categories)
 │   └── aql/               # AQL query builder
 ├── generator/             # Code generation tools
 │   ├── bmm_parser.py      # BMM JSON parser
 │   ├── pydantic_generator.py  # Pydantic code generator
 │   └── bmm/               # BMM specification files
-├── tests/                 # Test suite (66 tests)
+├── tests/                 # Test suite
 └── docs/                  # Documentation
 ```
 
@@ -315,6 +377,7 @@ MIT
 - [ADR-0001: RM 1.1.0 Support](docs/adr/0001-odin-parsing-and-rm-1.1.0-support.md)
 - [ADR-0002: Integration Testing](docs/adr/0002-integration-testing-with-ehrbase.md)
 - [PRD-0000: Python openEHR SDK](docs/prd/PRD-0000-python-openehr-sdk.md)
+- [PRD-0008: OPT Validator](docs/prd/PRD-0008-opt-validator.md)
 
 ## References
 

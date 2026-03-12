@@ -380,6 +380,7 @@
       <div class="sidebar-section">
         <div class="sidebar-title">Advanced</div>
         <a href="#flat-validator" class="sidebar-link">FLAT Validator</a>
+        <a href="#opt-validator" class="sidebar-link">OPT Validator</a>
         <a href="#validation" class="sidebar-link">RM Validation</a>
         <a href="#type-safety" class="sidebar-link">Type Safety</a>
         <a href="#development" class="sidebar-link">Development</a>
@@ -900,6 +901,107 @@ validator = FlatValidator.from_web_template(wt, platform=<span class="string">"e
 <span class="keyword">for</span> path <span class="keyword">in</span> validator.valid_paths:
     <span class="keyword">print</span>(path)</code></pre>
 
+      <h2 id="opt-validator">OPT Validator</h2>
+      <p>The <code>OPTValidator</code> validates OPT 1.4 (Operational Template) XML files before parsing or code generation. It checks well-formedness, semantic integrity, structural quality, and FLAT path impact &mdash; catching issues that would otherwise surface as cryptic errors downstream.</p>
+
+      <h3>Basic Usage</h3>
+      <pre><code><span class="keyword">from</span> openehr_sdk.validation.opt <span class="keyword">import</span> OPTValidator
+
+validator = OPTValidator()
+
+<span class="comment"># Validate from a file</span>
+result = validator.validate_file(<span class="string">"vital_signs.opt"</span>)
+
+<span class="comment"># Or validate an XML string</span>
+result = validator.validate_string(xml_content)
+
+<span class="keyword">if</span> result.is_valid:
+    <span class="keyword">print</span>(<span class="string">f"Valid: {result.template_id} ({result.archetype_count} archetypes)"</span>)
+<span class="keyword">else</span>:
+    <span class="keyword">for</span> issue <span class="keyword">in</span> result.errors:
+        <span class="keyword">print</span>(<span class="string">f"  [{issue.code}] {issue.message}"</span>)
+        <span class="keyword">if</span> issue.suggestion:
+            <span class="keyword">print</span>(<span class="string">f"    Fix: {issue.suggestion}"</span>)</code></pre>
+
+      <h3>Integrated Validation</h3>
+      <p>Both <code>parse_opt()</code> and <code>generate_builder_from_opt()</code> accept a <code>validate=True</code> flag for fail-fast validation:</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> parse_opt, generate_builder_from_opt
+<span class="keyword">from</span> openehr_sdk.validation.opt <span class="keyword">import</span> OPTValidationError
+
+<span class="comment"># Validate before parsing</span>
+<span class="keyword">try</span>:
+    template = parse_opt(<span class="string">"template.opt"</span>, validate=<span class="keyword">True</span>)
+<span class="keyword">except</span> OPTValidationError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(<span class="string">f"Invalid: {e.result.error_count} errors"</span>)
+    <span class="keyword">for</span> issue <span class="keyword">in</span> e.result.errors:
+        <span class="keyword">print</span>(<span class="string">f"  {issue.message}"</span>)
+
+<span class="comment"># Validate before generating a builder</span>
+<span class="keyword">try</span>:
+    code = generate_builder_from_opt(<span class="string">"template.opt"</span>, validate=<span class="keyword">True</span>)
+<span class="keyword">except</span> OPTValidationError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(<span class="string">f"Cannot generate: {e.result.error_count} errors"</span>)</code></pre>
+
+      <h3>CLI</h3>
+      <p>Validate OPT files from the command line:</p>
+      <pre><code><span class="comment"># Text output (default)</span>
+python -m openehr_sdk.validate_opt_cli template.opt
+
+<span class="comment"># JSON output (for CI/CD pipelines)</span>
+python -m openehr_sdk.validate_opt_cli template.opt --output json
+
+<span class="comment"># Treat warnings as errors</span>
+python -m openehr_sdk.validate_opt_cli template.opt --strict
+
+<span class="comment"># Include FLAT path impact analysis</span>
+python -m openehr_sdk.validate_opt_cli template.opt --show-flat-paths</code></pre>
+      <p>Exit code <code>0</code> means valid, <code>1</code> means errors were found (or warnings in <code>--strict</code> mode).</p>
+
+      <h3>Validation Categories</h3>
+      <p>The validator runs four categories of checks in order:</p>
+      <ul>
+        <li><strong>Well-formedness (errors)</strong> &mdash; XML validity, correct namespace, required fields (<code>template_id</code>, <code>concept</code>, <code>language</code>), valid archetype IDs, RM type names against the 1.1.0 registry, occurrence constraints, and duplicate node IDs</li>
+        <li><strong>Semantic integrity (errors)</strong> &mdash; missing term definitions for referenced <code>node_id</code>s, orphaned terminology bindings, mandatory nodes without resolvable names</li>
+        <li><strong>Structural warnings</strong> &mdash; draft lifecycle state, unstable archetype versions (<code>v0</code>), prohibited nodes still in the tree, unconstrained archetype slots, special characters in concept names or term names, overuse of the same archetype</li>
+        <li><strong>FLAT path impact (info)</strong> &mdash; detects renamed nodes whose FLAT paths differ from the archetype defaults, and sibling nodes that produce colliding FLAT path segments</li>
+      </ul>
+
+      <h3>Validation Result</h3>
+      <pre><code><span class="comment"># OPTValidationResult fields</span>
+result.is_valid          <span class="comment"># bool - True only if zero errors</span>
+result.template_id       <span class="comment"># str | None - extracted template ID</span>
+result.concept           <span class="comment"># str | None - extracted concept name</span>
+result.node_count        <span class="comment"># int - total nodes parsed</span>
+result.archetype_count   <span class="comment"># int - distinct archetypes found</span>
+result.error_count       <span class="comment"># int - number of errors</span>
+result.warning_count     <span class="comment"># int - number of warnings</span>
+result.errors            <span class="comment"># list[OPTValidationIssue] - error-severity issues</span>
+result.warnings          <span class="comment"># list[OPTValidationIssue] - warning-severity issues</span>
+
+<span class="comment"># Each issue has:</span>
+issue.severity           <span class="comment"># "error", "warning", or "info"</span>
+issue.category           <span class="comment"># "wellformedness", "semantic", "structural", "flat_impact"</span>
+issue.code               <span class="comment"># e.g., "MISSING_TERM_DEF", "INVALID_RM_TYPE"</span>
+issue.message            <span class="comment"># human-readable description</span>
+issue.xpath              <span class="comment"># XPath to the offending element (if applicable)</span>
+issue.node_id            <span class="comment"># at-code (if applicable)</span>
+issue.archetype_id       <span class="comment"># archetype ID (if applicable)</span>
+issue.suggestion         <span class="comment"># recommended fix (if available)</span>
+
+<span class="comment"># Serialize for reporting</span>
+result.to_dict()         <span class="comment"># dict</span>
+result.to_json(indent=2) <span class="comment"># JSON string</span></code></pre>
+
+      <h3>Filtering Issues</h3>
+      <pre><code><span class="comment"># Filter by category</span>
+semantic = [i <span class="keyword">for</span> i <span class="keyword">in</span> result.issues <span class="keyword">if</span> i.category == <span class="string">"semantic"</span>]
+
+<span class="comment"># Filter by specific code</span>
+missing_terms = [i <span class="keyword">for</span> i <span class="keyword">in</span> result.issues <span class="keyword">if</span> i.code == <span class="string">"MISSING_TERM_DEF"</span>]
+
+<span class="comment"># Get FLAT path impact analysis</span>
+flat_issues = [i <span class="keyword">for</span> i <span class="keyword">in</span> result.issues <span class="keyword">if</span> i.category == <span class="string">"flat_impact"</span>]</code></pre>
+
       <h2 id="validation">RM Validation</h2>
       <p>oehrpy uses Pydantic v2 for comprehensive validation.</p>
 
@@ -972,7 +1074,7 @@ mypy src/openehr_sdk</code></pre>
 │   ├── serialization/     <span class="comment"># JSON serialization</span>
 │   ├── client/            <span class="comment"># EHRBase REST client</span>
 │   ├── templates/         <span class="comment"># Template builders</span>
-│   ├── validation/        <span class="comment"># FLAT format validator</span>
+│   ├── validation/        <span class="comment"># FLAT &amp; OPT validators</span>
 │   └── aql/               <span class="comment"># AQL query builder</span>
 ├── generator/             <span class="comment"># Code generation tools</span>
 ├── tests/                 <span class="comment"># Test suite</span>
