@@ -602,6 +602,125 @@
 
   .error-item { animation: slide-in 0.15s ease both; }
 
+  /* ── Loading overlay ── */
+  .loading-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(13, 15, 20, 0.85);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s;
+  }
+
+  .loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .loading-step {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ── Toast notification ── */
+  .toast {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    max-width: 500px;
+    text-align: center;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .toast.warn {
+    border-color: var(--yellow);
+    color: var(--yellow);
+  }
+
+  /* ── Engine indicator ── */
+  .engine-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+  }
+
+  .engine-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-dim);
+  }
+
+  .engine-dot.python { background: var(--green); }
+  .engine-dot.js { background: var(--yellow); }
+  .engine-dot.loading {
+    background: var(--accent);
+    animation: pulse 1.5s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .retry-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .retry-btn:hover { color: var(--accent); border-color: var(--accent); }
+
   /* ── Responsive ── */
   @media (max-width: 900px) {
     main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
@@ -620,7 +739,7 @@
     </a>
     <span class="logo-sep">/</span>
     <span class="logo-sub">FLAT Format Validator</span>
-    <span class="badge">v0.2.0</span>
+    <span class="badge">v0.3.0</span>
     <nav>
       <a href="https://github.com/platzhersh/oehrpy" class="nav-link">GitHub</a>
       <a href="https://platzhersh.github.io/oehrpy" class="nav-link">Docs</a>
@@ -722,17 +841,49 @@ Example paths (EHRBase 2.x):
     <a href="https://specifications.openehr.org/releases/ITS-REST/latest/simplified_data_template.html">simSDT spec</a>
     <span class="sep">&middot;</span>
     <a href="https://discourse.openehr.org">openEHR discourse</a>
+    <span class="sep">&middot;</span>
+    <span class="engine-status" id="engine-status">
+      <span class="engine-dot loading" id="engine-dot"></span>
+      <span id="engine-label">Loading Python...</span>
+    </span>
+    <button class="retry-btn" id="retry-btn" onclick="retryPyodide()" style="display:none">Retry Python</button>
   </footer>
 
 </div>
 
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loading-text">Loading Python runtime...</div>
+  <div class="loading-step" id="loading-step">~10 MB first load, cached afterwards</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-// State
+// ============================================================
+// === STATE ===
+// ============================================================
+
 var currentPlatform = 'ehrbase';
 var validPathsCache = [];
 var explorerOpen = false;
 
-// Platform
+// Pyodide state
+var pyodideReady = false;
+var pyodideInstance = null;
+var pyodideLoadFailed = false;
+var pyodideTimedOut = false;
+var oehrpyVersion = null;
+var pythonVersion = null;
+var engineMode = 'loading'; // 'loading' | 'python' | 'js'
+var actualEngine = null; // Tracks which engine produced the last validation results
+
+// ============================================================
+// === PLATFORM ===
+// ============================================================
+
 var PLATFORM_HINTS = {
   ehrbase: 'no :0 indexing \u00b7 tree.id prefix \u00b7 direct paths',
   better:  ':0 indexing \u00b7 template_id prefix \u00b7 /any_event:0/'
@@ -745,7 +896,195 @@ function setPlatform(p) {
   document.getElementById('platform-hint').textContent = PLATFORM_HINTS[p];
 }
 
-// Web Template Parsing
+// ============================================================
+// === PYODIDE BOOTSTRAP ===
+// ============================================================
+
+var PYODIDE_CDN = 'https://cdn.jsdelivr.net/pyodide/v0.27.1/full/';
+var PYODIDE_TIMEOUT = 30000;
+
+function getRequestedVersion() {
+  var params = new URLSearchParams(window.location.search);
+  return params.get('version') || null;
+}
+
+function setLoadingStep(text) {
+  var el = document.getElementById('loading-text');
+  if (el) el.textContent = text;
+}
+
+function hideLoadingOverlay() {
+  var overlay = document.getElementById('loading-overlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function updateEngineStatus(mode, label) {
+  engineMode = mode;
+  var dot = document.getElementById('engine-dot');
+  var labelEl = document.getElementById('engine-label');
+  dot.className = 'engine-dot ' + mode;
+  labelEl.textContent = label;
+
+  var retryBtn = document.getElementById('retry-btn');
+  retryBtn.style.display = (mode === 'js') ? 'inline-block' : 'none';
+}
+
+function showToast(message, type, duration) {
+  var toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = 'toast show' + (type ? ' ' + type : '');
+  if (duration !== 0) {
+    setTimeout(function() { toast.className = 'toast'; }, duration || 6000);
+  }
+}
+
+async function initPyodide() {
+  setLoadingStep('Loading Python runtime...');
+  updateEngineStatus('loading', 'Loading Python...');
+  pyodideTimedOut = false;
+
+  var timeoutId = setTimeout(function() {
+    if (!pyodideReady) {
+      console.warn('Pyodide load timed out after ' + PYODIDE_TIMEOUT + 'ms');
+      pyodideTimedOut = true;
+      fallbackToJS('Timeout: Python runtime took too long to load');
+    }
+  }, PYODIDE_TIMEOUT);
+
+  try {
+    // Load Pyodide
+    pyodideInstance = await loadPyodide({ indexURL: PYODIDE_CDN });
+    if (pyodideTimedOut) return;
+
+    setLoadingStep('Installing oehrpy...');
+
+    // Install oehrpy via micropip
+    await pyodideInstance.loadPackage('micropip');
+    if (pyodideTimedOut) return;
+
+    var micropip = pyodideInstance.pyimport('micropip');
+
+    var requestedVersion = getRequestedVersion();
+    var packageSpec = requestedVersion ? 'oehrpy==' + requestedVersion : 'oehrpy';
+    await micropip.install(packageSpec);
+    if (pyodideTimedOut) return;
+
+    setLoadingStep('Importing validation module...');
+
+    // Import and verify
+    await pyodideInstance.runPythonAsync(
+      'from openehr_sdk.validation import FlatValidator\n' +
+      'import json\n' +
+      'import openehr_sdk\n'
+    );
+    if (pyodideTimedOut) return;
+
+    // Get version info
+    oehrpyVersion = await pyodideInstance.runPythonAsync(
+      'openehr_sdk.__version__ if hasattr(openehr_sdk, "__version__") else "unknown"'
+    );
+    if (pyodideTimedOut) return;
+
+    pythonVersion = await pyodideInstance.runPythonAsync(
+      'import sys; f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"'
+    );
+    if (pyodideTimedOut) return;
+
+    clearTimeout(timeoutId);
+    pyodideReady = true;
+    pyodideLoadFailed = false;
+
+    hideLoadingOverlay();
+    updateEngineStatus('python', 'Python ' + pythonVersion + ' \u00b7 oehrpy ' + oehrpyVersion);
+    document.getElementById('validate-btn').disabled = false;
+
+    console.log('Pyodide ready: Python ' + pythonVersion + ', oehrpy ' + oehrpyVersion);
+
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (pyodideTimedOut) return;
+    console.error('Pyodide initialization failed:', err);
+    fallbackToJS(err.message || String(err));
+  }
+}
+
+function fallbackToJS(reason) {
+  pyodideLoadFailed = true;
+  pyodideReady = false;
+  hideLoadingOverlay();
+  updateEngineStatus('js', 'JS fallback');
+  document.getElementById('validate-btn').disabled = false;
+  showToast('Python runtime unavailable \u2014 using built-in validator (may differ from SDK)', 'warn', 8000);
+  console.warn('Falling back to JS engine. Reason:', reason);
+}
+
+function retryPyodide() {
+  pyodideLoadFailed = false;
+  pyodideTimedOut = false;
+  document.getElementById('loading-overlay').classList.remove('hidden');
+  document.getElementById('loading-step').textContent = 'Retrying...';
+  initPyodide();
+}
+
+// ============================================================
+// === PYTHON BRIDGE ===
+// ============================================================
+
+async function runPythonValidation(wtJson, flatObj, platform) {
+  // Safely serialize JSON for embedding in Python string
+  var wtStr = JSON.stringify(wtJson);
+  var flatStr = JSON.stringify(flatObj);
+
+  // Use Pyodide globals to pass data safely (avoids string escaping issues)
+  pyodideInstance.globals.set('_wt_json_str', wtStr);
+  pyodideInstance.globals.set('_flat_json_str', flatStr);
+  pyodideInstance.globals.set('_platform', platform);
+
+  var resultStr = await pyodideInstance.runPythonAsync(
+    'import json\n' +
+    'from openehr_sdk.validation import FlatValidator\n' +
+    '\n' +
+    '_wt = json.loads(_wt_json_str)\n' +
+    '_flat = json.loads(_flat_json_str)\n' +
+    '\n' +
+    '_validator = FlatValidator.from_web_template(_wt, platform=_platform)\n' +
+    '_result = _validator.validate(_flat)\n' +
+    '_valid_paths = _validator.valid_paths\n' +
+    '\n' +
+    'json.dumps({\n' +
+    '    "is_valid": _result.is_valid,\n' +
+    '    "errors": [\n' +
+    '        {\n' +
+    '            "path": e.path,\n' +
+    '            "error_type": e.error_type,\n' +
+    '            "message": e.message,\n' +
+    '            "suggestion": e.suggestion,\n' +
+    '            "valid_alternatives": e.valid_alternatives,\n' +
+    '        }\n' +
+    '        for e in _result.errors\n' +
+    '    ],\n' +
+    '    "warnings": [\n' +
+    '        {\n' +
+    '            "path": w.path,\n' +
+    '            "error_type": w.error_type,\n' +
+    '            "message": w.message,\n' +
+    '            "suggestion": w.suggestion,\n' +
+    '        }\n' +
+    '        for w in _result.warnings\n' +
+    '    ],\n' +
+    '    "valid_path_count": _result.valid_path_count,\n' +
+    '    "checked_path_count": _result.checked_path_count,\n' +
+    '    "template_id": _result.template_id,\n' +
+    '    "valid_paths": _valid_paths,\n' +
+    '})\n'
+  );
+
+  return JSON.parse(resultStr);
+}
+
+// ============================================================
+// === JS FALLBACK ENGINE (kept from v0.2.0) ===
+// ============================================================
 
 var REQUIRED_SUFFIXES = {
   DV_QUANTITY: ['|magnitude', '|unit'],
@@ -897,8 +1236,6 @@ function enumerateValidPaths(parsedTemplate, platform) {
   return result;
 }
 
-// Validation
-
 function levenshtein(a, b) {
   var m = a.length, n = b.length;
   var dp = [];
@@ -932,7 +1269,7 @@ function findSuggestion(invalidPath, validPaths) {
   return null;
 }
 
-function validateFlat(flatObj, parsedTemplate, platform) {
+function validateFlatJS(flatObj, parsedTemplate, platform) {
   var errors = [];
   var warnings = [];
   var treeId = parsedTemplate.treeId;
@@ -1004,9 +1341,11 @@ function validateFlat(flatObj, parsedTemplate, platform) {
   };
 }
 
-// UI
+// ============================================================
+// === UI LAYER ===
+// ============================================================
 
-function runValidation() {
+async function runValidation() {
   var wtRaw = document.getElementById('wt-input').value.trim();
   var flatRaw = document.getElementById('flat-input').value.trim();
 
@@ -1023,16 +1362,52 @@ function runValidation() {
     showError('FLAT Composition JSON is invalid: ' + e.message); return;
   }
 
+  // Use Python engine if available, otherwise JS fallback
+  if (pyodideReady) {
+    try {
+      showStatus('idle', 'Validating with Python...');
+      var pyResult = await runPythonValidation(wtJson, flatObj, currentPlatform);
+
+      // Normalize Python result to match the JS result format
+      var result = {
+        errors: pyResult.errors.map(function(e) {
+          return { type: 'error', path: e.path, message: e.message, suggestion: e.suggestion };
+        }),
+        warnings: pyResult.warnings.map(function(w) {
+          return { type: 'warning', path: w.path, message: w.message, suggestion: w.suggestion };
+        }),
+        checkedCount: pyResult.checked_path_count,
+        validCount: pyResult.checked_path_count - pyResult.errors.length,
+        validPaths: pyResult.valid_paths.map(function(p) {
+          return { path: p, rmType: '', name: '' };
+        })
+      };
+
+      actualEngine = 'python';
+      validPathsCache = result.validPaths;
+      renderResults(result);
+      renderExplorer(result.validPaths);
+      document.getElementById('explorer-toggle').style.display = 'block';
+      return;
+
+    } catch (err) {
+      console.error('Python validation failed, falling back to JS:', err);
+      showToast('Python validation error \u2014 using JS fallback', 'warn', 5000);
+    }
+  }
+
+  // JS fallback
+  actualEngine = 'js';
   var parsedTemplate = parseWebTemplate(wtJson);
-  var result = validateFlat(flatObj, parsedTemplate, currentPlatform);
+  var result = validateFlatJS(flatObj, parsedTemplate, currentPlatform);
   validPathsCache = result.validPaths;
 
-  renderResults(result, parsedTemplate);
+  renderResults(result);
   renderExplorer(result.validPaths);
   document.getElementById('explorer-toggle').style.display = 'block';
 }
 
-function renderResults(result, parsedTemplate) {
+function renderResults(result) {
   var area = document.getElementById('results-area');
   var errors = result.errors;
   var warnings = result.warnings;
@@ -1040,9 +1415,13 @@ function renderResults(result, parsedTemplate) {
   var validCount = result.validCount;
   var isValid = errors.length === 0;
 
+  var engineTag = actualEngine === 'python' ? ' (Python)' : ' (JS)';
+
   showStatus(
     isValid ? 'valid' : 'invalid',
-    isValid ? 'Valid \u00b7 ' + checkedCount + ' paths OK' : errors.length + ' error' + (errors.length !== 1 ? 's' : '') + ' \u00b7 ' + warnings.length + ' warning' + (warnings.length !== 1 ? 's' : '')
+    isValid
+      ? 'Valid \u00b7 ' + checkedCount + ' paths OK' + engineTag
+      : errors.length + ' error' + (errors.length !== 1 ? 's' : '') + ' \u00b7 ' + warnings.length + ' warning' + (warnings.length !== 1 ? 's' : '') + engineTag
   );
 
   document.getElementById('stats-text').textContent =
@@ -1186,7 +1565,10 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// Example data
+// ============================================================
+// === EXAMPLE DATA ===
+// ============================================================
+
 function loadExample() {
   var exampleWT = {
     "templateId": "IDCR - Adverse Reaction List.v1",
@@ -1320,6 +1702,20 @@ function loadExample() {
   updateCounts();
   runValidation();
 }
+
+// ============================================================
+// === INITIALIZATION ===
+// ============================================================
+
+// Disable validate button until engine is ready
+document.getElementById('validate-btn').disabled = true;
+
+// Load Pyodide CDN script, then bootstrap
+var pyodideScript = document.createElement('script');
+pyodideScript.src = PYODIDE_CDN + 'pyodide.js';
+pyodideScript.onload = function() { initPyodide(); };
+pyodideScript.onerror = function() { fallbackToJS('Failed to load Pyodide script from CDN'); };
+document.head.appendChild(pyodideScript);
 </script>
 </body>
 </html>
