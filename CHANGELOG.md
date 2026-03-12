@@ -1,14 +1,19 @@
 # CHANGELOG
 
 
-## Unreleased
+## v0.5.0 (2026-03-12)
+
+### Code Style
+
+- Align validator page styling with docs site branding (#27)
+  ([#27](https://github.com/platzhersh/oehrpy/pull/27),
+  [`f00f051`](https://github.com/platzhersh/oehrpy/commit/f00f0515352f05521bc964a9b809952a014cb3f9))
 
 ### Features
 
-- Add OPT 1.4 validator with XML well-formedness, semantic integrity, structural warnings, and FLAT path impact checks
-  - Python API: `OPTValidator.validate_file()` / `validate_string()`
-  - CLI tool: `oehrpy-validate-opt`
-  - Integration with `parse_opt()` and `generate_builder_from_opt()` via `validate=True`
+- Add OPT validator with XML, semantic, structural, and FLAT path checks (#29)
+  ([#29](https://github.com/platzhersh/oehrpy/pull/29),
+  [`e853d39`](https://github.com/platzhersh/oehrpy/commit/e853d39a75730b36abb95b312173865dab34ae8b))
 
 
 ## v0.4.0 (2026-03-12)
