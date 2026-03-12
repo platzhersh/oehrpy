@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>oehrpy · FLAT Format Validator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161d;
+    --surface2: #1a1e28;
+    --surface3: #222736;
+    --border: #2a2f3d;
+    --border-bright: #3d4560;
+    --text: #e8eaf0;
+    --text-muted: #7a82a0;
+    --text-dim: #4a5270;
+    --accent: #5b8af0;
+    --accent-glow: rgba(91, 138, 240, 0.15);
+    --accent-dim: rgba(91, 138, 240, 0.08);
+    --green: #3dd68c;
+    --green-dim: rgba(61, 214, 140, 0.08);
+    --red: #f06060;
+    --red-dim: rgba(240, 96, 96, 0.08);
+    --yellow: #f0c060;
+    --yellow-dim: rgba(240, 192, 96, 0.08);
+    --purple: #a78bfa;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .app {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 56px;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  .logo-mark {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-sep { color: var(--text-dim); margin: 0 2px; }
+
+  .logo-sub {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 400;
+  }
+
+  header nav {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: all 0.15s;
+  }
+  .nav-link:hover { color: var(--text); background: var(--surface2); }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(91,138,240,0.2);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Platform selector ── */
+  .platform-bar {
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 44px;
+  }
+
+  .platform-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  .platform-toggle {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .platform-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+
+  .platform-btn:hover { color: var(--text); background: var(--surface3); }
+
+  .platform-btn.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .platform-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 3px 10px;
+    background: var(--surface2);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .load-example-btn {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 5px;
+    border: 1px solid var(--border-bright);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .load-example-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  /* ── Main panels ── */
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    overflow: hidden;
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .panel:last-child { border-right: none; }
+
+  .panel-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+  }
+
+  .panel-count {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .clear-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .clear-btn:hover { color: var(--red); border-color: var(--red); }
+
+  textarea {
+    flex: 1;
+    background: var(--bg);
+    border: none;
+    outline: none;
+    resize: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 16px;
+    tab-size: 2;
+    width: 100%;
+    caret-color: var(--accent);
+  }
+
+  textarea::placeholder { color: var(--text-dim); }
+
+  textarea:focus { background: var(--surface); }
+
+  /* ── Action bar ── */
+  .action-bar {
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .validate-btn {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    padding: 9px 24px;
+    border-radius: 7px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .validate-btn:hover { background: #7aa2f7; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(91,138,240,0.3); }
+  .validate-btn:active { transform: translateY(0); }
+  .validate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .validate-btn .shortcut {
+    font-family: var(--mono);
+    font-size: 10px;
+    opacity: 0.7;
+    background: rgba(255,255,255,0.15);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .status-pill {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .status-pill.valid {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(61,214,140,0.2);
+  }
+
+  .status-pill.invalid {
+    background: var(--red-dim);
+    color: var(--red);
+    border: 1px solid rgba(240,96,96,0.2);
+  }
+
+  .status-pill.idle {
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .stats {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+
+  /* ── Results ── */
+  .results-area {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0;
+  }
+
+  .results-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .results-empty .icon {
+    font-size: 32px;
+    opacity: 0.3;
+  }
+
+  .section-header {
+    padding: 10px 16px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .error-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .error-item:hover { background: var(--surface); }
+
+  .error-item.error-type-error { border-left: 3px solid var(--red); }
+  .error-item.error-type-warning { border-left: 3px solid var(--yellow); }
+  .error-item.error-type-success { border-left: 3px solid var(--green); }
+
+  .error-path {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--red);
+    word-break: break-all;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .error-path.warn { color: var(--yellow); }
+
+  .error-icon { flex-shrink: 0; margin-top: 1px; }
+
+  .error-msg {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .suggestion {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid rgba(61,214,140,0.15);
+    border-radius: 5px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    word-break: break-all;
+  }
+  .suggestion:hover { background: rgba(61,214,140,0.15); }
+  .suggestion .arrow { flex-shrink: 0; }
+
+  .copy-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid rgba(61,214,140,0.3);
+    background: transparent;
+    color: var(--green);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: rgba(61,214,140,0.2); }
+
+  /* ── Path Explorer ── */
+  .explorer-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    grid-column: 1 / -1;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+    border-top: 1px solid var(--border);
+  }
+
+  .explorer-panel.open {
+    max-height: 240px;
+  }
+
+  .explorer-header {
+    padding: 8px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .explorer-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-dim);
+  }
+
+  .explorer-search {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 10px;
+    color: var(--text);
+    outline: none;
+    width: 240px;
+    transition: border-color 0.15s;
+  }
+  .explorer-search:focus { border-color: var(--accent); }
+  .explorer-search::placeholder { color: var(--text-dim); }
+
+  .explorer-toggle {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .explorer-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+  .explorer-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 8px 0;
+  }
+
+  .explorer-path {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 3px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.1s;
+    cursor: default;
+  }
+  .explorer-path:hover { background: var(--surface2); color: var(--text); }
+
+  .explorer-path .type-tag {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--surface3);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+
+  .explorer-path.highlighted {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 8px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  footer a { color: var(--text-dim); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  footer .sep { color: var(--border); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+  /* ── Animations ── */
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .error-item { animation: slide-in 0.15s ease both; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    .panel { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <a href="https://github.com/platzhersh/oehrpy" class="logo">
+      <div class="logo-mark">oe</div>
+      <span class="logo-text">oehrpy</span>
+    </a>
+    <span class="logo-sep">/</span>
+    <span class="logo-sub">FLAT Format Validator</span>
+    <span class="badge">v0.2.0</span>
+    <nav>
+      <a href="https://github.com/platzhersh/oehrpy" class="nav-link">GitHub</a>
+      <a href="https://platzhersh.github.io/oehrpy" class="nav-link">Docs</a>
+      <a href="https://pypi.org/project/oehrpy/" class="nav-link">PyPI</a>
+    </nav>
+  </header>
+
+  <!-- Platform bar -->
+  <div class="platform-bar">
+    <span class="platform-label">Platform</span>
+    <div class="platform-toggle">
+      <button class="platform-btn active" id="btn-ehrbase" onclick="setPlatform('ehrbase')">EHRBase 2.x</button>
+      <button class="platform-btn" id="btn-better" onclick="setPlatform('better')">Better</button>
+    </div>
+    <span class="platform-hint" id="platform-hint">no :0 indexing · tree.id prefix · direct paths</span>
+    <button class="load-example-btn" onclick="loadExample()">Load example</button>
+  </div>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <button class="validate-btn" id="validate-btn" onclick="runValidation()">
+      Validate
+      <span class="shortcut">Ctrl+Enter</span>
+    </button>
+    <div class="status-pill idle" id="status-pill">
+      <div class="status-dot"></div>
+      <span id="status-text">Waiting for input</span>
+    </div>
+    <span class="stats" id="stats-text"></span>
+    <button class="explorer-toggle" id="explorer-toggle" onclick="toggleExplorer()" style="display:none">
+      Show valid paths
+    </button>
+  </div>
+
+  <!-- Main panels -->
+  <main>
+    <div class="panel" style="border-bottom: 1px solid var(--border);">
+      <div class="panel-header">
+        <span class="panel-title">Web Template</span>
+        <span class="panel-count" id="wt-count"></span>
+        <button class="clear-btn" onclick="document.getElementById('wt-input').value='';updateCounts()">clear</button>
+      </div>
+      <textarea id="wt-input" placeholder='Paste your Web Template JSON here...
+
+Fetch from EHRBase:
+GET /rest/openehr/v1/definition/template/adl1.4/{template_id}
+
+The validator reads the "tree" structure to enumerate
+all valid FLAT paths for your template.' spellcheck="false" oninput="updateCounts()"></textarea>
+    </div>
+
+    <div class="panel" style="border-bottom: 1px solid var(--border);">
+      <div class="panel-header">
+        <span class="panel-title">FLAT Composition</span>
+        <span class="panel-count" id="flat-count"></span>
+        <button class="clear-btn" onclick="document.getElementById('flat-input').value='';updateCounts()">clear</button>
+      </div>
+      <textarea id="flat-input" placeholder='Paste your FLAT composition JSON here...
+
+Example paths (EHRBase 2.x):
+  "adverse_reaction_list/category|code": "433",
+  "adverse_reaction_list/adverse_reaction/causative_agent|value": "Penicillin",
+  "adverse_reaction_list/adverse_reaction/causative_agent|code": "372687004",
+  "adverse_reaction_list/adverse_reaction/causative_agent|terminology": "SNOMED-CT"' spellcheck="false" oninput="updateCounts()"></textarea>
+    </div>
+
+    <!-- Results spans both columns -->
+    <div class="panel" style="grid-column: 1 / -1; border-right: none; border-top: 1px solid var(--border);">
+      <div class="panel-header">
+        <span class="panel-title">Validation Results</span>
+      </div>
+      <div class="results-area" id="results-area">
+        <div class="results-empty">
+          <div class="icon">&#9678;</div>
+          <div>Paste a Web Template and a FLAT composition above, then click <strong>Validate</strong></div>
+          <div style="opacity:0.5">or load an example to see the validator in action</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Path Explorer (hidden initially) -->
+  <div class="explorer-panel" id="explorer-panel">
+    <div class="explorer-header">
+      <span class="explorer-title">Valid Paths</span>
+      <input type="text" class="explorer-search" id="explorer-search" placeholder="Filter paths..." oninput="filterPaths()">
+    </div>
+    <div class="explorer-list" id="explorer-list"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <span>oehrpy FLAT Validator</span>
+    <span class="sep">&middot;</span>
+    <a href="https://github.com/platzhersh/oehrpy">open source</a>
+    <span class="sep">&middot;</span>
+    <span>100% client-side &middot; no data sent to any server</span>
+    <span class="sep">&middot;</span>
+    <a href="https://specifications.openehr.org/releases/ITS-REST/latest/simplified_data_template.html">simSDT spec</a>
+    <span class="sep">&middot;</span>
+    <a href="https://discourse.openehr.org">openEHR discourse</a>
+  </footer>
+
+</div>
+
+<script>
+// State
+var currentPlatform = 'ehrbase';
+var validPathsCache = [];
+var explorerOpen = false;
+
+// Platform
+var PLATFORM_HINTS = {
+  ehrbase: 'no :0 indexing \u00b7 tree.id prefix \u00b7 direct paths',
+  better:  ':0 indexing \u00b7 template_id prefix \u00b7 /any_event:0/'
+};
+
+function setPlatform(p) {
+  currentPlatform = p;
+  document.getElementById('btn-ehrbase').classList.toggle('active', p === 'ehrbase');
+  document.getElementById('btn-better').classList.toggle('active', p === 'better');
+  document.getElementById('platform-hint').textContent = PLATFORM_HINTS[p];
+}
+
+// Web Template Parsing
+
+var REQUIRED_SUFFIXES = {
+  DV_QUANTITY: ['|magnitude', '|unit'],
+  DV_CODED_TEXT: ['|value', '|code', '|terminology'],
+  DV_TEXT: [],
+  DV_DATE_TIME: [],
+  DV_DATE: [],
+  DV_TIME: [],
+  DV_BOOLEAN: [],
+  DV_COUNT: ['|magnitude'],
+  DV_ORDINAL: ['|value', '|code', '|terminology', '|ordinal'],
+  DV_PROPORTION: ['|numerator', '|denominator', '|type'],
+  DV_DURATION: [],
+  DV_IDENTIFIER: ['|id', '|type', '|issuer', '|assigner'],
+  DV_URI: [],
+  CODE_PHRASE: ['|code', '|terminology']
+};
+
+var VALID_SUFFIXES = {
+  DV_QUANTITY: ['|magnitude', '|unit', '|precision', '|normal_range', '|normal_status'],
+  DV_CODED_TEXT: ['|value', '|code', '|terminology', '|preferred_term'],
+  DV_TEXT: ['|value'],
+  DV_DATE_TIME: [],
+  DV_DATE: [],
+  DV_TIME: [],
+  DV_BOOLEAN: [],
+  DV_COUNT: ['|magnitude', '|accuracy', '|accuracy_is_percent'],
+  DV_ORDINAL: ['|value', '|code', '|terminology', '|ordinal'],
+  DV_PROPORTION: ['|numerator', '|denominator', '|type', '|precision'],
+  DV_DURATION: [],
+  DV_IDENTIFIER: ['|id', '|type', '|issuer', '|assigner'],
+  DV_URI: [],
+  CODE_PHRASE: ['|code', '|terminology']
+};
+
+var REQUIRED_COMPOSITION_FIELDS = [
+  ['category|code', 'category|value', 'category|terminology'],
+  ['language|code'],
+  ['language|terminology'],
+  ['territory|code'],
+  ['territory|terminology'],
+  ['composer|name'],
+  ['context/start_time']
+];
+
+function parseWebTemplate(wtJson) {
+  var paths = new Map();
+  var treeId = wtJson.tree ? wtJson.tree.id || '' : '';
+  var templateId = wtJson.templateId || wtJson.template_id || treeId;
+
+  function traverse(node, prefix) {
+    if (!node) return;
+    var nodeId = node.id || '';
+    var currentPath = prefix ? prefix + '/' + nodeId : nodeId;
+    var rmType = node.rmType || node.rm_type || '';
+    var nodeInfo = {
+      id: nodeId,
+      name: node.name || nodeId,
+      rmType: rmType,
+      aqlPath: node.aqlPath || '',
+      originalName: null
+    };
+
+    if (node.localizedNames) {
+      var localName = node.localizedNames['en'] || Object.values(node.localizedNames)[0];
+      if (localName && localName.toLowerCase().replace(/\s+/g, '_') !== nodeId) {
+        nodeInfo.originalName = localName;
+      }
+    }
+
+    paths.set(currentPath, nodeInfo);
+
+    if (node.children && node.children.length > 0) {
+      for (var i = 0; i < node.children.length; i++) {
+        traverse(node.children[i], currentPath);
+      }
+    }
+  }
+
+  if (wtJson.tree) {
+    traverse(wtJson.tree, '');
+  }
+
+  return { treeId: treeId, templateId: templateId, paths: paths };
+}
+
+function enumerateValidPaths(parsedTemplate, platform) {
+  var result = [];
+  var paths = parsedTemplate.paths;
+
+  paths.forEach(function(nodeInfo, path) {
+    var rmType = nodeInfo.rmType;
+    var suffixes = VALID_SUFFIXES[rmType];
+
+    if (suffixes === undefined) {
+      result.push({ path: path, rmType: rmType, name: nodeInfo.name, isLeaf: false });
+    } else if (suffixes.length === 0) {
+      result.push({ path: path, rmType: rmType, name: nodeInfo.name, isLeaf: true });
+    } else {
+      for (var i = 0; i < suffixes.length; i++) {
+        result.push({ path: path + suffixes[i], rmType: rmType, name: nodeInfo.name, isLeaf: true });
+      }
+      result.push({ path: path, rmType: rmType, name: nodeInfo.name, isLeaf: true });
+    }
+
+    if (platform === 'better') {
+      var indexedPath = path.replace(/\/([^/]+)$/g, '/$1:0');
+      if (suffixes && suffixes.length > 0) {
+        for (var j = 0; j < suffixes.length; j++) {
+          result.push({ path: indexedPath + suffixes[j], rmType: rmType, name: nodeInfo.name, isLeaf: true });
+        }
+      } else if (suffixes !== undefined) {
+        result.push({ path: indexedPath, rmType: rmType, name: nodeInfo.name, isLeaf: true });
+      }
+    }
+  });
+
+  return result;
+}
+
+// Validation
+
+function levenshtein(a, b) {
+  var m = a.length, n = b.length;
+  var dp = [];
+  for (var i = 0; i <= m; i++) {
+    dp[i] = [];
+    for (var j = 0; j <= n; j++) {
+      dp[i][j] = i === 0 ? j : j === 0 ? i : 0;
+    }
+  }
+  for (var i2 = 1; i2 <= m; i2++)
+    for (var j2 = 1; j2 <= n; j2++)
+      dp[i2][j2] = a[i2-1] === b[j2-1] ? dp[i2-1][j2-1] : 1 + Math.min(dp[i2-1][j2], dp[i2][j2-1], dp[i2-1][j2-1]);
+  return dp[m][n];
+}
+
+function findSuggestion(invalidPath, validPaths) {
+  var stripped = invalidPath.replace(/\|[^|]+$/, '');
+  var best = null, bestScore = Infinity;
+  for (var i = 0; i < validPaths.length; i++) {
+    var vp = validPaths[i];
+    var vStripped = vp.path.replace(/\|[^|]+$/, '');
+    var score = levenshtein(stripped, vStripped);
+    if (score < bestScore) {
+      bestScore = score;
+      best = vp;
+    }
+  }
+  if (best && bestScore < stripped.length * 0.6) {
+    return { path: best.path, score: bestScore };
+  }
+  return null;
+}
+
+function validateFlat(flatObj, parsedTemplate, platform) {
+  var errors = [];
+  var warnings = [];
+  var treeId = parsedTemplate.treeId;
+  var paths = parsedTemplate.paths;
+  var validPaths = enumerateValidPaths(parsedTemplate, platform);
+  var validPathSet = new Set(validPaths.map(function(p) { return p.path; }));
+
+  var checkedCount = 0;
+
+  var keys = Object.keys(flatObj);
+  for (var k = 0; k < keys.length; k++) {
+    var key = keys[k];
+    checkedCount++;
+    if (!key.includes('/')) continue;
+    if (validPathSet.has(key)) continue;
+
+    var suggestion = findSuggestion(key, validPaths);
+    var errorMsg = 'Path not found in Web Template.';
+
+    if (platform === 'ehrbase' && /:\d+/.test(key)) {
+      errorMsg = 'EHRBase 2.x does not use index notation (:0). Remove the index.';
+    } else if (platform === 'better' && !/:\d+/.test(key)) {
+      errorMsg = 'Better platform requires index notation (:0) on array paths.';
+    } else if (key.includes('/any_event') && platform === 'ehrbase') {
+      errorMsg = 'EHRBase 2.x does not include /any_event/ in FLAT paths. Use direct paths.';
+    } else {
+      paths.forEach(function(nodeInfo) {
+        if (nodeInfo.originalName) {
+          var originalSlug = nodeInfo.originalName.toLowerCase().replace(/[\s/]+/g, '_').replace(/[^a-z0-9_]/g, '');
+          if (key.includes(originalSlug)) {
+            errorMsg = 'Node was renamed in this template. Original name "' + nodeInfo.originalName + '" is now "' + nodeInfo.id + '".';
+          }
+        }
+      });
+    }
+
+    errors.push({
+      type: 'error',
+      path: key,
+      message: errorMsg,
+      suggestion: suggestion ? suggestion.path : null
+    });
+  }
+
+  // Check required fields
+  var flatKeys = new Set(keys);
+  for (var g = 0; g < REQUIRED_COMPOSITION_FIELDS.length; g++) {
+    var group = REQUIRED_COMPOSITION_FIELDS[g];
+    var found = false;
+    for (var f = 0; f < group.length; f++) {
+      if (flatKeys.has(treeId + '/' + group[f])) { found = true; break; }
+    }
+    if (!found) {
+      warnings.push({
+        type: 'warning',
+        path: treeId + '/' + group[0],
+        message: 'Required composition field is missing.',
+        suggestion: null
+      });
+    }
+  }
+
+  return {
+    errors: errors,
+    warnings: warnings,
+    checkedCount: checkedCount,
+    validCount: checkedCount - errors.length,
+    validPaths: validPaths
+  };
+}
+
+// UI
+
+function runValidation() {
+  var wtRaw = document.getElementById('wt-input').value.trim();
+  var flatRaw = document.getElementById('flat-input').value.trim();
+
+  if (!wtRaw || !flatRaw) {
+    showStatus('idle', 'Please provide both Web Template and FLAT composition');
+    return;
+  }
+
+  var wtJson, flatObj;
+  try { wtJson = JSON.parse(wtRaw); } catch(e) {
+    showError('Web Template JSON is invalid: ' + e.message); return;
+  }
+  try { flatObj = JSON.parse(flatRaw); } catch(e) {
+    showError('FLAT Composition JSON is invalid: ' + e.message); return;
+  }
+
+  var parsedTemplate = parseWebTemplate(wtJson);
+  var result = validateFlat(flatObj, parsedTemplate, currentPlatform);
+  validPathsCache = result.validPaths;
+
+  renderResults(result, parsedTemplate);
+  renderExplorer(result.validPaths);
+  document.getElementById('explorer-toggle').style.display = 'block';
+}
+
+function renderResults(result, parsedTemplate) {
+  var area = document.getElementById('results-area');
+  var errors = result.errors;
+  var warnings = result.warnings;
+  var checkedCount = result.checkedCount;
+  var validCount = result.validCount;
+  var isValid = errors.length === 0;
+
+  showStatus(
+    isValid ? 'valid' : 'invalid',
+    isValid ? 'Valid \u00b7 ' + checkedCount + ' paths OK' : errors.length + ' error' + (errors.length !== 1 ? 's' : '') + ' \u00b7 ' + warnings.length + ' warning' + (warnings.length !== 1 ? 's' : '')
+  );
+
+  document.getElementById('stats-text').textContent =
+    checkedCount + ' paths checked \u00b7 ' + validCount + ' valid \u00b7 ' + errors.length + ' errors \u00b7 ' + warnings.length + ' warnings';
+
+  if (errors.length === 0 && warnings.length === 0) {
+    area.innerHTML =
+      '<div class="results-empty">' +
+        '<div class="icon">&#10003;</div>' +
+        '<div style="color: var(--green); font-weight: 700;">All paths valid!</div>' +
+        '<div style="opacity:0.6">Checked ' + checkedCount + ' paths against ' + result.validPaths.length + ' valid paths in the template.</div>' +
+      '</div>';
+    return;
+  }
+
+  var html = '';
+
+  if (errors.length > 0) {
+    html += '<div class="section-header">Errors (' + errors.length + ')</div>';
+    for (var i = 0; i < errors.length; i++) {
+      var e = errors[i];
+      html +=
+        '<div class="error-item error-type-error" style="animation-delay:' + (i * 30) + 'ms">' +
+          '<div class="error-path">' +
+            '<span class="error-icon">&#10007;</span>' +
+            '<code>' + escHtml(e.path) + '</code>' +
+          '</div>' +
+          '<div class="error-msg">' + escHtml(e.message) + '</div>';
+      if (e.suggestion) {
+        html +=
+            '<div class="suggestion" title="Click to copy" onclick="copyText(\'' + escHtml(e.suggestion).replace(/'/g, "\\'") + '\', this)">' +
+              '<span class="arrow">&rarr;</span>' +
+              '<code>' + escHtml(e.suggestion) + '</code>' +
+              '<button class="copy-btn">copy</button>' +
+            '</div>';
+      }
+      html += '</div>';
+    }
+  }
+
+  if (warnings.length > 0) {
+    html += '<div class="section-header">Missing Required Fields (' + warnings.length + ')</div>';
+    for (var w = 0; w < warnings.length; w++) {
+      var warn = warnings[w];
+      html +=
+        '<div class="error-item error-type-warning" style="animation-delay:' + ((errors.length + w) * 30) + 'ms">' +
+          '<div class="error-path warn">' +
+            '<span class="error-icon">&#9888;</span>' +
+            '<code>' + escHtml(warn.path) + '</code>' +
+          '</div>' +
+          '<div class="error-msg">' + escHtml(warn.message) + '</div>' +
+        '</div>';
+    }
+  }
+
+  area.innerHTML = html;
+}
+
+function renderExplorer(validPaths) {
+  var list = document.getElementById('explorer-list');
+  var seen = {};
+  var unique = [];
+  for (var i = 0; i < validPaths.length; i++) {
+    var p = validPaths[i].path;
+    if (!seen[p]) { seen[p] = true; unique.push(validPaths[i]); }
+  }
+  unique.sort(function(a, b) { return a.path < b.path ? -1 : a.path > b.path ? 1 : 0; });
+
+  var html = '';
+  for (var j = 0; j < unique.length; j++) {
+    var item = unique[j];
+    var rmType = item.rmType || '';
+    html += '<div class="explorer-path" data-path="' + escHtml(item.path) + '">' +
+      '<span>' + escHtml(item.path) + '</span>';
+    if (rmType) {
+      html += '<span class="type-tag">' + escHtml(rmType.replace('DV_','')) + '</span>';
+    }
+    html += '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function filterPaths() {
+  var q = document.getElementById('explorer-search').value.toLowerCase();
+  var els = document.querySelectorAll('.explorer-path');
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    var path = el.getAttribute('data-path') || '';
+    var match = path.toLowerCase().indexOf(q) !== -1;
+    el.style.display = match ? 'flex' : 'none';
+    el.classList.toggle('highlighted', q !== '' && match);
+  }
+}
+
+function toggleExplorer() {
+  explorerOpen = !explorerOpen;
+  document.getElementById('explorer-panel').classList.toggle('open', explorerOpen);
+  document.getElementById('explorer-toggle').textContent =
+    explorerOpen ? 'Hide valid paths' : 'Show valid paths';
+}
+
+function showStatus(type, text) {
+  var pill = document.getElementById('status-pill');
+  var textEl = document.getElementById('status-text');
+  pill.className = 'status-pill ' + type;
+  textEl.textContent = text;
+}
+
+function showError(msg) {
+  document.getElementById('results-area').innerHTML =
+    '<div class="results-empty">' +
+      '<div class="icon">&#9888;</div>' +
+      '<div style="color: var(--red);">' + escHtml(msg) + '</div>' +
+    '</div>';
+  showStatus('invalid', 'Parse error');
+}
+
+function copyText(text, el) {
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = el.querySelector('.copy-btn');
+    if (btn) { btn.textContent = 'copied!'; setTimeout(function() { btn.textContent = 'copy'; }, 1500); }
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function updateCounts() {
+  var wt = document.getElementById('wt-input').value;
+  var flat = document.getElementById('flat-input').value;
+  document.getElementById('wt-count').textContent = wt ? wt.split('\n').length + ' lines' : '';
+  document.getElementById('flat-count').textContent = flat ? flat.split('\n').length + ' lines' : '';
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runValidation();
+  }
+});
+
+// Example data
+function loadExample() {
+  var exampleWT = {
+    "templateId": "IDCR - Adverse Reaction List.v1",
+    "version": "2.3",
+    "defaultLanguage": "en",
+    "languages": ["en"],
+    "tree": {
+      "id": "adverse_reaction_list",
+      "name": "Adverse Reaction List",
+      "localizedName": "Adverse Reaction List",
+      "rmType": "COMPOSITION",
+      "nodeId": "openEHR-EHR-COMPOSITION.adverse_reaction_list.v1",
+      "min": 1,
+      "max": 1,
+      "children": [
+        {
+          "id": "category",
+          "name": "category",
+          "rmType": "DV_CODED_TEXT",
+          "children": []
+        },
+        {
+          "id": "language",
+          "name": "language",
+          "rmType": "CODE_PHRASE",
+          "children": []
+        },
+        {
+          "id": "territory",
+          "name": "territory",
+          "rmType": "CODE_PHRASE",
+          "children": []
+        },
+        {
+          "id": "composer",
+          "name": "composer",
+          "rmType": "PARTY_IDENTIFIED",
+          "children": []
+        },
+        {
+          "id": "context",
+          "name": "context",
+          "rmType": "EVENT_CONTEXT",
+          "children": [
+            {
+              "id": "start_time",
+              "name": "start_time",
+              "rmType": "DV_DATE_TIME",
+              "children": []
+            },
+            {
+              "id": "setting",
+              "name": "setting",
+              "rmType": "DV_CODED_TEXT",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "adverse_reaction",
+          "name": "Adverse Reaction Risk",
+          "rmType": "EVALUATION",
+          "nodeId": "openEHR-EHR-EVALUATION.adverse_reaction_risk.v1",
+          "min": 0,
+          "max": -1,
+          "children": [
+            {
+              "id": "causative_agent",
+              "name": "Causative agent",
+              "rmType": "DV_CODED_TEXT",
+              "nodeId": "at0002",
+              "localizedNames": { "en": "Causative agent" },
+              "aqlPath": "/data[at0001]/items[at0002]/value",
+              "children": []
+            },
+            {
+              "id": "status",
+              "name": "Status",
+              "rmType": "DV_CODED_TEXT",
+              "nodeId": "at0064",
+              "children": []
+            },
+            {
+              "id": "comment",
+              "name": "Comment",
+              "rmType": "DV_TEXT",
+              "nodeId": "at0060",
+              "children": []
+            },
+            {
+              "id": "language",
+              "name": "language",
+              "rmType": "CODE_PHRASE",
+              "children": []
+            },
+            {
+              "id": "encoding",
+              "name": "encoding",
+              "rmType": "CODE_PHRASE",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  };
+
+  var exampleFlat = {
+    "adverse_reaction_list/category|code": "433",
+    "adverse_reaction_list/category|value": "event",
+    "adverse_reaction_list/category|terminology": "openehr",
+    "adverse_reaction_list/language|code": "en",
+    "adverse_reaction_list/language|terminology": "ISO_639-1",
+    "adverse_reaction_list/territory|code": "CH",
+    "adverse_reaction_list/territory|terminology": "ISO_3166-1",
+    "adverse_reaction_list/composer|name": "Dr. Chregi",
+    "adverse_reaction_list/context/start_time": "2026-03-12T10:00:00Z",
+    "adverse_reaction_list/context/setting|code": "238",
+    "adverse_reaction_list/context/setting|value": "other care",
+    "adverse_reaction_list/context/setting|terminology": "openehr",
+    "adverse_reaction_list/adverse_reaction/substance|value": "Penicillin",
+    "adverse_reaction_list/adverse_reaction/substance|code": "372687004",
+    "adverse_reaction_list/adverse_reaction/substance|terminology": "SNOMED-CT",
+    "adverse_reaction_list/adverse_reaction/status|value": "active",
+    "adverse_reaction_list/adverse_reaction/status|code": "at0040",
+    "adverse_reaction_list/adverse_reaction/status|terminology": "local"
+  };
+
+  document.getElementById('wt-input').value = JSON.stringify(exampleWT, null, 2);
+  document.getElementById('flat-input').value = JSON.stringify(exampleFlat, null, 2);
+  updateCounts();
+  runValidation();
+}
+</script>
+</body>
+</html>
