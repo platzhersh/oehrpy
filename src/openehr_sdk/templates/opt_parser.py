@@ -353,7 +353,7 @@ def parse_opt(source: str | Path, *, validate: bool = False) -> TemplateDefiniti
             and validation errors are found.
     """
     is_file = isinstance(source, Path) or (
-        isinstance(source, str) and not source.strip().startswith("<")
+        isinstance(source, str) and not source.lstrip("\ufeff").strip().startswith("<")
     )
 
     if validate:
