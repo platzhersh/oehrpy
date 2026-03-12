@@ -337,16 +337,39 @@ class OPTParser:
             self._collect_nodes(child, nodes)
 
 
-def parse_opt(source: str | Path) -> TemplateDefinition:
+def parse_opt(source: str | Path, *, validate: bool = False) -> TemplateDefinition:
     """Convenience function to parse an OPT file.
 
     Args:
         source: Path to OPT file or XML string.
+        validate: If True, validate the OPT before returning.
+            Raises OPTValidationError if validation errors are found.
 
     Returns:
         Parsed TemplateDefinition.
+
+    Raises:
+        openehr_sdk.validation.opt.OPTValidationError: If validate=True
+            and validation errors are found.
     """
     parser = OPTParser()
     if isinstance(source, Path) or (isinstance(source, str) and not source.strip().startswith("<")):
-        return parser.parse_file(source)
-    return parser.parse_string(source)
+        template = parser.parse_file(source)
+    else:
+        template = parser.parse_string(source)
+
+    if validate:
+        from openehr_sdk.validation.opt import OPTValidationError, OPTValidator
+
+        validator = OPTValidator()
+        if isinstance(source, Path) or (
+            isinstance(source, str) and not source.strip().startswith("<")
+        ):
+            result = validator.validate_file(source)
+        else:
+            result = validator.validate_string(source)
+
+        if not result.is_valid:
+            raise OPTValidationError(result)
+
+    return template

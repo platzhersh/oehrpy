@@ -45,6 +45,9 @@ generator = [
     "lxml>=4.9",
 ]
 
+[project.scripts]
+oehrpy-validate-opt = "openehr_sdk.validate_opt_cli:main"
+
 [project.urls]
 Homepage = "https://github.com/platzhersh/oehrpy"
 Documentation = "https://github.com/platzhersh/oehrpy#readme"

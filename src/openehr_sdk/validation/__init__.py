@@ -1,10 +1,11 @@
-"""FLAT format validation for openEHR compositions.
+"""Validation for openEHR compositions and templates.
 
-Validates FLAT format compositions against Web Template definitions,
-catching invalid paths, wrong suffixes, and missing required fields
-before submission to a CDR.
+Provides two validators:
+- **FlatValidator**: Validates FLAT format compositions against Web Templates
+- **OPTValidator**: Validates OPT 1.4 XML templates for well-formedness,
+  semantic integrity, and FLAT path impact
 
-Example:
+Example (FLAT validation):
     >>> from openehr_sdk.validation import FlatValidator
     >>>
     >>> validator = FlatValidator.from_web_template(wt_json, platform="ehrbase")
@@ -12,12 +13,27 @@ Example:
     >>> if not result.is_valid:
     ...     for error in result.errors:
     ...         print(f"{error.path}: {error.message}")
+
+Example (OPT validation):
+    >>> from openehr_sdk.validation import OPTValidator
+    >>>
+    >>> validator = OPTValidator()
+    >>> result = validator.validate_file("template.opt")
+    >>> if not result.is_valid:
+    ...     for issue in result.errors:
+    ...         print(f"[{issue.code}] {issue.message}")
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from openehr_sdk.validation.opt import (
+    OPTValidationError,
+    OPTValidationIssue,
+    OPTValidationResult,
+    OPTValidator,
+)
 from openehr_sdk.validation.path_checker import (
     ValidationError,
     ValidationResult,
@@ -118,6 +134,12 @@ class FlatValidator:
 
 
 __all__ = [
+    # OPT validation
+    "OPTValidationError",
+    "OPTValidationIssue",
+    "OPTValidationResult",
+    "OPTValidator",
+    # FLAT validation
     "FlatValidator",
     "ParsedWebTemplate",
     "ValidationError",

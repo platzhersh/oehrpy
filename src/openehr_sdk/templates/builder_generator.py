@@ -393,6 +393,8 @@ def generate_builder_from_opt(
     opt_path: Path | str,
     output_path: Path | str | None = None,
     class_name: str | None = None,
+    *,
+    validate: bool = False,
 ) -> str:
     """Generate a builder class from an OPT file.
 
@@ -400,10 +402,24 @@ def generate_builder_from_opt(
         opt_path: Path to the OPT XML file.
         output_path: Optional path to write the generated code.
         class_name: Optional custom class name.
+        validate: If True, validate the OPT before generating.
+            Raises OPTValidationError if validation errors are found.
 
     Returns:
         Generated Python source code.
+
+    Raises:
+        openehr_sdk.validation.opt.OPTValidationError: If validate=True
+            and the OPT has validation errors.
     """
+    if validate:
+        from openehr_sdk.validation.opt import OPTValidationError, OPTValidator
+
+        validator = OPTValidator()
+        result = validator.validate_file(opt_path)
+        if not result.is_valid:
+            raise OPTValidationError(result)
+
     from .opt_parser import parse_opt
 
     template = parse_opt(opt_path)
