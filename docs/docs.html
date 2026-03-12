@@ -379,7 +379,8 @@
       </div>
       <div class="sidebar-section">
         <div class="sidebar-title">Advanced</div>
-        <a href="#validation" class="sidebar-link">Validation</a>
+        <a href="#flat-validator" class="sidebar-link">FLAT Validator</a>
+        <a href="#validation" class="sidebar-link">RM Validation</a>
         <a href="#type-safety" class="sidebar-link">Type Safety</a>
         <a href="#development" class="sidebar-link">Development</a>
       </div>
@@ -828,7 +829,78 @@ pain_scale = DV_SCALE(
         <li><code>DV_PARSABLE</code> - Parsable text in specific format</li>
       </ul>
 
-      <h2 id="validation">Validation</h2>
+      <h2 id="flat-validator">FLAT Format Validator</h2>
+      <p>The <code>FlatValidator</code> validates FLAT format compositions against Web Template definitions <em>before</em> submission to a CDR. It catches invalid paths, wrong suffixes, missing required fields, and provides "did you mean?" suggestions for renamed nodes.</p>
+
+      <div class="note">
+        <p><strong>Try it in the browser:</strong> The <a href="validator.html">FLAT Validator web tool</a> runs entirely client-side &mdash; paste your Web Template and FLAT composition and validate instantly.</p>
+      </div>
+
+      <h3>Python API</h3>
+      <pre><code><span class="keyword">from</span> openehr_sdk.validation <span class="keyword">import</span> FlatValidator
+
+<span class="comment"># Initialize with a Web Template JSON dict</span>
+validator = FlatValidator.from_web_template(web_template, platform=<span class="string">"ehrbase"</span>)
+
+<span class="comment"># Validate a FLAT composition</span>
+result = validator.validate(flat_composition)
+
+<span class="keyword">if not</span> result.is_valid:
+    <span class="keyword">for</span> error <span class="keyword">in</span> result.errors:
+        <span class="keyword">print</span>(<span class="string">f"  {error.path}: {error.message}"</span>)
+        <span class="keyword">if</span> error.suggestion:
+            <span class="keyword">print</span>(<span class="string">f"    Did you mean: {error.suggestion}"</span>)</code></pre>
+
+      <h3>Fetching from EHRBase</h3>
+      <pre><code><span class="comment"># Or fetch the Web Template directly from EHRBase</span>
+validator = <span class="keyword">await</span> FlatValidator.from_ehrbase(
+    client=ehrbase_client,
+    template_id=<span class="string">"IDCR - Adverse Reaction List.v1"</span>
+)
+
+result = validator.validate(flat_data)</code></pre>
+
+      <h3>What It Catches</h3>
+      <ul>
+        <li><strong>Unknown paths</strong> &mdash; paths not in the Web Template, with fuzzy "did you mean?" suggestions</li>
+        <li><strong>Renamed nodes</strong> &mdash; detects when a template renames a node (e.g., <code>substance</code> &rarr; <code>causative_agent</code>) and suggests the correct path</li>
+        <li><strong>Wrong suffixes</strong> &mdash; e.g., <code>|value</code> on a <code>DV_QUANTITY</code> instead of <code>|magnitude</code></li>
+        <li><strong>Index notation mismatch</strong> &mdash; EHRBase 2.x doesn't use <code>:0</code> for single-occurrence items</li>
+        <li><strong>Missing required fields</strong> &mdash; <code>category</code>, <code>language</code>, <code>territory</code>, <code>composer</code>, <code>context/start_time</code>, <code>context/setting</code></li>
+      </ul>
+
+      <h3>Platform Support</h3>
+      <p>Pass <code>platform="ehrbase"</code> or <code>platform="better"</code> to match your CDR's FLAT format dialect:</p>
+      <ul>
+        <li><strong>EHRBase 2.x</strong> &mdash; no <code>:0</code> indexing on single-occurrence items, no <code>/any_event/</code> nodes, <code>tree.id</code> prefix</li>
+        <li><strong>Better</strong> &mdash; may include <code>:0</code> indexing on tree-based nodes (the validator and tests verify that some leaf paths carry <code>:0</code>); <code>/any_event:0/</code> and <code>template_id</code> prefix support are defined in the dialect configuration but not yet implemented in the path enumerator</li>
+      </ul>
+
+      <h3>Validation Result</h3>
+      <pre><code><span class="comment"># The result contains all details</span>
+result.is_valid          <span class="comment"># bool</span>
+result.errors            <span class="comment"># list[ValidationError] - invalid paths</span>
+result.warnings          <span class="comment"># list[ValidationError] - missing required fields</span>
+result.platform          <span class="comment"># "ehrbase" or "better"</span>
+result.template_id       <span class="comment"># template ID from the Web Template</span>
+result.valid_path_count  <span class="comment"># total valid paths in the template</span>
+result.checked_path_count <span class="comment"># paths checked in the composition</span>
+
+<span class="comment"># Each error has:</span>
+error.path               <span class="comment"># the invalid path</span>
+error.error_type         <span class="comment"># "unknown_path", "wrong_suffix", "missing_required", "index_mismatch"</span>
+error.message            <span class="comment"># human-readable explanation</span>
+error.suggestion         <span class="comment"># suggested fix (if available)</span>
+error.valid_alternatives <span class="comment"># list of alternative valid paths</span></code></pre>
+
+      <h3>Exploring Valid Paths</h3>
+      <pre><code><span class="comment"># List all valid FLAT paths for a template</span>
+validator = FlatValidator.from_web_template(wt, platform=<span class="string">"ehrbase"</span>)
+
+<span class="keyword">for</span> path <span class="keyword">in</span> validator.valid_paths:
+    <span class="keyword">print</span>(path)</code></pre>
+
+      <h2 id="validation">RM Validation</h2>
       <p>oehrpy uses Pydantic v2 for comprehensive validation.</p>
 
       <h3>Automatic Validation</h3>
@@ -900,6 +972,7 @@ mypy src/openehr_sdk</code></pre>
 │   ├── serialization/     <span class="comment"># JSON serialization</span>
 │   ├── client/            <span class="comment"># EHRBase REST client</span>
 │   ├── templates/         <span class="comment"># Template builders</span>
+│   ├── validation/        <span class="comment"># FLAT format validator</span>
 │   └── aql/               <span class="comment"># AQL query builder</span>
 ├── generator/             <span class="comment"># Code generation tools</span>
 ├── tests/                 <span class="comment"># Test suite</span>
