@@ -1349,17 +1349,18 @@ function clearAll() {
 function swapPanels() {
   if (!lastOutput) return;
 
+  const payload = lastOutput;
   const editor = document.getElementById('input-editor');
 
-  // Swap mode
+  // Swap mode (triggers convert(), which clears lastOutput — hence the save above)
   if (currentMode === 'canonical') {
     setMode('flat');
   } else {
     setMode('canonical');
   }
 
-  // Put last output into input
-  editor.value = lastOutput;
+  // Put saved output into input and re-convert
+  editor.value = payload;
   convert();
 }
 
