@@ -90,7 +90,9 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.3);
       z-index: 200;
     }
-    .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+    .nav-dropdown:hover .nav-dropdown-menu,
+    .nav-dropdown:focus-within .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a:focus { background: #2d2d4d; color: #f3f4f6; outline: none; }
     .nav-dropdown-menu a {
       display: block;
       padding: 8px 16px;
@@ -388,7 +390,7 @@
       <a href="index.html">Home</a>
       <a href="docs.html" class="active">Docs</a>
       <div class="nav-dropdown">
-        <button class="nav-dropdown-btn">Tools <span class="dropdown-arrow">&#9662;</span></button>
+        <button class="nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">Tools <span class="dropdown-arrow">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="validator.html">Validator</a>
           <a href="converter.html">Converter</a>

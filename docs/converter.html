@@ -156,7 +156,9 @@
     box-shadow: 0 8px 24px rgba(0,0,0,0.3);
     z-index: 200;
   }
-  .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+  .nav-dropdown:hover .nav-dropdown-menu,
+  .nav-dropdown:focus-within .nav-dropdown-menu { display: block; }
+  .nav-dropdown-menu a:focus { background: var(--surface2); color: var(--text); outline: none; }
   .nav-dropdown-menu a {
     display: block;
     padding: 8px 16px;
@@ -570,7 +572,7 @@
       <a href="index.html">Home</a>
       <a href="docs.html">Docs</a>
       <div class="nav-dropdown">
-        <button class="nav-dropdown-btn active">Tools <span class="dropdown-arrow">&#9662;</span></button>
+        <button class="nav-dropdown-btn active" aria-haspopup="true" aria-expanded="false">Tools <span class="dropdown-arrow">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="validator.html">Validator</a>
           <a href="converter.html" class="active">Converter</a>
@@ -1363,6 +1365,28 @@ document.getElementById('input-editor').addEventListener('keydown', function(e) 
     this.selectionStart = this.selectionEnd = start + 2;
   }
 });
+
+// Nav dropdown accessibility
+(function() {
+  var dropdown = document.querySelector('.nav-dropdown');
+  var btn = dropdown ? dropdown.querySelector('.nav-dropdown-btn') : null;
+  if (!dropdown || !btn) return;
+  function updateExpanded() {
+    var menu = dropdown.querySelector('.nav-dropdown-menu');
+    var isOpen = menu && getComputedStyle(menu).display !== 'none';
+    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function() { btn.focus(); });
+  dropdown.addEventListener('mouseenter', updateExpanded);
+  dropdown.addEventListener('mouseleave', updateExpanded);
+  dropdown.addEventListener('focusin', updateExpanded);
+  dropdown.addEventListener('focusout', function() {
+    setTimeout(function() { if (!dropdown.contains(document.activeElement)) updateExpanded(); }, 0);
+  });
+  dropdown.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { btn.setAttribute('aria-expanded', 'false'); btn.focus(); btn.blur(); }
+  });
+})();
 </script>
 </body>
 </html>
