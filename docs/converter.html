@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>oehrpy · Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #252540;
+    --surface2: #2d2d4d;
+    --surface3: #3b3b5c;
+    --border: #2d2d4d;
+    --border-bright: #4b4b6c;
+    --text: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-dim: #6b7280;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.15);
+    --accent-dim: rgba(59, 130, 246, 0.08);
+    --green: #10b981;
+    --green-dim: rgba(16, 185, 129, 0.08);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.08);
+    --yellow: #f59e0b;
+    --yellow-dim: rgba(245, 158, 11, 0.08);
+    --purple: #a78bfa;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .logo-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .logo-header span {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  header nav {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  header nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 15px;
+    transition: color 0.2s;
+  }
+
+  header nav a:hover,
+  header nav a.active {
+    color: var(--text);
+  }
+
+  .github-link {
+    background: var(--surface);
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: var(--text) !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .github-link:hover {
+    background: var(--surface2);
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(59,130,246,0.2);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Nav Dropdown ── */
+  .nav-dropdown {
+    position: relative;
+  }
+  .nav-dropdown-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+  }
+  .nav-dropdown-btn:hover { color: var(--text); }
+  .nav-dropdown-btn.active { color: var(--text); }
+  .dropdown-arrow { font-size: 10px; }
+  .nav-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    padding: 6px 0;
+    min-width: 160px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    z-index: 200;
+  }
+  .nav-dropdown.is-open .nav-dropdown-menu { display: block; }
+  .nav-dropdown-menu a:focus { background: var(--surface2); color: var(--text); outline: none; }
+  .nav-dropdown-menu a {
+    display: block;
+    padding: 8px 16px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .nav-dropdown-menu a:hover { background: var(--surface2); color: var(--text); }
+  .nav-dropdown-menu a.active { color: var(--accent); }
+
+  /* ── Mode toggle ── */
+  .mode-bar {
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .mode-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  .mode-toggle {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .mode-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+
+  .mode-btn:hover { color: var(--text); background: var(--surface3); }
+
+  .mode-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #fff;
+  }
+
+  /* ── Platform selector ── */
+  .platform-bar {
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .platform-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  .platform-toggle {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .platform-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+
+  .platform-btn:hover { color: var(--text); background: var(--surface3); }
+
+  .platform-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #fff;
+  }
+
+  .platform-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 3px 10px;
+    background: var(--surface2);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .toolbar-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 5px;
+    border: 1px solid var(--border-bright);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .toolbar-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .toolbar-spacer {
+    margin-left: auto;
+  }
+
+  /* ── Converter panels ── */
+  .converter-container {
+    flex: 1;
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .panel + .panel {
+    border-left: 1px solid var(--border);
+  }
+
+  .panel-header {
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  .panel-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+  }
+
+  .panel-badge.input-badge {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+
+  .panel-badge.output-badge {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+
+  .panel-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+
+  .panel-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border-bright);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .panel-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .panel-btn.copied {
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+  }
+
+  #input-editor {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    tab-size: 2;
+  }
+
+  #input-editor::placeholder {
+    color: var(--text-dim);
+  }
+
+  #input-editor.has-error {
+    border-right: 3px solid var(--red);
+  }
+
+  .output-display {
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 400px;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .output-display .json-key { color: #7dd3fc; }
+  .output-display .json-string { color: #86efac; }
+  .output-display .json-number { color: #fbbf24; }
+  .output-display .json-boolean { color: #c4b5fd; }
+  .output-display .json-null { color: #9ca3af; }
+  .output-display .json-brace { color: var(--text-muted); }
+
+  .output-placeholder {
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  /* ── Error bar ── */
+  .error-bar {
+    padding: 10px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    min-height: 40px;
+  }
+
+  .error-bar.has-error {
+    border-top-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .error-icon {
+    font-size: 14px;
+  }
+
+  .error-message {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--red);
+  }
+
+  .info-message {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .warning-message {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--yellow);
+  }
+
+  .stats {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 20px 40px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text-dim);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  footer .sep { color: var(--border); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    header {
+      padding: 16px 20px;
+    }
+    header nav {
+      gap: 16px;
+    }
+    .github-link {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+    .converter-container {
+      flex-direction: column;
+    }
+    .panel + .panel {
+      border-left: none;
+      border-top: 1px solid var(--border);
+    }
+    #input-editor {
+      min-height: 250px;
+    }
+    .output-display {
+      min-height: 250px;
+    }
+    .mode-bar, .platform-bar {
+      flex-wrap: wrap;
+      height: auto;
+      padding: 10px 16px;
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    header {
+      padding: 12px 16px;
+    }
+    header nav {
+      gap: 12px;
+    }
+    .logo-header span {
+      font-size: 20px;
+    }
+    footer {
+      padding: 16px;
+      font-size: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <a href="index.html" class="logo-header"><span>oehrpy</span></a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="docs.html">Docs</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn active" aria-haspopup="true" aria-expanded="false">Tools <span class="dropdown-arrow">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="validator.html">Validator</a>
+          <a href="converter.html" class="active">Converter</a>
+          <a href="explorer.html">Explorer</a>
+        </div>
+      </div>
+      <a href="brand-kit.html">Brand Kit</a>
+      <span class="badge">v0.4.0</span>
+      <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
+    </nav>
+  </header>
+
+  <!-- Mode bar -->
+  <div class="mode-bar">
+    <span class="mode-label">Mode</span>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-canonical" onclick="setMode('canonical')">Canonical &rarr; FLAT</button>
+      <button class="mode-btn" id="mode-flat" onclick="setMode('flat')">FLAT &rarr; Tree</button>
+    </div>
+  </div>
+
+  <!-- Platform bar -->
+  <div class="platform-bar">
+    <span class="platform-label">Platform</span>
+    <div class="platform-toggle">
+      <button class="platform-btn active" id="plat-ehrbase" onclick="setPlatform('ehrbase')">EHRBase 2.x</button>
+      <button class="platform-btn" id="plat-better" onclick="setPlatform('better')">Better</button>
+    </div>
+    <span class="platform-hint" id="platform-hint">No :0 index on single-occurrence nodes</span>
+    <button class="toolbar-btn" onclick="loadExample()">Load Example</button>
+    <button class="toolbar-btn" onclick="clearAll()">Clear</button>
+    <button class="toolbar-btn" onclick="swapPanels()">Swap &#8644;</button>
+  </div>
+
+  <!-- Converter panels -->
+  <div class="converter-container">
+    <!-- Input panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Input</span>
+        <span class="panel-badge input-badge" id="input-format-badge">CANONICAL JSON</span>
+      </div>
+      <div class="panel-body">
+        <textarea id="input-editor" spellcheck="false" placeholder="Paste canonical JSON here..."></textarea>
+      </div>
+    </div>
+
+    <!-- Output panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Output</span>
+        <span class="panel-badge output-badge" id="output-format-badge">FLAT</span>
+        <div class="panel-actions">
+          <button class="panel-btn" id="copy-btn" onclick="copyOutput()">Copy</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="output-display" id="output-display">
+          <div class="output-placeholder">Output will appear here as you type...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error bar -->
+  <div class="error-bar" id="error-bar">
+    <span class="info-message" id="error-message">Ready</span>
+    <span class="stats" id="stats"></span>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <span>Built with JavaScript and openEHR</span>
+    <span class="sep">|</span>
+    <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
+    <span class="sep">|</span>
+    <a href="docs.html">Docs</a>
+    <span class="sep">|</span>
+    <a href="brand-kit.html">Brand Kit</a>
+    <span class="sep">|</span>
+    <span>100% client-side</span>
+  </footer>
+
+</div>
+
+<script>
+// ── State ──
+let currentMode = 'canonical';  // 'canonical' or 'flat'
+let currentPlatform = 'ehrbase'; // 'ehrbase' or 'better'
+let debounceTimer = null;
+let lastOutput = '';
+
+// ── DV_TYPE_MAP ──
+const DV_TYPE_MAP = {
+  DV_QUANTITY: { magnitude: 'magnitude', units: 'unit', precision: 'precision' },
+  DV_CODED_TEXT: { value: 'value', defining_code: null },
+  DV_TEXT: { value: 'value' },
+  DV_DATE_TIME: { value: null },
+  DV_BOOLEAN: { value: null },
+  DV_COUNT: { magnitude: 'magnitude' },
+  DV_ORDINAL: { value: 'ordinal', symbol: null },
+  DV_PROPORTION: { numerator: 'numerator', denominator: 'denominator', type: 'type' },
+  DV_DURATION: { value: 'value' },
+  DV_IDENTIFIER: { id: 'id', type: 'type', issuer: 'issuer', assigner: 'assigner' },
+  DV_URI: { value: null },
+  DV_PARSABLE: { value: 'value', formalism: 'formalism' },
+  CODE_PHRASE: { code_string: 'code', terminology_id: null },
+};
+
+// ── Example data ──
+const EXAMPLE_CANONICAL = {
+  "_type": "COMPOSITION",
+  "name": { "_type": "DV_TEXT", "value": "Vital Signs" },
+  "archetype_details": {
+    "archetype_id": { "value": "openEHR-EHR-COMPOSITION.encounter.v1" },
+    "template_id": { "value": "Vital Signs" }
+  },
+  "language": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "ISO_639-1" },
+    "code_string": "en"
+  },
+  "territory": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "ISO_3166-1" },
+    "code_string": "CH"
+  },
+  "composer": {
+    "_type": "PARTY_IDENTIFIED",
+    "name": "Dr. Chregi"
+  },
+  "context": {
+    "_type": "EVENT_CONTEXT",
+    "start_time": { "_type": "DV_DATE_TIME", "value": "2026-03-13T10:00:00Z" }
+  },
+  "content": [
+    {
+      "_type": "OBSERVATION",
+      "name": { "_type": "DV_TEXT", "value": "Blood pressure" },
+      "archetype_node_id": "at0000",
+      "data": {
+        "name": { "_type": "DV_TEXT", "value": "history" },
+        "events": [
+          {
+            "_type": "POINT_EVENT",
+            "name": { "_type": "DV_TEXT", "value": "any_event" },
+            "data": {
+              "items": [
+                {
+                  "_type": "ELEMENT",
+                  "name": { "_type": "DV_TEXT", "value": "Systolic" },
+                  "value": { "_type": "DV_QUANTITY", "magnitude": 120, "units": "mm[Hg]" }
+                },
+                {
+                  "_type": "ELEMENT",
+                  "name": { "_type": "DV_TEXT", "value": "Diastolic" },
+                  "value": { "_type": "DV_QUANTITY", "magnitude": 80, "units": "mm[Hg]" }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "_type": "OBSERVATION",
+      "name": { "_type": "DV_TEXT", "value": "Pulse" },
+      "archetype_node_id": "at0000",
+      "data": {
+        "name": { "_type": "DV_TEXT", "value": "history" },
+        "events": [
+          {
+            "_type": "POINT_EVENT",
+            "name": { "_type": "DV_TEXT", "value": "any_event" },
+            "data": {
+              "items": [
+                {
+                  "_type": "ELEMENT",
+                  "name": { "_type": "DV_TEXT", "value": "Rate" },
+                  "value": { "_type": "DV_QUANTITY", "magnitude": 72, "units": "/min" }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+};
+
+const EXAMPLE_FLAT = {
+  "vital_signs/language|code": "en",
+  "vital_signs/language|terminology": "ISO_639-1",
+  "vital_signs/territory|code": "CH",
+  "vital_signs/territory|terminology": "ISO_3166-1",
+  "vital_signs/composer|name": "Dr. Chregi",
+  "vital_signs/context/start_time": "2026-03-13T10:00:00Z",
+  "vital_signs/blood_pressure/any_event/systolic|magnitude": 120,
+  "vital_signs/blood_pressure/any_event/systolic|unit": "mm[Hg]",
+  "vital_signs/blood_pressure/any_event/diastolic|magnitude": 80,
+  "vital_signs/blood_pressure/any_event/diastolic|unit": "mm[Hg]",
+  "vital_signs/pulse/any_event/rate|magnitude": 72,
+  "vital_signs/pulse/any_event/rate|unit": "/min"
+};
+
+// ── Mode / Platform switching ──
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('mode-canonical').classList.toggle('active', mode === 'canonical');
+  document.getElementById('mode-flat').classList.toggle('active', mode === 'flat');
+
+  const inputBadge = document.getElementById('input-format-badge');
+  const outputBadge = document.getElementById('output-format-badge');
+  const editor = document.getElementById('input-editor');
+
+  if (mode === 'canonical') {
+    inputBadge.textContent = 'CANONICAL JSON';
+    outputBadge.textContent = 'FLAT';
+    editor.placeholder = 'Paste canonical JSON here...';
+  } else {
+    inputBadge.textContent = 'FLAT JSON';
+    outputBadge.textContent = 'TREE';
+    editor.placeholder = 'Paste FLAT JSON here...';
+  }
+
+  convert();
+}
+
+function setPlatform(platform) {
+  currentPlatform = platform;
+  document.getElementById('plat-ehrbase').classList.toggle('active', platform === 'ehrbase');
+  document.getElementById('plat-better').classList.toggle('active', platform === 'better');
+
+  const hint = document.getElementById('platform-hint');
+  if (platform === 'ehrbase') {
+    hint.textContent = 'No :0 index on single-occurrence nodes';
+  } else {
+    hint.textContent = ':0 index on all multi-valued nodes';
+  }
+
+  convert();
+}
+
+// ── Canonical -> FLAT conversion ──
+function canonicalToFlat(obj, platform) {
+  const result = {};
+
+  // Extract composition name for tree ID prefix
+  let compositionName = '';
+  if (obj.name && typeof obj.name === 'object' && obj.name.value) {
+    compositionName = obj.name.value.toLowerCase().replace(/\s+/g, '_');
+  } else if (obj.name && typeof obj.name === 'string') {
+    compositionName = obj.name.toLowerCase().replace(/\s+/g, '_');
+  }
+
+  function expandCodePhrase(basePath, codeObj) {
+    if (codeObj.code_string !== undefined) {
+      result[basePath + '|code'] = codeObj.code_string;
+    }
+    if (codeObj.terminology_id) {
+      const termVal = typeof codeObj.terminology_id === 'object'
+        ? (codeObj.terminology_id.value || codeObj.terminology_id)
+        : codeObj.terminology_id;
+      result[basePath + '|terminology'] = termVal;
+    }
+  }
+
+  function expandDvType(basePath, type, valueObj) {
+    switch (type) {
+      case 'DV_QUANTITY':
+        if (valueObj.magnitude !== undefined) result[basePath + '|magnitude'] = valueObj.magnitude;
+        if (valueObj.units !== undefined) result[basePath + '|unit'] = valueObj.units;
+        if (valueObj.precision !== undefined) result[basePath + '|precision'] = valueObj.precision;
+        break;
+      case 'DV_CODED_TEXT':
+        if (valueObj.value !== undefined) result[basePath + '|value'] = valueObj.value;
+        if (valueObj.defining_code) {
+          expandCodePhrase(basePath, valueObj.defining_code);
+        }
+        break;
+      case 'DV_TEXT':
+        if (valueObj.value !== undefined) result[basePath + '|value'] = valueObj.value;
+        break;
+      case 'DV_DATE_TIME':
+        if (valueObj.value !== undefined) result[basePath] = valueObj.value;
+        break;
+      case 'DV_BOOLEAN':
+        if (valueObj.value !== undefined) result[basePath] = valueObj.value;
+        break;
+      case 'DV_COUNT':
+        if (valueObj.magnitude !== undefined) result[basePath + '|magnitude'] = valueObj.magnitude;
+        break;
+      case 'DV_ORDINAL':
+        if (valueObj.value !== undefined) result[basePath + '|ordinal'] = valueObj.value;
+        if (valueObj.symbol) {
+          if (valueObj.symbol.value !== undefined) result[basePath + '|value'] = valueObj.symbol.value;
+          if (valueObj.symbol.defining_code) {
+            expandCodePhrase(basePath, valueObj.symbol.defining_code);
+          }
+        }
+        break;
+      case 'DV_PROPORTION':
+        if (valueObj.numerator !== undefined) result[basePath + '|numerator'] = valueObj.numerator;
+        if (valueObj.denominator !== undefined) result[basePath + '|denominator'] = valueObj.denominator;
+        if (valueObj.type !== undefined) result[basePath + '|type'] = valueObj.type;
+        break;
+      case 'DV_DURATION':
+        if (valueObj.value !== undefined) result[basePath + '|value'] = valueObj.value;
+        break;
+      case 'DV_IDENTIFIER':
+        if (valueObj.id !== undefined) result[basePath + '|id'] = valueObj.id;
+        if (valueObj.type !== undefined) result[basePath + '|type'] = valueObj.type;
+        if (valueObj.issuer !== undefined) result[basePath + '|issuer'] = valueObj.issuer;
+        if (valueObj.assigner !== undefined) result[basePath + '|assigner'] = valueObj.assigner;
+        break;
+      case 'DV_URI':
+        if (valueObj.value !== undefined) result[basePath] = valueObj.value;
+        break;
+      case 'DV_PARSABLE':
+        if (valueObj.value !== undefined) result[basePath + '|value'] = valueObj.value;
+        if (valueObj.formalism !== undefined) result[basePath + '|formalism'] = valueObj.formalism;
+        break;
+      case 'CODE_PHRASE':
+        expandCodePhrase(basePath, valueObj);
+        break;
+      default:
+        return false;
+    }
+    return true;
+  }
+
+  // Keys to skip during structural walk (RM metadata, not clinical data paths)
+  const SKIP_KEYS = new Set(['_type', 'archetype_details', 'archetype_node_id', 'uid']);
+
+  // Keys whose child names should be used as path segments
+  const NAMED_CONTAINER_KEYS = new Set(['content', 'items', 'events', 'data', 'activities', 'description', 'protocol', 'state']);
+
+  function walk(obj, path) {
+    if (obj === null || obj === undefined) return;
+    if (typeof obj !== 'object') return;
+
+    const type = obj._type;
+
+    // Handle known DV types at this level
+    if (type && type in DV_TYPE_MAP) {
+      expandDvType(path, type, obj);
+      return;
+    }
+
+    // Handle PARTY_IDENTIFIED (composer)
+    if (type === 'PARTY_IDENTIFIED') {
+      if (obj.name !== undefined) result[path + '|name'] = obj.name;
+      if (obj.identifiers) {
+        obj.identifiers.forEach(function(ident, i) {
+          const idxPath = platform === 'better' ? path + ':' + i : path;
+          if (ident.id !== undefined) result[idxPath + '|id'] = ident.id;
+          if (ident.type !== undefined) result[idxPath + '|type'] = ident.type;
+          if (ident.issuer !== undefined) result[idxPath + '|issuer'] = ident.issuer;
+          if (ident.assigner !== undefined) result[idxPath + '|assigner'] = ident.assigner;
+        });
+      }
+      return;
+    }
+
+    for (const key of Object.keys(obj)) {
+      if (SKIP_KEYS.has(key)) continue;
+
+      const value = obj[key];
+      if (value === null || value === undefined) continue;
+
+      // Determine the path segment name
+      let segmentName = key;
+
+      // For structural containers, use the child object's name if available
+      if (NAMED_CONTAINER_KEYS.has(key) && typeof value === 'object') {
+        // If value is an array, walk each item using item's name as path segment
+        if (Array.isArray(value)) {
+          // Group items by resolved name to determine which need indexing
+          const nameGroups = {};
+          const resolvedItems = value.map(function(item) {
+            let itemName = key;
+            if (typeof item === 'object' && item !== null && item.name) {
+              const nameVal = typeof item.name === 'object' ? item.name.value : item.name;
+              if (nameVal) itemName = nameVal.toLowerCase().replace(/\s+/g, '_');
+            }
+            if (!nameGroups[itemName]) nameGroups[itemName] = [];
+            const idx = nameGroups[itemName].length;
+            nameGroups[itemName].push(item);
+            return { item: item, itemName: itemName, nameIdx: idx };
+          });
+
+          resolvedItems.forEach(function(entry) {
+            if (typeof entry.item === 'object' && entry.item !== null) {
+              const itemPath = path ? path + '/' + entry.itemName : entry.itemName;
+              // Add index when multiple items share the same name, or always for Better
+              let indexedPath = itemPath;
+              if (nameGroups[entry.itemName].length > 1 || platform === 'better') {
+                indexedPath = itemPath + ':' + entry.nameIdx;
+              }
+              walk(entry.item, indexedPath);
+            } else {
+              const arrPath = path ? path + '/' + key : key;
+              const indexedPath = platform === 'better' ? arrPath + ':' + entry.nameIdx : arrPath;
+              result[indexedPath] = entry.item;
+            }
+          });
+          continue;
+        }
+
+        // value is an object but not array - pass through structurally
+        // (e.g., data container without being an array)
+        if (value.name) {
+          const nameVal = typeof value.name === 'object' ? value.name.value : value.name;
+          if (nameVal && NAMED_CONTAINER_KEYS.has(key)) {
+            // Skip the container key, use child's name only if it adds info
+            walk(value, path);
+            continue;
+          }
+        }
+        walk(value, path);
+        continue;
+      }
+
+      const currentPath = path ? path + '/' + segmentName : segmentName;
+
+      if (Array.isArray(value)) {
+        value.forEach(function(item, i) {
+          const indexedPath = (value.length > 1 || platform === 'better')
+            ? currentPath + ':' + i
+            : currentPath;
+          if (typeof item === 'object' && item !== null) {
+            walk(item, indexedPath);
+          } else {
+            result[indexedPath] = item;
+          }
+        });
+      } else if (typeof value === 'object') {
+        const valueType = value._type;
+        if (valueType && valueType in DV_TYPE_MAP) {
+          expandDvType(currentPath, valueType, value);
+        } else {
+          walk(value, currentPath);
+        }
+      } else {
+        result[currentPath] = value;
+      }
+    }
+  }
+
+  // Start walk from composition level, using composition name as prefix
+  const prefix = compositionName || 'composition';
+
+  // Walk top-level keys of the composition
+  for (const key of Object.keys(obj)) {
+    if (SKIP_KEYS.has(key)) continue;
+    if (key === 'name') continue; // already used for prefix
+
+    const value = obj[key];
+    if (value === null || value === undefined) continue;
+
+    if (NAMED_CONTAINER_KEYS.has(key)) {
+      // content, items, etc - walk children using their names
+      if (Array.isArray(value)) {
+        // Group by resolved name for correct indexing
+        const nameGroups = {};
+        const resolvedItems = value.map(function(item) {
+          let itemName = key;
+          if (typeof item === 'object' && item !== null && item.name) {
+            const nameVal = typeof item.name === 'object' ? item.name.value : item.name;
+            if (nameVal) itemName = nameVal.toLowerCase().replace(/\s+/g, '_');
+          }
+          if (!nameGroups[itemName]) nameGroups[itemName] = [];
+          const idx = nameGroups[itemName].length;
+          nameGroups[itemName].push(item);
+          return { item: item, itemName: itemName, nameIdx: idx };
+        });
+
+        resolvedItems.forEach(function(entry) {
+          if (typeof entry.item === 'object' && entry.item !== null) {
+            const itemPath = prefix + '/' + entry.itemName;
+            const indexedPath = (nameGroups[entry.itemName].length > 1 || platform === 'better')
+              ? itemPath + ':' + entry.nameIdx
+              : itemPath;
+            walk(entry.item, indexedPath);
+          }
+        });
+      } else if (typeof value === 'object') {
+        walk(value, prefix);
+      }
+    } else {
+      const currentPath = prefix + '/' + key;
+      if (typeof value === 'object' && value !== null) {
+        const valueType = value._type;
+        if (valueType && valueType in DV_TYPE_MAP) {
+          expandDvType(currentPath, valueType, value);
+        } else {
+          walk(value, currentPath);
+        }
+      } else {
+        result[currentPath] = value;
+      }
+    }
+  }
+
+  // Better platform: map composition-level context fields to ctx/ prefix
+  if (platform === 'better') {
+    const CTX_MAP = {};
+    CTX_MAP[prefix + '/language|code'] = 'ctx/language';
+    CTX_MAP[prefix + '/language|terminology'] = null; // implied
+    CTX_MAP[prefix + '/territory|code'] = 'ctx/territory';
+    CTX_MAP[prefix + '/territory|terminology'] = null;
+    CTX_MAP[prefix + '/composer|name'] = 'ctx/composer_name';
+    CTX_MAP[prefix + '/context/start_time'] = 'ctx/time';
+    CTX_MAP[prefix + '/context/setting|code'] = 'ctx/setting';
+    CTX_MAP[prefix + '/context/setting|value'] = null;
+    CTX_MAP[prefix + '/context/setting|terminology'] = null;
+
+    for (const [oldKey, newKey] of Object.entries(CTX_MAP)) {
+      if (oldKey in result) {
+        if (newKey) {
+          result[newKey] = result[oldKey];
+        }
+        delete result[oldKey];
+      }
+    }
+  }
+
+  return result;
+}
+
+// ── FLAT -> Tree conversion ──
+function flatToTree(flat) {
+  const RESERVED_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+  const root = Object.create(null);
+
+  for (const [key, value] of Object.entries(flat)) {
+    // Validate flat structure
+    if (typeof value === 'object' && value !== null) {
+      continue; // skip nested objects (not valid FLAT)
+    }
+
+    // Split on / for path segments
+    const segments = key.split('/');
+    let current = root;
+
+    for (let si = 0; si < segments.length; si++) {
+      let segment = segments[si];
+      const isLast = si === segments.length - 1;
+
+      // Parse |attr suffix on last segment
+      let attr = null;
+      if (isLast) {
+        const pipeIdx = segment.indexOf('|');
+        if (pipeIdx !== -1) {
+          attr = segment.substring(pipeIdx + 1);
+          segment = segment.substring(0, pipeIdx);
+        }
+      }
+
+      // Parse :N index notation
+      let index = null;
+      const colonMatch = segment.match(/^(.+):(\d+)$/);
+      if (colonMatch) {
+        segment = colonMatch[1];
+        index = parseInt(colonMatch[2], 10);
+      }
+
+      // Guard against prototype pollution
+      if (RESERVED_KEYS.has(segment) || (attr && RESERVED_KEYS.has(attr))) {
+        break;
+      }
+
+      if (index !== null) {
+        // Array access
+        if (!(segment in current)) {
+          current[segment] = [];
+        }
+        if (!Array.isArray(current[segment])) {
+          // Convert to array if needed
+          const existing = current[segment];
+          current[segment] = [existing];
+        }
+        while (current[segment].length <= index) {
+          current[segment].push({});
+        }
+        if (typeof current[segment][index] !== 'object' || current[segment][index] === null) {
+          current[segment][index] = {};
+        }
+
+        if (isLast) {
+          if (attr) {
+            if (typeof current[segment][index] !== 'object') {
+              current[segment][index] = {};
+            }
+            current[segment][index][attr] = value;
+          } else {
+            current[segment][index] = value;
+          }
+        } else {
+          current = current[segment][index];
+        }
+      } else {
+        // Object access
+        if (isLast) {
+          if (attr) {
+            if (!(segment in current) || typeof current[segment] !== 'object') {
+              current[segment] = {};
+            }
+            current[segment][attr] = value;
+          } else {
+            current[segment] = value;
+          }
+        } else {
+          if (!(segment in current) || typeof current[segment] !== 'object' || current[segment] === null) {
+            current[segment] = {};
+          }
+          current = current[segment];
+        }
+      }
+    }
+  }
+
+  return root;
+}
+
+// ── JSON Syntax Highlighting ──
+function highlightJSON(json) {
+  const str = typeof json === 'string' ? json : JSON.stringify(json, null, 2);
+  const escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return escaped.replace(/("(?:[^"\\]|\\.)*")\s*:/g, '<span class="json-key">$1</span>:')
+            .replace(/:\s*("(?:[^"\\]|\\.)*")/g, ': <span class="json-string">$1</span>')
+            .replace(/:\s*(-?\d+\.?\d*(?:[eE][+-]?\d+)?)/g, ': <span class="json-number">$1</span>')
+            .replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>')
+            .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>')
+            .replace(/([{}\[\]])/g, '<span class="json-brace">$1</span>');
+}
+
+// ── Convert ──
+function convert() {
+  const editor = document.getElementById('input-editor');
+  const outputDisplay = document.getElementById('output-display');
+  const errorBar = document.getElementById('error-bar');
+  const errorMessage = document.getElementById('error-message');
+  const stats = document.getElementById('stats');
+
+  const input = editor.value.trim();
+
+  if (!input) {
+    outputDisplay.innerHTML = '<div class="output-placeholder">Output will appear here as you type...</div>';
+    editor.classList.remove('has-error');
+    errorBar.classList.remove('has-error');
+    errorMessage.className = 'info-message';
+    errorMessage.textContent = 'Ready';
+    stats.textContent = '';
+    lastOutput = '';
+    return;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(input);
+  } catch (e) {
+    editor.classList.add('has-error');
+    errorBar.classList.add('has-error');
+    errorMessage.className = 'error-message';
+    const match = e.message.match(/position (\d+)/);
+    if (match) {
+      const pos = parseInt(match[1], 10);
+      const lines = input.substring(0, pos).split('\n');
+      errorMessage.textContent = 'Invalid JSON at line ' + lines.length + ': ' + e.message;
+    } else {
+      errorMessage.textContent = 'Invalid JSON: ' + e.message;
+    }
+    stats.textContent = '';
+    outputDisplay.innerHTML = '<div class="output-placeholder" style="color: var(--red);">Fix JSON errors to see output</div>';
+    lastOutput = '';
+    return;
+  }
+
+  editor.classList.remove('has-error');
+  errorBar.classList.remove('has-error');
+
+  // Validate type
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    errorMessage.className = 'warning-message';
+    errorMessage.textContent = 'Expected a JSON object, got ' + (Array.isArray(parsed) ? 'array' : typeof parsed);
+    stats.textContent = '';
+    outputDisplay.innerHTML = '<div class="output-placeholder" style="color: var(--yellow);">Input must be a JSON object</div>';
+    lastOutput = '';
+    return;
+  }
+
+  let result;
+  let warnings = [];
+
+  if (currentMode === 'canonical') {
+    // Canonical -> FLAT
+    if (!parsed._type) {
+      warnings.push('No _type field found -- converting structurally without type-aware attribute mapping');
+    }
+    try {
+      result = canonicalToFlat(parsed, currentPlatform);
+    } catch (e) {
+      errorMessage.className = 'error-message';
+      errorMessage.textContent = 'Conversion error: ' + e.message;
+      stats.textContent = '';
+      outputDisplay.innerHTML = '<div class="output-placeholder" style="color: var(--red);">Conversion failed</div>';
+      lastOutput = '';
+      return;
+    }
+
+    const keyCount = Object.keys(result).length;
+    stats.textContent = keyCount + ' FLAT path' + (keyCount !== 1 ? 's' : '') + ' generated';
+  } else {
+    // FLAT -> Tree
+    // Check for nested values
+    for (const [key, val] of Object.entries(parsed)) {
+      if (typeof val === 'object' && val !== null) {
+        warnings.push("Key '" + key + "' has a nested object value -- expected flat key-value pairs");
+      }
+    }
+    try {
+      result = flatToTree(parsed);
+    } catch (e) {
+      errorMessage.className = 'error-message';
+      errorMessage.textContent = 'Conversion error: ' + e.message;
+      stats.textContent = '';
+      outputDisplay.innerHTML = '<div class="output-placeholder" style="color: var(--red);">Conversion failed</div>';
+      lastOutput = '';
+      return;
+    }
+
+    const inputKeys = Object.keys(parsed).length;
+    stats.textContent = inputKeys + ' FLAT path' + (inputKeys !== 1 ? 's' : '') + ' unflattened';
+  }
+
+  // Display result
+  const jsonStr = JSON.stringify(result, null, 2);
+  lastOutput = jsonStr;
+  outputDisplay.innerHTML = highlightJSON(jsonStr);
+
+  // Update status
+  if (warnings.length > 0) {
+    errorMessage.className = 'warning-message';
+    errorMessage.textContent = warnings[0];
+  } else {
+    errorMessage.className = 'info-message';
+    errorMessage.textContent = 'Conversion successful';
+  }
+}
+
+// ── Debounced input handler ──
+document.getElementById('input-editor').addEventListener('input', function() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(convert, 300);
+});
+
+// ── Button handlers ──
+function loadExample() {
+  const editor = document.getElementById('input-editor');
+  if (currentMode === 'canonical') {
+    editor.value = JSON.stringify(EXAMPLE_CANONICAL, null, 2);
+  } else {
+    editor.value = JSON.stringify(EXAMPLE_FLAT, null, 2);
+  }
+  convert();
+}
+
+function clearAll() {
+  document.getElementById('input-editor').value = '';
+  lastOutput = '';
+  convert();
+}
+
+function swapPanels() {
+  if (!lastOutput) return;
+
+  const payload = lastOutput;
+  const editor = document.getElementById('input-editor');
+
+  // Swap mode (triggers convert(), which clears lastOutput — hence the save above)
+  if (currentMode === 'canonical') {
+    setMode('flat');
+  } else {
+    setMode('canonical');
+  }
+
+  // Put saved output into input and re-convert
+  editor.value = payload;
+  convert();
+}
+
+function copyOutput() {
+  if (!lastOutput) return;
+
+  navigator.clipboard.writeText(lastOutput).then(function() {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(function() {
+    // Fallback
+    const textarea = document.createElement('textarea');
+    textarea.value = lastOutput;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ── Tab key support in textarea ──
+document.getElementById('input-editor').addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = this.selectionStart;
+    const end = this.selectionEnd;
+    this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+    this.selectionStart = this.selectionEnd = start + 2;
+  }
+});
+
+// Nav dropdown accessibility
+(function() {
+  var dropdown = document.querySelector('.nav-dropdown');
+  var btn = dropdown ? dropdown.querySelector('.nav-dropdown-btn') : null;
+  if (!dropdown || !btn) return;
+  function setOpen(open) {
+    dropdown.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function() { setOpen(!dropdown.classList.contains('is-open')); });
+  dropdown.addEventListener('mouseenter', function() { setOpen(true); });
+  dropdown.addEventListener('mouseleave', function() { setOpen(false); });
+  dropdown.addEventListener('focusin', function() { setOpen(true); });
+  dropdown.addEventListener('focusout', function() {
+    setTimeout(function() { if (!dropdown.contains(document.activeElement)) setOpen(false); }, 0);
+  });
+  dropdown.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { setOpen(false); btn.focus(); }
+  });
+})();
+</script>
+</body>
+</html>

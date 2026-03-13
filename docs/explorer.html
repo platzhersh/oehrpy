@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>oehrpy · Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #252540;
+    --surface2: #2d2d4d;
+    --surface3: #3b3b5c;
+    --border: #2d2d4d;
+    --border-bright: #4b4b6c;
+    --text: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-dim: #6b7280;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.15);
+    --accent-dim: rgba(59, 130, 246, 0.08);
+    --green: #10b981;
+    --green-dim: rgba(16, 185, 129, 0.08);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.08);
+    --yellow: #f59e0b;
+    --yellow-dim: rgba(245, 158, 11, 0.08);
+    --purple: #a78bfa;
+    --orange: #f97316;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; }
+
+  .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* Header */
+  header { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
+  .logo-header { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .logo-header span { font-size: 24px; font-weight: 600; color: var(--text); }
+  header nav { display: flex; gap: 30px; align-items: center; margin-left: auto; }
+  header nav a { color: var(--text-muted); text-decoration: none; font-size: 15px; transition: color 0.2s; }
+  header nav a:hover, header nav a.active { color: var(--text); }
+  .github-link { background: var(--surface); padding: 8px 16px; border-radius: 8px; color: var(--text) !important; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+  .github-link:hover { background: var(--surface2); }
+  .badge { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.2); letter-spacing: 0.5px; }
+  .nav-dropdown { position: relative; }
+  .nav-dropdown-btn { background: none; border: none; color: var(--text-muted); font-family: var(--sans); font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+  .nav-dropdown-btn:hover, .nav-dropdown-btn.active { color: var(--text); }
+  .dropdown-arrow { font-size: 10px; }
+  .nav-dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 8px; background: var(--surface); border: 1px solid var(--border-bright); border-radius: 8px; padding: 6px 0; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 200; }
+  .nav-dropdown.is-open .nav-dropdown-menu { display: block; }
+  .nav-dropdown-menu a:focus { background: var(--surface2); color: var(--text); outline: none; }
+  .nav-dropdown-menu a { display: block; padding: 8px 16px; color: var(--text-muted); text-decoration: none; font-size: 14px; transition: all 0.15s; }
+  .nav-dropdown-menu a:hover { background: var(--surface2); color: var(--text); }
+  .nav-dropdown-menu a.active { color: var(--accent); }
+
+  /* Mode bar */
+  .mode-bar { padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 16px; height: 44px; flex-shrink: 0; }
+  .mode-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .mode-toggle { display: flex; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .mode-btn { font-family: var(--mono); font-size: 12px; font-weight: 500; padding: 5px 14px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .mode-btn:hover { color: var(--text); background: var(--surface3); }
+  .mode-btn.active { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; }
+  .mode-desc { font-family: var(--mono); font-size: 11px; color: var(--text-dim); padding: 3px 10px; background: var(--surface2); border-radius: 4px; border: 1px solid var(--border); }
+
+  /* Action bar */
+  .action-bar { padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; gap: 16px; height: 48px; flex-shrink: 0; }
+  .explore-btn { font-family: var(--mono); font-size: 13px; font-weight: 600; padding: 6px 20px; border-radius: 6px; border: none; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 8px; }
+  .explore-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
+  .status-pill { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; padding: 4px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .status-pill.idle .status-dot { background: var(--text-dim); }
+  .status-pill.valid .status-dot { background: var(--green); }
+  .status-pill.invalid .status-dot { background: var(--red); }
+  .stats-text { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .load-example-btn { margin-left: auto; font-family: var(--mono); font-size: 11px; font-weight: 500; padding: 5px 12px; border-radius: 5px; border: 1px solid var(--border-bright); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .load-example-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* Platform bar */
+  .platform-bar { padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; gap: 16px; height: 44px; flex-shrink: 0; }
+  .platform-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .platform-toggle { display: flex; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .platform-btn { font-family: var(--mono); font-size: 12px; font-weight: 500; padding: 5px 14px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .platform-btn:hover { color: var(--text); background: var(--surface3); }
+  .platform-btn.active { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; }
+
+  /* Input panel */
+  .input-panel { padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+  .input-panel textarea { width: 100%; height: 160px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: var(--mono); font-size: 12px; resize: vertical; }
+  .input-panel textarea:focus { outline: none; border-color: var(--accent); }
+  .input-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .input-header .panel-title { font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .input-header .clear-btn { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; }
+  .input-header .clear-btn:hover { color: var(--text); border-color: var(--border-bright); }
+
+  /* Stats bar */
+  .stats-bar { padding: 10px 24px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 12px; color: var(--text-muted); flex-shrink: 0; display: none; }
+  .stats-bar .stat { display: flex; align-items: center; gap: 4px; }
+  .stats-bar .stat-value { color: var(--text); font-weight: 600; }
+  .stats-bar .stat-sep { color: var(--text-dim); }
+
+  /* Main content */
+  .main-content { display: flex; flex: 1; min-height: 0; }
+
+  /* Tree panel */
+  .tree-panel { flex: 1; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+  .tree-header { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .tree-search { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-family: var(--mono); font-size: 12px; }
+  .tree-search:focus { outline: none; border-color: var(--accent); }
+  .tree-controls { display: flex; gap: 6px; }
+  .tree-controls button { font-family: var(--mono); font-size: 10px; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; }
+  .tree-controls button:hover { color: var(--text); border-color: var(--border-bright); }
+  .tree-body { flex: 1; overflow: auto; padding: 8px 0; }
+  .tree-empty { padding: 40px; text-align: center; color: var(--text-dim); }
+  .tree-empty .icon { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
+
+  /* Tree nodes */
+  .tree-node { user-select: none; }
+  .tree-node-row { display: flex; align-items: center; gap: 6px; padding: 3px 12px 3px 0; cursor: pointer; transition: background 0.1s; white-space: nowrap; }
+  .tree-node-row:hover { background: var(--surface); }
+  .tree-node-row.selected { background: var(--accent-dim); border-right: 2px solid var(--accent); }
+  .tree-node-row.hidden { display: none; }
+  .tree-toggle { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+  .tree-toggle.has-children { cursor: pointer; }
+  .tree-toggle.has-children:hover { color: var(--text); }
+  .tree-name { font-size: 13px; color: var(--text); }
+  .tree-node-row.selected .tree-name { color: var(--accent); }
+  .rm-badge { font-family: var(--mono); font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
+  .rm-badge.composition { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.2); }
+  .rm-badge.observation { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+  .rm-badge.evaluation, .rm-badge.instruction, .rm-badge.action, .rm-badge.admin_entry { background: rgba(167,139,250,0.08); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+  .rm-badge.section { background: rgba(245,158,11,0.08); color: var(--yellow); border: 1px solid rgba(245,158,11,0.2); }
+  .rm-badge.cluster { background: rgba(249,115,22,0.08); color: var(--orange); border: 1px solid rgba(249,115,22,0.2); }
+  .rm-badge.element, .rm-badge.dv { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+  .rm-badge.structural { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+  .occ-badge { font-family: var(--mono); font-size: 9px; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+  .occ-badge.required { background: rgba(239,68,68,0.08); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+  .occ-badge.optional { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+  .archetype-label { font-family: var(--mono); font-size: 9px; color: var(--text-dim); opacity: 0.7; flex-shrink: 0; }
+
+  /* Detail panel */
+  .detail-panel { width: 380px; background: var(--surface); border-left: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+  .detail-empty { padding: 40px 24px; text-align: center; color: var(--text-dim); font-size: 13px; }
+  .detail-content { padding: 16px; }
+  .detail-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .detail-section { margin-top: 16px; }
+  .detail-section-title { font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .detail-row { display: flex; gap: 8px; padding: 4px 0; font-size: 12px; }
+  .detail-label { color: var(--text-dim); min-width: 90px; flex-shrink: 0; }
+  .detail-value { color: var(--text); font-family: var(--mono); font-size: 11px; word-break: break-all; }
+  .detail-path { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; font-family: var(--mono); font-size: 11px; color: var(--accent); display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+  .detail-path .copy-btn { font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; flex-shrink: 0; }
+  .detail-path .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .detail-attr { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .detail-attr .suffix { color: var(--accent); }
+
+  /* Path list */
+  .path-list-panel { border-top: 1px solid var(--border); background: var(--surface); max-height: 300px; display: flex; flex-direction: column; flex-shrink: 0; display: none; }
+  .path-list-header { padding: 8px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .path-list-title { font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .path-filter { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-family: var(--mono); font-size: 11px; }
+  .path-filter:focus { outline: none; border-color: var(--accent); }
+  .path-count { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+  .export-btn { font-family: var(--mono); font-size: 10px; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; }
+  .export-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .path-list-body { flex: 1; overflow-y: auto; }
+  .path-row { display: flex; align-items: center; gap: 8px; padding: 4px 16px; font-family: var(--mono); font-size: 11px; cursor: pointer; transition: background 0.1s; }
+  .path-row:hover { background: var(--surface2); }
+  .path-row .path-text { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .path-row .path-rm { color: var(--text-dim); font-size: 9px; min-width: 70px; text-align: right; }
+  .path-row .path-req { color: var(--red); font-size: 10px; min-width: 12px; }
+
+  /* Footer */
+  footer { padding: 12px 24px; border-top: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; gap: 12px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); flex-shrink: 0; flex-wrap: wrap; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .sep { opacity: 0.3; }
+  .engine-status { display: flex; align-items: center; gap: 6px; }
+  .engine-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .engine-dot.loading { background: var(--yellow); animation: pulse 1.5s infinite; }
+  .engine-dot.python { background: var(--green); }
+  .engine-dot.js { background: var(--yellow); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Loading overlay */
+  .loading-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.3s; }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loading-spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: var(--mono); font-size: 14px; color: var(--text); }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); font-family: var(--mono); font-size: 12px; padding: 10px 20px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border-bright); color: var(--text); box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 1100; transition: transform 0.3s; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.warn { border-color: var(--yellow); }
+
+  @media (max-width: 768px) {
+    header { padding: 12px 16px; }
+    .main-content { flex-direction: column; }
+    .detail-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 300px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="index.html" class="logo-header">
+      <svg viewBox="0 0 80 80" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logo-blue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#60a5fa"/><stop offset="100%" style="stop-color:#3b82f6"/></linearGradient>
+          <linearGradient id="logo-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#fdba74"/><stop offset="100%" style="stop-color:#f97316"/></linearGradient>
+        </defs>
+        <path d="M40 10 C20 10 15 25 15 35 C15 46 28 52 40 52 C52 52 65 46 65 35 C65 25 60 10 40 10" fill="url(#logo-blue)"/>
+        <circle cx="28" cy="24" r="4" fill="#fff"/>
+        <path d="M40 70 C60 70 65 55 65 45 C65 34 52 28 40 28 C28 28 15 34 15 45 C15 55 20 70 40 70" fill="url(#logo-orange)"/>
+        <circle cx="52" cy="56" r="4" fill="#fff"/>
+      </svg>
+      <span>oehrpy</span>
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="docs.html">Docs</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn active" aria-haspopup="true" aria-expanded="false">Tools <span class="dropdown-arrow">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="validator.html">Validator</a>
+          <a href="converter.html">Converter</a>
+          <a href="explorer.html" class="active">Explorer</a>
+        </div>
+      </div>
+      <a href="brand-kit.html">Brand Kit</a>
+      <span class="badge" id="version-badge">v0.4.0</span>
+      <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </nav>
+  </header>
+
+  <!-- Mode bar -->
+  <div class="mode-bar">
+    <span class="mode-label">Input</span>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-mode-wt" onclick="setInputMode('wt')">Web Template JSON</button>
+      <button class="mode-btn" id="btn-mode-opt" onclick="setInputMode('opt')" disabled title="OPT XML parsing requires Pyodide (coming soon)" style="opacity:0.5;cursor:not-allowed;">OPT XML</button>
+    </div>
+    <span class="mode-desc" id="mode-desc">Paste a Web Template JSON to explore its structure</span>
+  </div>
+
+  <!-- Platform bar -->
+  <div class="platform-bar">
+    <span class="platform-label">Platform</span>
+    <div class="platform-toggle">
+      <button class="platform-btn active" id="btn-ehrbase" onclick="setPlatform('ehrbase')">EHRBase 2.x</button>
+      <button class="platform-btn" id="btn-better" onclick="setPlatform('better')">Better</button>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <button class="explore-btn" onclick="explore()">Explore</button>
+    <div class="status-pill idle" id="status-pill">
+      <div class="status-dot"></div>
+      <span id="status-text">Waiting for input</span>
+    </div>
+    <span class="stats-text" id="stats-text"></span>
+    <button class="load-example-btn" onclick="loadExample()">Load example</button>
+  </div>
+
+  <!-- Input panel -->
+  <div class="input-panel" id="input-panel">
+    <div class="input-header">
+      <span class="panel-title" id="input-title">Web Template JSON</span>
+      <button class="clear-btn" onclick="clearInput()">clear</button>
+    </div>
+    <textarea id="template-input" placeholder='Paste your Web Template JSON here...
+
+Fetch from EHRBase:
+GET /rest/openehr/v1/definition/template/adl1.4/{template_id}
+
+The explorer reads the "tree" structure to show
+all nodes, FLAT paths, and constraints.' spellcheck="false"></textarea>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat"><span class="detail-label">Template:</span> <span class="stat-value" id="stat-template">-</span></div>
+    <span class="stat-sep">&middot;</span>
+    <div class="stat"><span class="stat-value" id="stat-nodes">0</span> nodes</div>
+    <span class="stat-sep">&middot;</span>
+    <div class="stat"><span class="stat-value" id="stat-archetypes">0</span> archetypes</div>
+    <span class="stat-sep">&middot;</span>
+    <div class="stat"><span class="stat-value" id="stat-required">0</span> required</div>
+  </div>
+
+  <!-- Main content: tree + detail -->
+  <div class="main-content">
+    <div class="tree-panel">
+      <div class="tree-header">
+        <input type="text" class="tree-search" id="tree-search" placeholder="Search nodes..." oninput="filterTree()">
+        <div class="tree-controls">
+          <button onclick="expandAll()">Expand all</button>
+          <button onclick="collapseAll()">Collapse all</button>
+        </div>
+      </div>
+      <div class="tree-body" id="tree-body">
+        <div class="tree-empty" id="tree-empty">
+          <div class="icon">&#9678;</div>
+          <div>Paste a Web Template JSON or OPT XML above, then click <strong>Explore</strong></div>
+          <div style="opacity:0.6; margin-top:4px;">or load an example to get started</div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="detail-panel">
+      <div class="detail-empty" id="detail-empty">Click a node in the tree to see its details</div>
+      <div class="detail-content" id="detail-content" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Path list -->
+  <div class="path-list-panel" id="path-list-panel">
+    <div class="path-list-header">
+      <span class="path-list-title">FLAT Paths</span>
+      <input type="text" class="path-filter" id="path-filter" placeholder="Filter paths..." oninput="filterPaths()">
+      <span class="path-count" id="path-count"></span>
+      <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+      <button class="export-btn" onclick="copyAllPaths()">Copy all</button>
+    </div>
+    <div class="path-list-body" id="path-list-body"></div>
+  </div>
+
+  <footer>
+    <span>Built with Python and openEHR</span>
+    <span class="sep">|</span>
+    <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
+    <span class="sep">|</span>
+    <a href="docs.html">Docs</a>
+    <span class="sep">|</span>
+    <span class="engine-status" id="engine-status">
+      <span class="engine-dot js" id="engine-dot"></span>
+      <span id="engine-label">JS engine</span>
+    </span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// === STATE ===
+var currentPlatform = 'ehrbase';
+var currentInputMode = 'wt';
+var parsedTree = null;
+var allPaths = [];
+var selectedNodeId = null;
+var nodeIdCounter = 0;
+
+// === RM TYPE MAPS ===
+var STRUCTURAL_RM_TYPES = {
+  COMPOSITION:true, SECTION:true, OBSERVATION:true, EVALUATION:true,
+  INSTRUCTION:true, ACTION:true, ADMIN_ENTRY:true, CLUSTER:true,
+  HISTORY:true, EVENT:true, POINT_EVENT:true, INTERVAL_EVENT:true,
+  ITEM_TREE:true, ITEM_LIST:true, ITEM_SINGLE:true, ITEM_TABLE:true,
+  ELEMENT:true, EVENT_CONTEXT:true, ACTIVITY:true, ISM_TRANSITION:true,
+  INSTRUCTION_DETAILS:true
+};
+
+var VALID_SUFFIXES = {
+  DV_QUANTITY: ['|magnitude','|unit','|precision'],
+  DV_CODED_TEXT: ['|value','|code','|terminology'],
+  DV_TEXT: ['|value'],
+  DV_DATE_TIME: [], DV_DATE: [], DV_TIME: [], DV_BOOLEAN: [],
+  DV_COUNT: ['|magnitude'],
+  DV_ORDINAL: ['|value','|code','|terminology','|ordinal'],
+  DV_SCALE: ['|value','|code','|terminology','|symbol_value'],
+  DV_PROPORTION: ['|numerator','|denominator','|type'],
+  DV_DURATION: [],
+  DV_IDENTIFIER: ['|id','|type','|issuer','|assigner'],
+  DV_URI: [], DV_EHR_URI: [],
+  DV_MULTIMEDIA: ['|mediatype','|alternatetext','|uri','|size'],
+  DV_PARSABLE: ['|value','|formalism'],
+  CODE_PHRASE: ['|code','|terminology'],
+  PARTY_IDENTIFIED: ['|name','|id'],
+  PARTY_RELATED: ['|name','|id','|relationship'],
+  PARTY_SELF: []
+};
+
+// === INPUT MODE ===
+function setInputMode(mode) {
+  currentInputMode = mode;
+  document.getElementById('btn-mode-wt').classList.toggle('active', mode === 'wt');
+  document.getElementById('btn-mode-opt').classList.toggle('active', mode === 'opt');
+  document.getElementById('mode-desc').textContent = mode === 'wt'
+    ? 'Paste a Web Template JSON to explore its structure'
+    : 'Paste an OPT 1.4 XML to explore its structure (requires Python)';
+  document.getElementById('input-title').textContent = mode === 'wt' ? 'Web Template JSON' : 'OPT Template (XML)';
+  var ta = document.getElementById('template-input');
+  ta.placeholder = mode === 'wt'
+    ? 'Paste your Web Template JSON here...\n\nFetch from EHRBase:\nGET /rest/openehr/v1/definition/template/adl1.4/{template_id}'
+    : 'Paste your OPT 1.4 XML here...\n\n<?xml version="1.0" encoding="UTF-8"?>\n<template xmlns="http://schemas.openehr.org/v1">\n  ...\n</template>';
+}
+
+// === PLATFORM ===
+function setPlatform(p) {
+  currentPlatform = p;
+  document.getElementById('btn-ehrbase').classList.toggle('active', p === 'ehrbase');
+  document.getElementById('btn-better').classList.toggle('active', p === 'better');
+  if (parsedTree) {
+    allPaths = enumeratePaths(parsedTree, '');
+    renderPathList();
+    if (selectedNodeId !== null) updateDetailPaths();
+  }
+}
+
+// === PARSING ===
+function parseWebTemplateTree(node, parentPath) {
+  if (!node) return null;
+  var id = node.id || '';
+  var path = parentPath ? parentPath + '/' + id : id;
+  var rmType = node.rmType || node.rm_type || '';
+  var min = node.min !== undefined ? node.min : 0;
+  var max = node.max !== undefined ? node.max : -1;
+  var nodeId = node.nodeId || node.node_id || '';
+  var archId = '';
+  if (nodeId && nodeId.startsWith('openEHR-EHR-')) archId = nodeId;
+
+  var result = {
+    _uid: ++nodeIdCounter,
+    id: id,
+    name: node.name || node.localizedName || id,
+    rmType: rmType,
+    min: min,
+    max: max,
+    nodeId: nodeId,
+    archetypeId: archId,
+    aqlPath: node.aqlPath || '',
+    flatPath: path,
+    inputs: node.inputs || [],
+    children: [],
+    _expanded: true
+  };
+
+  if (node.children) {
+    for (var i = 0; i < node.children.length; i++) {
+      var child = parseWebTemplateTree(node.children[i], path);
+      if (child) result.children.push(child);
+    }
+  }
+  return result;
+}
+
+// === PATH ENUMERATION ===
+function enumeratePaths(node, prefix) {
+  if (!node) return [];
+  var results = [];
+  var path = prefix ? prefix + '/' + node.id : node.id;
+  var rmType = node.rmType;
+
+  if (!STRUCTURAL_RM_TYPES[rmType]) {
+    var suffixes = VALID_SUFFIXES[rmType];
+    var isReq = node.min >= 1;
+    if (suffixes && suffixes.length > 0) {
+      for (var s = 0; s < suffixes.length; s++) {
+        results.push({ path: path + suffixes[s], rmType: rmType, required: isReq, name: node.name, nodeUid: node._uid });
+      }
+      results.push({ path: path, rmType: rmType, required: isReq, name: node.name, nodeUid: node._uid });
+    } else {
+      results.push({ path: path, rmType: rmType, required: isReq, name: node.name, nodeUid: node._uid });
+    }
+  }
+
+  for (var c = 0; c < node.children.length; c++) {
+    results = results.concat(enumeratePaths(node.children[c], path));
+  }
+  return results;
+}
+
+// === STATS ===
+function computeStats(node) {
+  var stats = { nodes: 0, archetypes: 0, required: 0 };
+  function walk(n) {
+    stats.nodes++;
+    if (n.archetypeId) stats.archetypes++;
+    if (n.min >= 1 && !STRUCTURAL_RM_TYPES[n.rmType]) stats.required++;
+    for (var i = 0; i < n.children.length; i++) walk(n.children[i]);
+  }
+  walk(node);
+  return stats;
+}
+
+// === EXPLORE ===
+function explore() {
+  var input = document.getElementById('template-input').value.trim();
+  if (!input) {
+    showStatus('idle', 'Please provide a template');
+    return;
+  }
+
+  if (currentInputMode === 'opt') {
+    showStatus('idle', 'OPT XML parsing requires Pyodide (not yet loaded). Use Web Template JSON mode.');
+    return;
+  }
+
+  var json;
+  try { json = JSON.parse(input); } catch(e) {
+    showStatus('invalid', 'Invalid JSON: ' + e.message);
+    return;
+  }
+
+  if (!json.tree) {
+    showStatus('invalid', 'No "tree" property found in Web Template JSON');
+    return;
+  }
+
+  nodeIdCounter = 0;
+  parsedTree = parseWebTemplateTree(json.tree, '');
+  allPaths = enumeratePaths(parsedTree, '');
+  var stats = computeStats(parsedTree);
+
+  document.getElementById('stat-template').textContent = json.templateId || json.template_id || parsedTree.id;
+  document.getElementById('stat-nodes').textContent = stats.nodes;
+  document.getElementById('stat-archetypes').textContent = stats.archetypes;
+  document.getElementById('stat-required').textContent = stats.required;
+  document.getElementById('stats-bar').style.display = 'flex';
+
+  renderTree();
+  renderPathList();
+  document.getElementById('path-list-panel').style.display = 'flex';
+  selectedNodeId = null;
+  document.getElementById('detail-content').style.display = 'none';
+  document.getElementById('detail-empty').style.display = 'block';
+
+  showStatus('valid', stats.nodes + ' nodes · ' + stats.archetypes + ' archetypes · ' + stats.required + ' required');
+  document.getElementById('stats-text').textContent = allPaths.length + ' FLAT paths';
+}
+
+// === TREE RENDERING ===
+function renderTree() {
+  var body = document.getElementById('tree-body');
+  body.innerHTML = '';
+  if (!parsedTree) return;
+  body.appendChild(buildTreeNode(parsedTree, 0));
+}
+
+function buildTreeNode(node, depth) {
+  var div = document.createElement('div');
+  div.className = 'tree-node';
+  div.setAttribute('data-uid', node._uid);
+
+  var row = document.createElement('div');
+  row.className = 'tree-node-row';
+  row.style.paddingLeft = (12 + depth * 20) + 'px';
+  row.setAttribute('data-uid', node._uid);
+
+  // Toggle arrow
+  var toggle = document.createElement('span');
+  toggle.className = 'tree-toggle' + (node.children.length > 0 ? ' has-children' : '');
+  toggle.textContent = node.children.length > 0 ? (node._expanded ? '▼' : '▶') : ' ';
+  toggle.onclick = function(e) {
+    e.stopPropagation();
+    if (node.children.length === 0) return;
+    node._expanded = !node._expanded;
+    toggle.textContent = node._expanded ? '▼' : '▶';
+    var childContainer = div.querySelector('.tree-children');
+    if (childContainer) childContainer.style.display = node._expanded ? '' : 'none';
+  };
+  row.appendChild(toggle);
+
+  // Name
+  var name = document.createElement('span');
+  name.className = 'tree-name';
+  name.textContent = node.name || node.id;
+  row.appendChild(name);
+
+  // RM badge
+  var rmClass = getRmBadgeClass(node.rmType);
+  var rmBadge = document.createElement('span');
+  rmBadge.className = 'rm-badge ' + rmClass;
+  rmBadge.textContent = node.rmType;
+  row.appendChild(rmBadge);
+
+  // Occurrences badge
+  if (!STRUCTURAL_RM_TYPES[node.rmType] || node.rmType === 'COMPOSITION') {
+    var occBadge = document.createElement('span');
+    occBadge.className = 'occ-badge ' + (node.min >= 1 ? 'required' : 'optional');
+    occBadge.textContent = node.min >= 1 ? 'required' : 'optional';
+    row.appendChild(occBadge);
+  }
+
+  // Archetype ID
+  if (node.archetypeId) {
+    var archLabel = document.createElement('span');
+    archLabel.className = 'archetype-label';
+    archLabel.textContent = node.archetypeId;
+    row.appendChild(archLabel);
+  }
+
+  row.onclick = function() { selectNode(node); };
+  div.appendChild(row);
+
+  // Children container
+  if (node.children.length > 0) {
+    var childContainer = document.createElement('div');
+    childContainer.className = 'tree-children';
+    childContainer.style.display = node._expanded ? '' : 'none';
+    for (var i = 0; i < node.children.length; i++) {
+      childContainer.appendChild(buildTreeNode(node.children[i], depth + 1));
+    }
+    div.appendChild(childContainer);
+  }
+
+  return div;
+}
+
+function getRmBadgeClass(rmType) {
+  if (rmType === 'COMPOSITION') return 'composition';
+  if (rmType === 'OBSERVATION') return 'observation';
+  if (rmType === 'EVALUATION' || rmType === 'INSTRUCTION' || rmType === 'ACTION' || rmType === 'ADMIN_ENTRY') return 'evaluation';
+  if (rmType === 'SECTION') return 'section';
+  if (rmType === 'CLUSTER') return 'cluster';
+  if (rmType && rmType.startsWith('DV_')) return 'dv';
+  if (STRUCTURAL_RM_TYPES[rmType]) return 'structural';
+  return 'dv';
+}
+
+// === NODE SELECTION ===
+function selectNode(node) {
+  selectedNodeId = node._uid;
+
+  // Highlight in tree
+  var rows = document.querySelectorAll('.tree-node-row');
+  for (var i = 0; i < rows.length; i++) {
+    rows[i].classList.toggle('selected', rows[i].getAttribute('data-uid') == node._uid);
+  }
+
+  // Show detail
+  document.getElementById('detail-empty').style.display = 'none';
+  var content = document.getElementById('detail-content');
+  content.style.display = 'block';
+
+  var html = '<div class="detail-title">' + esc(node.name || node.id) + '</div>';
+
+  // Basic info
+  html += '<div class="detail-section"><div class="detail-section-title">Info</div>';
+  html += detailRow('ID', node.id);
+  html += detailRow('RM Type', node.rmType);
+  if (node.nodeId) html += detailRow('Node ID', node.nodeId);
+  if (node.archetypeId) html += detailRow('Archetype', node.archetypeId);
+  html += detailRow('Occurrences', node.min + '..' + (node.max === -1 ? '*' : node.max) + (node.min >= 1 ? ' (mandatory)' : ' (optional)'));
+  if (node.aqlPath) html += detailRow('AQL Path', node.aqlPath);
+  html += '</div>';
+
+  // FLAT paths
+  html += '<div class="detail-section"><div class="detail-section-title">FLAT Paths</div>';
+  var ehrbasePath = node.flatPath;
+  var betterPath = addBetterIndexing(node.flatPath);
+  var ehrbaseActive = currentPlatform === 'ehrbase';
+  var activeStyle = 'font-weight:600;color:var(--text);';
+  var dimStyle = 'color:var(--text-dim);';
+  html += '<div style="font-size:11px;margin-bottom:4px;' + (ehrbaseActive ? activeStyle : dimStyle) + '">EHRBase 2.x' + (ehrbaseActive ? ' (active)' : '') + ':</div>';
+  html += '<div class="detail-path" style="' + (ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(ehrbasePath) + '</span><button class="copy-btn" onclick="copyText(\'' + escAttr(ehrbasePath) + '\',this)">copy</button></div>';
+  html += '<div style="font-size:11px;margin-bottom:4px;margin-top:8px;' + (!ehrbaseActive ? activeStyle : dimStyle) + '">Better' + (!ehrbaseActive ? ' (active)' : '') + ':</div>';
+  html += '<div class="detail-path" style="' + (!ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(betterPath) + '</span><button class="copy-btn" onclick="copyText(\'' + escAttr(betterPath) + '\',this)">copy</button></div>';
+  html += '</div>';
+
+  // Data type attributes
+  var suffixes = VALID_SUFFIXES[node.rmType];
+  if (suffixes && suffixes.length > 0) {
+    html += '<div class="detail-section"><div class="detail-section-title">Data Type Attributes</div>';
+    for (var s = 0; s < suffixes.length; s++) {
+      html += '<div class="detail-attr"><span class="suffix">' + esc(suffixes[s]) + '</span></div>';
+    }
+    html += '</div>';
+  }
+
+  // Coded values from inputs
+  if (node.inputs && node.inputs.length > 0) {
+    for (var inp = 0; inp < node.inputs.length; inp++) {
+      var input = node.inputs[inp];
+      if (input.list && input.list.length > 0) {
+        html += '<div class="detail-section"><div class="detail-section-title">Coded Values (' + esc(input.suffix || 'code') + ')</div>';
+        for (var cv = 0; cv < input.list.length; cv++) {
+          var item = input.list[cv];
+          html += '<div class="detail-attr"><span class="suffix">' + esc(item.value || '') + '</span> ' + esc(item.label || '') + '</div>';
+        }
+        html += '</div>';
+      }
+    }
+  }
+
+  content.innerHTML = html;
+}
+
+function updateDetailPaths() {
+  if (selectedNodeId === null || !parsedTree) return;
+  var node = findNodeByUid(parsedTree, selectedNodeId);
+  if (node) selectNode(node);
+}
+
+function findNodeByUid(node, uid) {
+  if (node._uid === uid) return node;
+  for (var i = 0; i < node.children.length; i++) {
+    var found = findNodeByUid(node.children[i], uid);
+    if (found) return found;
+  }
+  return null;
+}
+
+function addBetterIndexing(path) {
+  var segments = path.split('/');
+  return segments.map(function(seg, i) {
+    if (i === 0) return seg;
+    if (i === segments.length - 1) return seg;
+    return seg + ':0';
+  }).join('/');
+}
+
+function formatPathForPlatform(path) {
+  return currentPlatform === 'better' ? addBetterIndexing(path) : path;
+}
+
+// === PATH LIST ===
+function renderPathList() {
+  var body = document.getElementById('path-list-body');
+  var unique = {};
+  var paths = [];
+  for (var i = 0; i < allPaths.length; i++) {
+    var p = allPaths[i];
+    if (!unique[p.path]) { unique[p.path] = true; paths.push(p); }
+  }
+  paths.sort(function(a, b) { return a.path < b.path ? -1 : a.path > b.path ? 1 : 0; });
+
+  var html = '';
+  for (var j = 0; j < paths.length; j++) {
+    var item = paths[j];
+    var displayPath = formatPathForPlatform(item.path);
+    html += '<div class="path-row" data-path="' + esc(displayPath) + '" data-uid="' + item.nodeUid + '" onclick="highlightNodeFromPath(this)">' +
+      '<span class="path-req">' + (item.required ? '&#10004;' : '') + '</span>' +
+      '<span class="path-text">' + esc(displayPath) + '</span>' +
+      '<span class="path-rm">' + esc(item.rmType.replace('DV_','')) + '</span>' +
+    '</div>';
+  }
+  body.innerHTML = html;
+  document.getElementById('path-count').textContent = paths.length + ' paths';
+}
+
+function filterPaths() {
+  var q = document.getElementById('path-filter').value.toLowerCase();
+  var rows = document.querySelectorAll('.path-row');
+  var shown = 0;
+  for (var i = 0; i < rows.length; i++) {
+    var path = rows[i].getAttribute('data-path') || '';
+    var match = path.toLowerCase().indexOf(q) !== -1;
+    rows[i].style.display = match ? '' : 'none';
+    if (match) shown++;
+  }
+  document.getElementById('path-count').textContent = shown + ' paths';
+}
+
+function highlightNodeFromPath(el) {
+  var uid = parseInt(el.getAttribute('data-uid'));
+  if (!parsedTree) return;
+  var node = findNodeByUid(parsedTree, uid);
+  if (node) {
+    selectNode(node);
+    var row = document.querySelector('.tree-node-row[data-uid="' + uid + '"]');
+    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// === TREE FILTERING ===
+function filterTree() {
+  var q = document.getElementById('tree-search').value.toLowerCase();
+  var rows = document.querySelectorAll('.tree-node-row');
+  if (!q) {
+    for (var i = 0; i < rows.length; i++) rows[i].classList.remove('hidden');
+    return;
+  }
+  for (var j = 0; j < rows.length; j++) {
+    var name = rows[j].querySelector('.tree-name');
+    var text = name ? name.textContent.toLowerCase() : '';
+    rows[j].classList.toggle('hidden', text.indexOf(q) === -1);
+  }
+}
+
+// === EXPAND / COLLAPSE ===
+function expandAll() {
+  if (!parsedTree) return;
+  setExpanded(parsedTree, true);
+  renderTree();
+}
+
+function collapseAll() {
+  if (!parsedTree) return;
+  setExpanded(parsedTree, false);
+  parsedTree._expanded = true; // keep root expanded
+  renderTree();
+}
+
+function setExpanded(node, val) {
+  node._expanded = val;
+  for (var i = 0; i < node.children.length; i++) setExpanded(node.children[i], val);
+}
+
+// === EXPORT ===
+function exportCSV() {
+  if (allPaths.length === 0) return;
+  var unique = {};
+  var paths = [];
+  for (var i = 0; i < allPaths.length; i++) {
+    if (!unique[allPaths[i].path]) { unique[allPaths[i].path] = true; paths.push(allPaths[i]); }
+  }
+  var csv = 'path,rm_type,required\n';
+  for (var j = 0; j < paths.length; j++) {
+    csv += '"' + formatPathForPlatform(paths[j].path) + '","' + paths[j].rmType + '",' + (paths[j].required ? 'true' : 'false') + '\n';
+  }
+  var blob = new Blob([csv], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'flat_paths.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyAllPaths() {
+  if (allPaths.length === 0) return;
+  var unique = {};
+  var lines = [];
+  for (var i = 0; i < allPaths.length; i++) {
+    var fp = formatPathForPlatform(allPaths[i].path);
+    if (!unique[fp]) { unique[fp] = true; lines.push(fp); }
+  }
+  navigator.clipboard.writeText(lines.join('\n')).then(function() { showToast('Copied ' + lines.length + ' paths'); });
+}
+
+// === UI HELPERS ===
+function showStatus(type, text) {
+  var pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + type;
+  document.getElementById('status-text').textContent = text;
+}
+
+function clearInput() {
+  document.getElementById('template-input').value = '';
+}
+
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show';
+  setTimeout(function() { toast.className = 'toast'; }, 3000);
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'copied!';
+    setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+  });
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function detailRow(label, value) { return '<div class="detail-row"><span class="detail-label">' + esc(label) + '</span><span class="detail-value">' + esc(value) + '</span></div>'; }
+
+// === KEYBOARD SHORTCUT ===
+document.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); explore(); }
+});
+
+// === EXAMPLE DATA ===
+function loadExample() {
+  var exampleWT = {
+    "templateId": "Vital Signs",
+    "version": "2.3",
+    "defaultLanguage": "en",
+    "languages": ["en"],
+    "tree": {
+      "id": "vital_signs",
+      "name": "Vital Signs",
+      "localizedName": "Vital Signs",
+      "rmType": "COMPOSITION",
+      "nodeId": "openEHR-EHR-COMPOSITION.encounter.v1",
+      "min": 1, "max": 1,
+      "children": [
+        { "id": "category", "name": "category", "rmType": "DV_CODED_TEXT", "min": 1, "max": 1, "children": [] },
+        { "id": "language", "name": "language", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] },
+        { "id": "territory", "name": "territory", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] },
+        { "id": "composer", "name": "composer", "rmType": "PARTY_IDENTIFIED", "min": 1, "max": 1, "children": [] },
+        {
+          "id": "context", "name": "context", "rmType": "EVENT_CONTEXT", "min": 1, "max": 1,
+          "children": [
+            { "id": "start_time", "name": "start_time", "rmType": "DV_DATE_TIME", "min": 1, "max": 1, "children": [] },
+            { "id": "setting", "name": "setting", "rmType": "DV_CODED_TEXT", "min": 1, "max": 1, "children": [] }
+          ]
+        },
+        {
+          "id": "blood_pressure", "name": "Blood pressure",
+          "rmType": "OBSERVATION",
+          "nodeId": "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+          "min": 0, "max": 1,
+          "children": [
+            {
+              "id": "any_event", "name": "Any event", "rmType": "EVENT", "min": 0, "max": -1,
+              "children": [
+                { "id": "systolic", "name": "Systolic", "rmType": "DV_QUANTITY", "nodeId": "at0004", "min": 1, "max": 1, "aqlPath": "/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value", "children": [],
+                  "inputs": [{"suffix": "magnitude", "type": "DECIMAL"}, {"suffix": "unit", "type": "CODED_TEXT", "list": [{"value": "mm[Hg]", "label": "mm[Hg]"}]}] },
+                { "id": "diastolic", "name": "Diastolic", "rmType": "DV_QUANTITY", "nodeId": "at0005", "min": 0, "max": 1, "aqlPath": "/data[at0001]/events[at0006]/data[at0003]/items[at0005]/value", "children": [],
+                  "inputs": [{"suffix": "magnitude", "type": "DECIMAL"}, {"suffix": "unit", "type": "CODED_TEXT", "list": [{"value": "mm[Hg]", "label": "mm[Hg]"}]}] },
+                { "id": "comment", "name": "Comment", "rmType": "DV_TEXT", "nodeId": "at0033", "min": 0, "max": 1, "children": [] }
+              ]
+            },
+            {
+              "id": "method", "name": "Method", "rmType": "DV_CODED_TEXT", "nodeId": "at0011", "min": 0, "max": 1, "children": [],
+              "inputs": [{"suffix": "code", "type": "CODED_TEXT", "list": [
+                {"value": "at0012", "label": "Auscultation"},
+                {"value": "at0013", "label": "Palpation"},
+                {"value": "at0014", "label": "Machine"}
+              ]}]
+            },
+            { "id": "language", "name": "language", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] },
+            { "id": "encoding", "name": "encoding", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] }
+          ]
+        },
+        {
+          "id": "pulse_heart_beat", "name": "Pulse/Heart beat",
+          "rmType": "OBSERVATION",
+          "nodeId": "openEHR-EHR-OBSERVATION.pulse.v2",
+          "min": 0, "max": 1,
+          "children": [
+            {
+              "id": "any_event", "name": "Any event", "rmType": "EVENT", "min": 0, "max": -1,
+              "children": [
+                { "id": "rate", "name": "Rate", "rmType": "DV_QUANTITY", "nodeId": "at0004", "min": 0, "max": 1, "aqlPath": "/data[at0002]/events[at0003]/data[at0001]/items[at0004]/value", "children": [],
+                  "inputs": [{"suffix": "magnitude", "type": "DECIMAL"}, {"suffix": "unit", "type": "CODED_TEXT", "list": [{"value": "/min", "label": "/min"}]}] },
+                { "id": "regularity", "name": "Regularity", "rmType": "DV_CODED_TEXT", "nodeId": "at0005", "min": 0, "max": 1, "children": [],
+                  "inputs": [{"suffix": "code", "type": "CODED_TEXT", "list": [
+                    {"value": "at0006", "label": "Regular"},
+                    {"value": "at1028", "label": "Irregular"}
+                  ]}] }
+              ]
+            },
+            { "id": "language", "name": "language", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] },
+            { "id": "encoding", "name": "encoding", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] }
+          ]
+        }
+      ]
+    }
+  };
+
+  document.getElementById('template-input').value = JSON.stringify(exampleWT, null, 2);
+  setInputMode('wt');
+  explore();
+}
+
+// Nav dropdown accessibility
+(function() {
+  var dropdown = document.querySelector('.nav-dropdown');
+  var btn = dropdown ? dropdown.querySelector('.nav-dropdown-btn') : null;
+  if (!dropdown || !btn) return;
+  function setOpen(open) {
+    dropdown.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function() { setOpen(!dropdown.classList.contains('is-open')); });
+  dropdown.addEventListener('mouseenter', function() { setOpen(true); });
+  dropdown.addEventListener('mouseleave', function() { setOpen(false); });
+  dropdown.addEventListener('focusin', function() { setOpen(true); });
+  dropdown.addEventListener('focusout', function() {
+    setTimeout(function() { if (!dropdown.contains(document.activeElement)) setOpen(false); }, 0);
+  });
+  dropdown.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { setOpen(false); btn.focus(); }
+  });
+})();
+</script>
+</body>
+</html>
