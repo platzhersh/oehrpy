@@ -2299,23 +2299,19 @@ function convertEhrbaseToBetter(flatComposition) {
 
       newSegments.push(seg);
 
-      // Insert any_event:0 heuristic: if current segment looks like an observation-level node
-      // and the next segment goes directly to data elements (not any_event already)
-      if (!isFirst && !isLast && s < segments.length - 1) {
+      // any_event:0 insertion heuristic: without template metadata we cannot
+      // reliably know whether a node is OBSERVATION-backed (has events) or is
+      // an EVALUATION/INSTRUCTION/etc.  Mark the path as ambiguous instead of
+      // blindly inserting any_event:0 — unless we have positive evidence.
+      if (!isFirst && !isLast && s < segments.length - 1 && s === 1) {
         var nextSeg = segments[s + 1];
-        if (!nextSeg.startsWith('any_event') && !nextSeg.startsWith('context') &&
-            !nextSeg.startsWith('language') && !nextSeg.startsWith('territory') &&
-            !nextSeg.startsWith('composer') && !nextSeg.startsWith('category') &&
-            !nextSeg.startsWith('encoding') && !nextSeg.startsWith('subject') &&
-            !nextSeg.startsWith('time') && !nextSeg.startsWith('ism_transition') &&
-            !nextSeg.startsWith('narrative') && !nextSeg.startsWith('expiry_time') &&
-            !nextSeg.startsWith('description') && !nextSeg.startsWith('current_state') &&
-            !nextSeg.startsWith('careflow_step') && !nextSeg.startsWith('timing') &&
-            s === 1) {
-          // After the first archetype node (e.g., blood_pressure), insert any_event:0
-          newSegments.push('any_event:0');
-          addedAnyEvent = true;
-          if (!changeCategories.includes('PATH_STRUCTURE')) changeCategories.push('PATH_STRUCTURE');
+        var NON_EVENT_CHILDREN = ['context','language','territory','composer',
+          'category','encoding','subject','time','ism_transition','narrative',
+          'expiry_time','description','current_state','careflow_step','timing'];
+        var isNextNonEvent = NON_EVENT_CHILDREN.some(function(c) { return nextSeg.startsWith(c); });
+        if (!nextSeg.startsWith('any_event') && !isNextNonEvent) {
+          // No template context available — flag as ambiguous so the user can verify
+          if (!changeCategories.includes('AMBIGUOUS_PATH')) changeCategories.push('AMBIGUOUS_PATH');
         }
       }
     }
@@ -2377,15 +2373,20 @@ function convertBetterToEhrbase(flatComposition) {
     var newKey = key;
     var changeCategories = [];
 
-    // Remove /any_event:0/ segments
-    if (newKey.indexOf('/any_event:0/') >= 0) {
-      newKey = newKey.replace(/\/any_event:0\//g, '/');
-      changeCategories.push('PATH_STRUCTURE');
+    // Remove /any_event:N/ segments (any index, not just :0)
+    if (/\/any_event:\d+\//.test(newKey)) {
+      newKey = newKey.replace(/\/any_event:\d+\//g, '/');
+      if (!changeCategories.includes('PATH_STRUCTURE')) changeCategories.push('PATH_STRUCTURE');
     }
-    // Also handle /any_event:0| at end of path
-    if (/\/any_event:0\|/.test(newKey)) {
-      newKey = newKey.replace(/\/any_event:0\|/g, '|');
-      changeCategories.push('PATH_STRUCTURE');
+    // Also handle /any_event:N| at end of path
+    if (/\/any_event:\d+\|/.test(newKey)) {
+      newKey = newKey.replace(/\/any_event:\d+\|/g, '|');
+      if (!changeCategories.includes('PATH_STRUCTURE')) changeCategories.push('PATH_STRUCTURE');
+    }
+    // Handle /any_event:N at end of path (no | suffix)
+    if (/\/any_event:\d+$/.test(newKey)) {
+      newKey = newKey.replace(/\/any_event:\d+$/, '');
+      if (!changeCategories.includes('PATH_STRUCTURE')) changeCategories.push('PATH_STRUCTURE');
     }
 
     // Remove :0 from path segments (keep :1, :2, etc.)
@@ -2453,7 +2454,7 @@ function renderChangeReport(changes) {
 
   // Group by category
   var groups = {};
-  var groupOrder = ['CONTEXT_PREFIX', 'INDEX_NOTATION', 'PATH_STRUCTURE', 'UNCHANGED'];
+  var groupOrder = ['CONTEXT_PREFIX', 'INDEX_NOTATION', 'PATH_STRUCTURE', 'AMBIGUOUS_PATH', 'UNCHANGED'];
   for (var i = 0; i < changes.length; i++) {
     var ch = changes[i];
     var cats = ch.category.split(', ');
@@ -2480,6 +2481,7 @@ function renderChangeReport(changes) {
     'CONTEXT_PREFIX': 'Context Prefix',
     'INDEX_NOTATION': 'Index Notation',
     'PATH_STRUCTURE': 'Path Structure',
+    'AMBIGUOUS_PATH': 'Ambiguous Path (may need any_event:0 — verify with template)',
     'UNCHANGED': 'Unchanged'
   };
 
