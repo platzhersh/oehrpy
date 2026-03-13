@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.6.0 (2026-03-13)
+
+### Code Style
+
+- Refactor layout from CSS Grid to Flexbox with improved responsiveness (#30)
+  ([#30](https://github.com/platzhersh/oehrpy/pull/30),
+  [`f1007c9`](https://github.com/platzhersh/oehrpy/commit/f1007c9b20615b08ec5771faf4e4b167daecc495))
+
+### Features
+
+- Add web GUI tools: converter, explorer, and migration helper (#31)
+  ([#31](https://github.com/platzhersh/oehrpy/pull/31),
+  [`d169919`](https://github.com/platzhersh/oehrpy/commit/d169919d797168b437a5c1049b4f28de4ddfc3ef))
+
+
 ## v0.5.0 (2026-03-12)
 
 ### Code Style
