@@ -102,8 +102,7 @@
   .nav-dropdown-btn.active { color: var(--text); }
   .dropdown-arrow { font-size: 10px; }
   .nav-dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 8px; background: var(--surface); border: 1px solid var(--border-bright); border-radius: 8px; padding: 6px 0; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 200; }
-  .nav-dropdown:hover .nav-dropdown-menu,
-  .nav-dropdown:focus-within .nav-dropdown-menu { display: block; }
+  .nav-dropdown.is-open .nav-dropdown-menu { display: block; }
   .nav-dropdown-menu a:focus { background: var(--surface2); color: var(--text); outline: none; }
   .nav-dropdown-menu a { display: block; padding: 8px 16px; color: var(--text-muted); text-decoration: none; font-size: 14px; transition: all 0.15s; }
   .nav-dropdown-menu a:hover { background: var(--surface2); color: var(--text); }
@@ -2160,26 +2159,26 @@ document.addEventListener('keydown', function(e) {
   var btn = dropdown ? dropdown.querySelector('.nav-dropdown-btn') : null;
   if (!dropdown || !btn) return;
 
-  function updateExpanded() {
-    var menu = dropdown.querySelector('.nav-dropdown-menu');
-    var isOpen = menu && getComputedStyle(menu).display !== 'none';
-    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  function setOpen(open) {
+    dropdown.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
-  btn.addEventListener('click', function() { btn.focus(); });
-  dropdown.addEventListener('mouseenter', updateExpanded);
-  dropdown.addEventListener('mouseleave', updateExpanded);
-  dropdown.addEventListener('focusin', updateExpanded);
-  dropdown.addEventListener('focusout', function(e) {
+  btn.addEventListener('click', function() {
+    setOpen(!dropdown.classList.contains('is-open'));
+  });
+  dropdown.addEventListener('mouseenter', function() { setOpen(true); });
+  dropdown.addEventListener('mouseleave', function() { setOpen(false); });
+  dropdown.addEventListener('focusin', function() { setOpen(true); });
+  dropdown.addEventListener('focusout', function() {
     setTimeout(function() {
-      if (!dropdown.contains(document.activeElement)) updateExpanded();
+      if (!dropdown.contains(document.activeElement)) setOpen(false);
     }, 0);
   });
   dropdown.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      btn.setAttribute('aria-expanded', 'false');
+      setOpen(false);
       btn.focus();
-      btn.blur();
     }
   });
 })();

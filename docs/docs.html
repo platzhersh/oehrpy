@@ -90,8 +90,7 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.3);
       z-index: 200;
     }
-    .nav-dropdown:hover .nav-dropdown-menu,
-    .nav-dropdown:focus-within .nav-dropdown-menu { display: block; }
+    .nav-dropdown.is-open .nav-dropdown-menu { display: block; }
     .nav-dropdown-menu a:focus { background: #2d2d4d; color: #f3f4f6; outline: none; }
     .nav-dropdown-menu a {
       display: block;
@@ -1191,6 +1190,28 @@ pytest tests/test_rm.py -v</code></pre>
     document.querySelectorAll('h2[id], h3[id]').forEach(section => {
       observer.observe(section);
     });
+  </script>
+  <script>
+  // Nav dropdown accessibility
+  (function() {
+    var dropdown = document.querySelector('.nav-dropdown');
+    var btn = dropdown ? dropdown.querySelector('.nav-dropdown-btn') : null;
+    if (!dropdown || !btn) return;
+    function setOpen(open) {
+      dropdown.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function() { setOpen(!dropdown.classList.contains('is-open')); });
+    dropdown.addEventListener('mouseenter', function() { setOpen(true); });
+    dropdown.addEventListener('mouseleave', function() { setOpen(false); });
+    dropdown.addEventListener('focusin', function() { setOpen(true); });
+    dropdown.addEventListener('focusout', function() {
+      setTimeout(function() { if (!dropdown.contains(document.activeElement)) setOpen(false); }, 0);
+    });
+    dropdown.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { setOpen(false); btn.focus(); }
+    });
+  })();
   </script>
 </body>
 </html>
