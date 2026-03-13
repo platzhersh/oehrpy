@@ -96,6 +96,17 @@
     color: var(--text);
   }
 
+  .nav-dropdown { position: relative; }
+  .nav-dropdown-btn { background: none; border: none; color: var(--text-muted); font-family: var(--sans); font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+  .nav-dropdown-btn:hover { color: var(--text); }
+  .nav-dropdown-btn.active { color: var(--text); }
+  .dropdown-arrow { font-size: 10px; }
+  .nav-dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 8px; background: var(--surface); border: 1px solid var(--border-bright); border-radius: 8px; padding: 6px 0; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 200; }
+  .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+  .nav-dropdown-menu a { display: block; padding: 8px 16px; color: var(--text-muted); text-decoration: none; font-size: 14px; transition: all 0.15s; }
+  .nav-dropdown-menu a:hover { background: var(--surface2); color: var(--text); }
+  .nav-dropdown-menu a.active { color: var(--accent); }
+
   .github-link {
     background: var(--surface);
     padding: 8px 16px;
@@ -885,6 +896,73 @@
       font-size: 10px;
     }
   }
+
+  /* ── Migration mode styles ── */
+  .change-report {
+    padding: 16px;
+  }
+
+  .change-report-summary {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+
+  .change-category {
+    margin-bottom: 16px;
+  }
+
+  .change-category-header {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-dim);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .change-item {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 0;
+    color: var(--text-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+
+  .change-item .change-arrow {
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .diff-added {
+    color: var(--green);
+    background: var(--green-dim);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  .diff-removed {
+    color: var(--red);
+    background: var(--red-dim);
+    padding: 1px 4px;
+    border-radius: 3px;
+    text-decoration: line-through;
+  }
+
+  .diff-unchanged {
+    color: var(--text-dim);
+  }
 </style>
 </head>
 <body>
@@ -914,9 +992,16 @@
       <span>oehrpy</span>
     </a>
     <nav>
-      <a href="index.html">Features</a>
+      <a href="index.html">Home</a>
       <a href="docs.html">Docs</a>
-      <a href="validator.html" class="active">Validators</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn active">Tools <span class="dropdown-arrow">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="validator.html" class="active">Validator</a>
+          <a href="converter.html">Converter</a>
+          <a href="explorer.html">Explorer</a>
+        </div>
+      </div>
       <a href="brand-kit.html">Brand Kit</a>
       <span class="badge" id="version-badge">v0.4.0</span>
       <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank">
@@ -934,6 +1019,7 @@
     <div class="mode-toggle">
       <button class="mode-btn active" id="btn-mode-flat" onclick="setMode('flat')">FLAT Composition</button>
       <button class="mode-btn" id="btn-mode-opt" onclick="setMode('opt')">OPT Template</button>
+      <button class="mode-btn" id="btn-mode-migration" onclick="setMode('migration')">Platform Migration</button>
     </div>
     <span class="mode-desc" id="mode-desc">Validate FLAT compositions against Web Templates</span>
   </div>
@@ -946,6 +1032,23 @@
       <button class="platform-btn" id="btn-better" onclick="setPlatform('better')">Better</button>
     </div>
     <span class="platform-hint" id="platform-hint">no :0 indexing · tree.id prefix · direct paths</span>
+  </div>
+
+  <!-- Migration platform bar -->
+  <div class="platform-bar" id="migration-platform-bar" style="display: none;">
+    <span class="platform-label">Source</span>
+    <div class="platform-toggle">
+      <button class="platform-btn active" id="btn-migration-ehrbase" onclick="setMigrationSource('ehrbase')">EHRBase 2.x</button>
+      <button class="platform-btn" id="btn-migration-better" onclick="setMigrationSource('better')">Better</button>
+    </div>
+    <span class="platform-label" style="margin-left: 16px;">&rarr;</span>
+    <span class="platform-label" style="margin-left: 16px;">Target</span>
+    <div class="platform-toggle">
+      <button class="platform-btn" id="btn-migration-target-ehrbase">EHRBase 2.x</button>
+      <button class="platform-btn active" id="btn-migration-target-better">Better</button>
+    </div>
+    <button class="load-example-btn" style="margin-left: auto; font-size: 11px; padding: 4px 10px;" onclick="swapMigrationPlatforms()">Swap &#8644;</button>
+    <button class="load-example-btn" style="font-size: 11px; padding: 4px 10px;" onclick="autoDetectPlatform()">Auto-detect</button>
   </div>
 
   <!-- Action bar -->
@@ -962,7 +1065,7 @@
     <button class="explorer-toggle" id="explorer-toggle" onclick="toggleExplorer()" style="display:none">
       Show valid paths
     </button>
-    <button class="load-example-btn" onclick="currentMode === 'opt' ? loadOPTExample() : loadExample()">Load example</button>
+    <button class="load-example-btn" onclick="currentMode === 'opt' ? loadOPTExample() : currentMode === 'migration' ? loadMigrationExample() : loadExample()">Load example</button>
   </div>
 
   <!-- Main panels -->
@@ -1019,10 +1122,29 @@ The validator checks well-formedness, semantic integrity,
 structural quality, and FLAT path impact.' spellcheck="false" oninput="updateCounts()"></textarea>
     </div>
 
+    <!-- Migration mode panels -->
+    <div class="panel migration-panel" style="border-bottom: 1px solid var(--border); display: none;">
+      <div class="panel-header">
+        <span class="panel-title">Source Composition (FLAT)</span>
+        <span class="panel-count" id="migration-source-count"></span>
+        <button class="clear-btn" onclick="document.getElementById('migration-source').value='';updateCounts()">clear</button>
+      </div>
+      <textarea id="migration-source" placeholder='Paste your FLAT composition JSON here...' spellcheck="false" oninput="updateCounts()"></textarea>
+    </div>
+
+    <div class="panel migration-panel" style="border-bottom: 1px solid var(--border); display: none;">
+      <div class="panel-header">
+        <span class="panel-title">Converted Output</span>
+        <span class="panel-count" id="migration-output-count"></span>
+        <button class="clear-btn" onclick="copyMigrationOutput()">copy</button>
+      </div>
+      <textarea id="migration-output" readonly placeholder="Converted output will appear here..." spellcheck="false" style="opacity: 0.8; cursor: default;"></textarea>
+    </div>
+
     <!-- Results spans both columns -->
     <div class="panel" style="grid-column: 1 / -1; border-right: none; border-top: 1px solid var(--border);">
       <div class="panel-header">
-        <span class="panel-title">Validation Results</span>
+        <span class="panel-title" id="results-panel-title">Validation Results</span>
       </div>
       <div class="results-area" id="results-area">
         <div class="results-empty" id="results-empty">
@@ -1080,7 +1202,9 @@ structural quality, and FLAT path impact.' spellcheck="false" oninput="updateCou
 // ============================================================
 
 var currentPlatform = 'ehrbase';
-var currentMode = 'flat'; // 'flat' | 'opt'
+var currentMode = 'flat'; // 'flat' | 'opt' | 'migration'
+var migrationSource = 'ehrbase';
+var migrationTarget = 'better';
 var validPathsCache = [];
 var explorerOpen = false;
 
@@ -1116,51 +1240,70 @@ function setPlatform(p) {
 
 var MODE_DESCS = {
   flat: 'Validate FLAT compositions against Web Templates',
-  opt:  'Validate OPT 1.4 XML files for well-formedness, semantics & structure'
+  opt:  'Validate OPT 1.4 XML files for well-formedness, semantics & structure',
+  migration: 'Convert FLAT compositions between EHRBase and Better platform dialects'
 };
 
 function setMode(mode) {
   currentMode = mode;
   document.getElementById('btn-mode-flat').classList.toggle('active', mode === 'flat');
   document.getElementById('btn-mode-opt').classList.toggle('active', mode === 'opt');
+  document.getElementById('btn-mode-migration').classList.toggle('active', mode === 'migration');
   document.getElementById('mode-desc').textContent = MODE_DESCS[mode];
 
   // Toggle panel visibility
   var flatPanels = document.querySelectorAll('.flat-panel');
   var optPanels = document.querySelectorAll('.opt-panel');
+  var migrationPanels = document.querySelectorAll('.migration-panel');
   for (var i = 0; i < flatPanels.length; i++) flatPanels[i].style.display = mode === 'flat' ? '' : 'none';
   for (var j = 0; j < optPanels.length; j++) optPanels[j].style.display = mode === 'opt' ? '' : 'none';
+  for (var m = 0; m < migrationPanels.length; m++) migrationPanels[m].style.display = mode === 'migration' ? '' : 'none';
 
-  // Toggle platform bar (only relevant for FLAT)
+  // Toggle platform bars
   document.getElementById('platform-bar').style.display = mode === 'flat' ? '' : 'none';
+  document.getElementById('migration-platform-bar').style.display = mode === 'migration' ? '' : 'none';
 
   // Toggle explorer (only for FLAT)
-  if (mode === 'opt') {
+  if (mode !== 'flat') {
     document.getElementById('explorer-toggle').style.display = 'none';
     var explorerPanel = document.getElementById('explorer-panel');
     explorerPanel.classList.remove('open');
     explorerOpen = false;
   }
 
-  // Update grid layout: two columns for FLAT, single for OPT
+  // Update validate button text
+  var validateBtn = document.getElementById('validate-btn');
+  validateBtn.childNodes[0].textContent = mode === 'migration' ? 'Convert ' : 'Validate ';
+
+  // Update results panel title
+  var resultsTitle = document.getElementById('results-panel-title');
+  if (resultsTitle) {
+    resultsTitle.textContent = mode === 'migration' ? 'Change Report' : 'Validation Results';
+  }
+
+  // Update grid layout: two columns for FLAT and migration, single for OPT
   var main = document.querySelector('main');
-  main.style.gridTemplateColumns = mode === 'flat' ? '1fr 1fr' : '1fr';
+  main.style.gridTemplateColumns = (mode === 'flat' || mode === 'migration') ? '1fr 1fr' : '1fr';
 
   // Update empty state message
-  var emptyEl = document.getElementById('results-empty');
-  if (emptyEl) {
-    emptyEl.innerHTML = mode === 'flat'
-      ? '<div class="icon">&#9678;</div>' +
-        '<div>Paste a Web Template and a FLAT composition above, then click <strong>Validate</strong></div>' +
-        '<div style="opacity:0.5">or load an example to see the validator in action</div>'
-      : '<div class="icon">&#9678;</div>' +
-        '<div>Paste an OPT 1.4 XML template above, then click <strong>Validate</strong></div>' +
-        '<div style="opacity:0.5">or load an example to see the validator in action</div>';
+  var emptyHtml;
+  if (mode === 'flat') {
+    emptyHtml = '<div class="icon">&#9678;</div>' +
+      '<div>Paste a Web Template and a FLAT composition above, then click <strong>Validate</strong></div>' +
+      '<div style="opacity:0.5">or load an example to see the validator in action</div>';
+  } else if (mode === 'opt') {
+    emptyHtml = '<div class="icon">&#9678;</div>' +
+      '<div>Paste an OPT 1.4 XML template above, then click <strong>Validate</strong></div>' +
+      '<div style="opacity:0.5">or load an example to see the validator in action</div>';
+  } else {
+    emptyHtml = '<div class="icon">&#8644;</div>' +
+      '<div>Paste a FLAT composition above, then click <strong>Convert</strong></div>' +
+      '<div style="opacity:0.5">or load an example to see platform migration in action</div>';
   }
 
   // Reset results
   document.getElementById('results-area').innerHTML =
-    '<div class="results-empty" id="results-empty">' + emptyEl.innerHTML + '</div>';
+    '<div class="results-empty" id="results-empty">' + emptyHtml + '</div>';
   showStatus('idle', 'Waiting for input');
   document.getElementById('stats-text').textContent = '';
 }
@@ -1664,6 +1807,9 @@ async function runValidation() {
   if (currentMode === 'opt') {
     return runOPTValidationFlow();
   }
+  if (currentMode === 'migration') {
+    return runMigrationFlow();
+  }
   return runFlatValidationFlow();
 }
 
@@ -1989,9 +2135,13 @@ function updateCounts() {
   var wt = document.getElementById('wt-input').value;
   var flat = document.getElementById('flat-input').value;
   var opt = document.getElementById('opt-input').value;
+  var migSrc = document.getElementById('migration-source').value;
+  var migOut = document.getElementById('migration-output').value;
   document.getElementById('wt-count').textContent = wt ? wt.split('\n').length + ' lines' : '';
   document.getElementById('flat-count').textContent = flat ? flat.split('\n').length + ' lines' : '';
   document.getElementById('opt-count').textContent = opt ? opt.split('\n').length + ' lines' : '';
+  document.getElementById('migration-source-count').textContent = migSrc ? migSrc.split('\n').length + ' lines' : '';
+  document.getElementById('migration-output-count').textContent = migOut ? migOut.split('\n').length + ' lines' : '';
 }
 
 // Keyboard shortcut
@@ -2001,6 +2151,401 @@ document.addEventListener('keydown', function(e) {
     runValidation();
   }
 });
+
+// ============================================================
+// === MIGRATION ENGINE ===
+// ============================================================
+
+var CONTEXT_MAP = {
+  'ctx/language': { path: '{treeId}/language|code', extra: {'{treeId}/language|terminology': 'ISO_639-1'} },
+  'ctx/territory': { path: '{treeId}/territory|code', extra: {'{treeId}/territory|terminology': 'ISO_3166-1'} },
+  'ctx/composer_name': { path: '{treeId}/composer|name' },
+  'ctx/composer_id': { path: '{treeId}/composer|id' },
+  'ctx/time': { path: '{treeId}/context/start_time' },
+  'ctx/end_time': { path: '{treeId}/context/end_time' },
+  'ctx/category': { path: '{treeId}/category|code', extra: {'{treeId}/category|value': 'event', '{treeId}/category|terminology': 'openehr'} },
+  'ctx/health_care_facility|name': { path: '{treeId}/context/health_care_facility|name' },
+  'ctx/health_care_facility|id': { path: '{treeId}/context/health_care_facility|id' },
+  'ctx/id_namespace': { path: '{treeId}/id_namespace' },
+  'ctx/id_scheme': { path: '{treeId}/id_scheme' },
+  'ctx/setting|code': { path: '{treeId}/context/setting|code' },
+  'ctx/setting|value': { path: '{treeId}/context/setting|value' },
+  'ctx/setting|terminology': { path: '{treeId}/context/setting|terminology' },
+};
+
+function detectTreeId(flatComposition) {
+  var prefixes = {};
+  var keys = Object.keys(flatComposition);
+  for (var i = 0; i < keys.length; i++) {
+    if (keys[i].startsWith('ctx/')) continue;
+    var firstSegment = keys[i].split('/')[0].split(':')[0];
+    prefixes[firstSegment] = (prefixes[firstSegment] || 0) + 1;
+  }
+  var best = null, bestCount = 0;
+  for (var p in prefixes) {
+    if (prefixes[p] > bestCount) { bestCount = prefixes[p]; best = p; }
+  }
+  return best || 'composition';
+}
+
+function autoDetectSourcePlatform(flatComposition) {
+  var keys = Object.keys(flatComposition);
+  var hasCtx = keys.some(function(k) { return k.startsWith('ctx/'); });
+  var hasAnyEvent = keys.some(function(k) { return k.includes('/any_event:'); });
+
+  if (hasCtx || hasAnyEvent) return 'better';
+  return 'ehrbase';
+}
+
+// Build reverse context map: EHRBase path pattern -> ctx/ key
+function buildReverseContextMap(treeId) {
+  var reverse = {};
+  for (var ctxKey in CONTEXT_MAP) {
+    var entry = CONTEXT_MAP[ctxKey];
+    var ehrbasePath = entry.path.replace(/\{treeId\}/g, treeId);
+    reverse[ehrbasePath] = { ctxKey: ctxKey, extra: entry.extra };
+    // Also track extra fields so we know to drop them
+    if (entry.extra) {
+      for (var extraKey in entry.extra) {
+        var resolvedExtra = extraKey.replace(/\{treeId\}/g, treeId);
+        reverse[resolvedExtra] = { ctxKey: null, dropField: true };
+      }
+    }
+  }
+  return reverse;
+}
+
+function convertEhrbaseToBetter(flatComposition) {
+  var treeId = detectTreeId(flatComposition);
+  var result = {};
+  var changes = [];
+  var reverseMap = buildReverseContextMap(treeId);
+  var keys = Object.keys(flatComposition);
+
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    var value = flatComposition[key];
+
+    // Check if this is a context field that maps to ctx/
+    if (reverseMap[key]) {
+      var mapping = reverseMap[key];
+      if (mapping.dropField) {
+        // This is an extra field (e.g. language|terminology) — drop it
+        changes.push({ original: key, converted: '(dropped)', category: 'CONTEXT_PREFIX', rule: 'Implicit in Better format' });
+        continue;
+      }
+      if (mapping.ctxKey) {
+        result[mapping.ctxKey] = value;
+        changes.push({ original: key, converted: mapping.ctxKey, category: 'CONTEXT_PREFIX', rule: 'EHRBase tree path to Better ctx/ prefix' });
+        continue;
+      }
+    }
+
+    // For non-context paths: add :0 indexing and any_event insertion
+    var newKey = key;
+    var changeCategories = [];
+
+    // Split on | to separate path from attribute suffix
+    var pipeIdx = newKey.indexOf('|');
+    var pathPart = pipeIdx >= 0 ? newKey.substring(0, pipeIdx) : newKey;
+    var attrPart = pipeIdx >= 0 ? newKey.substring(pipeIdx) : '';
+
+    // Split path into segments
+    var segments = pathPart.split('/');
+    var newSegments = [];
+    var addedAnyEvent = false;
+
+    for (var s = 0; s < segments.length; s++) {
+      var seg = segments[s];
+      var isLast = (s === segments.length - 1) && attrPart !== '';
+      var isFirst = (s === 0); // tree ID, don't index
+
+      // Add :0 to non-leaf, non-first segments that don't already have an index
+      if (!isFirst && !isLast && !/:/.test(seg)) {
+        seg = seg + ':0';
+        if (!changeCategories.includes('INDEX_NOTATION')) changeCategories.push('INDEX_NOTATION');
+      }
+
+      newSegments.push(seg);
+
+      // Insert any_event:0 heuristic: if current segment looks like an observation-level node
+      // and the next segment goes directly to data elements (not any_event already)
+      if (!isFirst && !isLast && s < segments.length - 1) {
+        var nextSeg = segments[s + 1];
+        if (!nextSeg.startsWith('any_event') && !nextSeg.startsWith('context') &&
+            !nextSeg.startsWith('language') && !nextSeg.startsWith('territory') &&
+            !nextSeg.startsWith('composer') && !nextSeg.startsWith('category') &&
+            !nextSeg.startsWith('encoding') && !nextSeg.startsWith('subject') &&
+            !nextSeg.startsWith('time') && !nextSeg.startsWith('ism_transition') &&
+            !nextSeg.startsWith('narrative') && !nextSeg.startsWith('expiry_time') &&
+            !nextSeg.startsWith('description') && !nextSeg.startsWith('current_state') &&
+            !nextSeg.startsWith('careflow_step') && !nextSeg.startsWith('timing') &&
+            s === 1) {
+          // After the first archetype node (e.g., blood_pressure), insert any_event:0
+          newSegments.push('any_event:0');
+          addedAnyEvent = true;
+          if (!changeCategories.includes('PATH_STRUCTURE')) changeCategories.push('PATH_STRUCTURE');
+        }
+      }
+    }
+
+    newKey = newSegments.join('/') + attrPart;
+
+    if (newKey !== key) {
+      var cats = changeCategories.length > 0 ? changeCategories.join(', ') : 'INDEX_NOTATION';
+      changes.push({ original: key, converted: newKey, category: cats, rule: changeCategories.join(' + ') });
+    } else {
+      changes.push({ original: key, converted: newKey, category: 'UNCHANGED', rule: '' });
+    }
+
+    result[newKey] = value;
+  }
+
+  return { output: result, changes: changes, treeId: treeId };
+}
+
+function convertBetterToEhrbase(flatComposition) {
+  var treeId = detectTreeId(flatComposition);
+  var result = {};
+  var changes = [];
+  var keys = Object.keys(flatComposition);
+
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    var value = flatComposition[key];
+
+    // Check if this is a ctx/ field
+    if (key.startsWith('ctx/')) {
+      var ctxEntry = CONTEXT_MAP[key];
+      if (ctxEntry) {
+        var ehrbasePath = ctxEntry.path.replace(/\{treeId\}/g, treeId);
+        result[ehrbasePath] = value;
+        changes.push({ original: key, converted: ehrbasePath, category: 'CONTEXT_PREFIX', rule: 'Better ctx/ to EHRBase tree path' });
+        // Add extra fields
+        if (ctxEntry.extra) {
+          for (var extraKey in ctxEntry.extra) {
+            var resolvedKey = extraKey.replace(/\{treeId\}/g, treeId);
+            var extraVal = ctxEntry.extra[extraKey];
+            // For category, use the actual value if ctx/category was provided
+            if (key === 'ctx/category' && resolvedKey.indexOf('|value') >= 0) {
+              extraVal = value;
+            }
+            result[resolvedKey] = extraVal;
+            changes.push({ original: '(added)', converted: resolvedKey, category: 'CONTEXT_PREFIX', rule: 'Extra field for EHRBase' });
+          }
+        }
+      } else {
+        // Unknown ctx/ field, pass through
+        result[key] = value;
+        changes.push({ original: key, converted: key, category: 'UNCHANGED', rule: '' });
+      }
+      continue;
+    }
+
+    // For non-context paths: remove :0 indexing and any_event:0 segments
+    var newKey = key;
+    var changeCategories = [];
+
+    // Remove /any_event:0/ segments
+    if (newKey.indexOf('/any_event:0/') >= 0) {
+      newKey = newKey.replace(/\/any_event:0\//g, '/');
+      changeCategories.push('PATH_STRUCTURE');
+    }
+    // Also handle /any_event:0| at end of path
+    if (/\/any_event:0\|/.test(newKey)) {
+      newKey = newKey.replace(/\/any_event:0\|/g, '|');
+      changeCategories.push('PATH_STRUCTURE');
+    }
+
+    // Remove :0 from path segments (keep :1, :2, etc.)
+    var beforeIndex = newKey;
+    newKey = newKey.replace(/:0(?=\/|$|\|)/g, '');
+    if (newKey !== beforeIndex) {
+      changeCategories.push('INDEX_NOTATION');
+    }
+
+    if (newKey !== key) {
+      var cats = changeCategories.join(', ');
+      changes.push({ original: key, converted: newKey, category: cats, rule: changeCategories.join(' + ') });
+    } else {
+      changes.push({ original: key, converted: newKey, category: 'UNCHANGED', rule: '' });
+    }
+
+    result[newKey] = value;
+  }
+
+  return { output: result, changes: changes, treeId: treeId };
+}
+
+function runMigrationFlow() {
+  var sourceRaw = document.getElementById('migration-source').value.trim();
+  if (!sourceRaw) {
+    showStatus('idle', 'Please provide a FLAT composition to convert');
+    return;
+  }
+
+  var sourceObj;
+  try { sourceObj = JSON.parse(sourceRaw); } catch(e) {
+    showError('FLAT Composition JSON is invalid: ' + e.message);
+    return;
+  }
+
+  var convResult;
+  if (migrationSource === 'ehrbase') {
+    convResult = convertEhrbaseToBetter(sourceObj);
+  } else {
+    convResult = convertBetterToEhrbase(sourceObj);
+  }
+
+  // Show output
+  document.getElementById('migration-output').value = JSON.stringify(convResult.output, null, 2);
+  updateCounts();
+
+  // Count changes
+  var changed = 0, unchanged = 0;
+  for (var c = 0; c < convResult.changes.length; c++) {
+    if (convResult.changes[c].category === 'UNCHANGED') unchanged++;
+    else changed++;
+  }
+  var total = convResult.changes.length;
+
+  showStatus('valid', total + ' paths converted');
+  document.getElementById('stats-text').textContent =
+    total + ' paths converted \u00b7 ' + changed + ' changed \u00b7 ' + unchanged + ' unchanged';
+
+  // Render change report
+  renderChangeReport(convResult.changes);
+}
+
+function renderChangeReport(changes) {
+  var area = document.getElementById('results-area');
+
+  // Group by category
+  var groups = {};
+  var groupOrder = ['CONTEXT_PREFIX', 'INDEX_NOTATION', 'PATH_STRUCTURE', 'UNCHANGED'];
+  for (var i = 0; i < changes.length; i++) {
+    var ch = changes[i];
+    var cats = ch.category.split(', ');
+    for (var ci = 0; ci < cats.length; ci++) {
+      var cat = cats[ci];
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(ch);
+    }
+  }
+
+  // Count summary
+  var changed = 0, unchanged = 0;
+  for (var j = 0; j < changes.length; j++) {
+    if (changes[j].category === 'UNCHANGED') unchanged++;
+    else changed++;
+  }
+
+  var html = '<div class="change-report-summary">' +
+    changes.length + ' paths converted &middot; ' + changed + ' changed &middot; ' + unchanged + ' unchanged</div>';
+
+  html += '<div class="change-report">';
+
+  var groupLabels = {
+    'CONTEXT_PREFIX': 'Context Prefix',
+    'INDEX_NOTATION': 'Index Notation',
+    'PATH_STRUCTURE': 'Path Structure',
+    'UNCHANGED': 'Unchanged'
+  };
+
+  for (var g = 0; g < groupOrder.length; g++) {
+    var gKey = groupOrder[g];
+    if (!groups[gKey] || groups[gKey].length === 0) continue;
+
+    html += '<div class="change-category">';
+    html += '<div class="change-category-header">' + groupLabels[gKey] + ' (' + groups[gKey].length + ')</div>';
+
+    for (var k = 0; k < groups[gKey].length; k++) {
+      var item = groups[gKey][k];
+      if (item.category === 'UNCHANGED') {
+        html += '<div class="change-item">' +
+          '<span class="diff-unchanged">' + escHtml(item.original) + '</span>' +
+          '</div>';
+      } else {
+        html += '<div class="change-item">' +
+          '<span class="diff-removed">' + escHtml(item.original) + '</span>' +
+          '<span class="change-arrow">&rarr;</span>' +
+          '<span class="diff-added">' + escHtml(item.converted) + '</span>' +
+          '</div>';
+      }
+    }
+
+    html += '</div>';
+  }
+
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function setMigrationSource(source) {
+  migrationSource = source;
+  migrationTarget = source === 'ehrbase' ? 'better' : 'ehrbase';
+  document.getElementById('btn-migration-ehrbase').classList.toggle('active', source === 'ehrbase');
+  document.getElementById('btn-migration-better').classList.toggle('active', source === 'better');
+  document.getElementById('btn-migration-target-ehrbase').classList.toggle('active', migrationTarget === 'ehrbase');
+  document.getElementById('btn-migration-target-better').classList.toggle('active', migrationTarget === 'better');
+}
+
+function swapMigrationPlatforms() {
+  setMigrationSource(migrationTarget);
+}
+
+function autoDetectPlatform() {
+  var sourceRaw = document.getElementById('migration-source').value.trim();
+  if (!sourceRaw) {
+    showToast('Paste a FLAT composition first, then auto-detect', 'warn', 3000);
+    return;
+  }
+  var sourceObj;
+  try { sourceObj = JSON.parse(sourceRaw); } catch(e) {
+    showToast('Invalid JSON \u2014 cannot auto-detect', 'warn', 3000);
+    return;
+  }
+  var detected = autoDetectSourcePlatform(sourceObj);
+  setMigrationSource(detected);
+  showToast('Detected source platform: ' + (detected === 'ehrbase' ? 'EHRBase 2.x' : 'Better'), '', 3000);
+}
+
+function copyMigrationOutput() {
+  var output = document.getElementById('migration-output').value;
+  if (!output) {
+    showToast('No output to copy', 'warn', 2000);
+    return;
+  }
+  navigator.clipboard.writeText(output).then(function() {
+    showToast('Copied to clipboard', '', 2000);
+  });
+}
+
+function loadMigrationExample() {
+  var exampleEhrbase = {
+    "vital_signs/language|code": "en",
+    "vital_signs/language|terminology": "ISO_639-1",
+    "vital_signs/territory|code": "CH",
+    "vital_signs/territory|terminology": "ISO_3166-1",
+    "vital_signs/composer|name": "Dr. Chregi",
+    "vital_signs/context/start_time": "2026-03-13T10:00:00Z",
+    "vital_signs/category|code": "433",
+    "vital_signs/category|value": "event",
+    "vital_signs/category|terminology": "openehr",
+    "vital_signs/blood_pressure/systolic|magnitude": 120,
+    "vital_signs/blood_pressure/systolic|unit": "mm[Hg]",
+    "vital_signs/blood_pressure/diastolic|magnitude": 80,
+    "vital_signs/blood_pressure/diastolic|unit": "mm[Hg]",
+    "vital_signs/pulse_heart_beat/rate|magnitude": 72,
+    "vital_signs/pulse_heart_beat/rate|unit": "/min"
+  };
+
+  setMigrationSource('ehrbase');
+  document.getElementById('migration-source').value = JSON.stringify(exampleEhrbase, null, 2);
+  document.getElementById('migration-output').value = '';
+  updateCounts();
+  runMigrationFlow();
+}
 
 // ============================================================
 // === EXAMPLE DATA ===

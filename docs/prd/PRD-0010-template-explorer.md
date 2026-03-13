@@ -1,7 +1,7 @@
 # PRD-0010: Template Explorer / OPT Viewer Web GUI
 
 **Status:** Draft
-**Version:** 0.1
+**Version:** 0.2
 **Target Release:** oehrpy v0.3.0
 **Author:** Chregi
 **Date:** 2026-03-13
@@ -34,16 +34,26 @@ Despite their importance, templates are opaque. OPT XML files are verbose (often
 
 These are daily questions for openEHR developers. Each requires either a running CDR, deep XML knowledge, or both.
 
-### 1.3 Relationship to Existing Tools
+### 1.3 Standalone Decision
 
-The **Validator** (`docs/validator.html`) already parses OPT files and runs checks. The **Template Explorer** is complementary:
+The Explorer is a **standalone page** (`explorer.html`), not integrated into `validator.html`. The rationale:
+
+1. **Fundamentally different UI**: The Explorer needs a tree view, a detail panel, and a path list — none of which exist in the validator. Adding these would double the validator's complexity.
+2. **Different input/output model**: The validator takes a composition + template and produces errors. The Explorer takes only a template and produces a navigable visualization.
+3. **Independent value**: The Explorer is useful without any composition to validate — it's a template documentation tool.
+4. **Pyodide reuse**: Both pages share the same Pyodide bootstrap pattern. The browser CDN cache means users who visit one page first get faster loads on the second.
+
+### 1.4 Relationship to Other Tools
 
 ```
-Validator:  "Is this OPT well-formed and semantically correct?"
-Explorer:   "Show me what's inside this OPT — its structure, paths, constraints, and terminology."
+Validator (FLAT mode):       "Is this FLAT composition valid against this Web Template?"
+Validator (OPT mode):        "Is this OPT template well-formed and semantically correct?"
+Validator (Migration mode):  "Convert FLAT between EHRBase and Better dialects" (PRD-0011)
+Converter (standalone):      "Show me what this canonical JSON looks like in FLAT format" (PRD-0009)
+Explorer (this tool):        "Show me what's inside this OPT — its structure, paths, constraints, and terminology"
 ```
 
-The Explorer reuses the same Pyodide + `OPTParser` infrastructure that the validator already loads. Both tools benefit from shared investment in browser-based OPT parsing.
+All tools share the same design system and are accessible via a shared "Tools" dropdown in the navigation. See section 5.4 for navigation details.
 
 ---
 
@@ -300,18 +310,41 @@ Both OPT and Web Template inputs are normalized into a common JS object model:
 }
 ```
 
-### 5.4 File Structure
+### 5.4 File Structure and Navigation
 
 ```
 docs/
 ├── explorer.html          # New: template explorer page
 ├── converter.html         # New (PRD-0009)
-├── validator.html         # Existing
-├── index.html             # Landing page (add link)
+├── validator.html         # Existing (+ migration mode from PRD-0011)
+├── index.html             # Landing page
+├── docs.html              # Documentation page
+├── brand-kit.html         # Brand kit page
 └── ...
 ```
 
 Single HTML file. Shares Pyodide loading infrastructure with the validator (if both are open in the same browser session, Pyodide is cached by the CDN).
+
+**Navigation (shared across all pages):** All pages use a "Tools" dropdown in the navigation bar:
+
+```html
+<nav>
+  <a href="index.html">Home</a>
+  <a href="docs.html">Docs</a>
+  <div class="nav-dropdown">
+    <button class="nav-dropdown-btn">Tools ▾</button>
+    <div class="nav-dropdown-menu">
+      <a href="validator.html">Validator</a>
+      <a href="converter.html">Converter</a>
+      <a href="explorer.html" class="active">Explorer</a>
+    </div>
+  </div>
+  <a href="brand-kit.html">Brand Kit</a>
+  <a href="https://github.com/platzhersh/oehrpy" class="github-link">GitHub</a>
+</nav>
+```
+
+The dropdown replaces the previous single "Validators" link. It appears on hover, lists all three tools, and highlights the active one. This pattern is consistent across all pages — see PRD-0009 section 5.5 for the full CSS specification.
 
 ### 5.5 Pyodide Integration
 

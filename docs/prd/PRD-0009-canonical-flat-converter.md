@@ -321,21 +321,34 @@ docs/
 
 Single HTML file matching the pattern of `validator.html` — all CSS, JS, and HTML in one file. Shared design system (CSS variables, header, navigation) consistent with the validator.
 
-### 5.5 Navigation Integration
+### 5.5 Navigation Integration (shared across all tools)
 
-Add "Converter" link to the shared navigation bar in both `index.html`, `validator.html`, and the new `converter.html`:
+All pages use a shared "Tools" dropdown in the navigation bar, replacing the previous single "Validators" link:
 
 ```html
-<header>
-  <div class="logo-header"><span>oehrpy</span></div>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="validator.html">Validator</a>
-    <a href="converter.html" class="active">Converter</a>
-    <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
-  </nav>
-</header>
+<nav>
+  <a href="index.html">Home</a>
+  <a href="docs.html">Docs</a>
+  <div class="nav-dropdown">
+    <button class="nav-dropdown-btn">Tools <span class="dropdown-arrow">▾</span></button>
+    <div class="nav-dropdown-menu">
+      <a href="validator.html">Validator</a>
+      <a href="converter.html" class="active">Converter</a>
+      <a href="explorer.html">Explorer</a>
+    </div>
+  </div>
+  <a href="brand-kit.html">Brand Kit</a>
+  <a href="https://github.com/platzhersh/oehrpy" class="github-link">GitHub</a>
+</nav>
 ```
+
+The dropdown appears on hover and lists all three tools. The `class="active"` marker moves to whichever tool is currently active. This pattern is consistent across:
+- `index.html` (no active tool)
+- `docs.html` (no active tool)
+- `validator.html` (Validator active)
+- `converter.html` (Converter active)
+- `explorer.html` (Explorer active)
+- `brand-kit.html` (no active tool)
 
 ---
 

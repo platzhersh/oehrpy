@@ -58,6 +58,48 @@
     nav a:hover, nav a.active {
       color: #f3f4f6;
     }
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-btn {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .nav-dropdown-btn:hover { color: #f3f4f6; }
+    .dropdown-arrow { font-size: 10px; }
+    .nav-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 8px;
+      background: #252540;
+      border: 1px solid #4b4b6c;
+      border-radius: 8px;
+      padding: 6px 0;
+      min-width: 160px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 200;
+    }
+    .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a {
+      display: block;
+      padding: 8px 16px;
+      color: #9ca3af;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+    .nav-dropdown-menu a:hover { background: #2d2d4d; color: #f3f4f6; }
     .github-link {
       background: #252540;
       padding: 8px 16px;
@@ -345,6 +387,14 @@
     <nav>
       <a href="index.html">Home</a>
       <a href="docs.html" class="active">Docs</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Tools <span class="dropdown-arrow">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="validator.html">Validator</a>
+          <a href="converter.html">Converter</a>
+          <a href="explorer.html">Explorer</a>
+        </div>
+      </div>
       <a href="brand-kit.html">Brand Kit</a>
       <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
