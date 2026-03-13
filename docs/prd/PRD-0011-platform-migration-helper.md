@@ -1,7 +1,7 @@
-# PRD-0011: Platform Migration Helper Web GUI
+# PRD-0011: Platform Migration Helper (Validator Mode)
 
 **Status:** Draft
-**Version:** 0.1
+**Version:** 0.2
 **Target Release:** oehrpy v0.3.0
 **Author:** Chregi
 **Date:** 2026-03-13
@@ -19,9 +19,23 @@ The openEHR ecosystem has two dominant CDR platforms with incompatible FLAT form
 
 Both platforms implement the same openEHR specification, and both accept FLAT format compositions — but the *dialect* differs. Compositions that work on one platform fail silently or with cryptic errors on the other.
 
-oehrpy's validator already detects platform-specific issues. The **Platform Migration Helper** takes the next step: it *transforms* FLAT compositions from one platform's dialect to the other, and highlights every change made.
+oehrpy's validator already detects platform-specific issues and has a platform selector (EHRBase vs Better). The **Platform Migration Helper** takes the next step: it *transforms* FLAT compositions from one platform's dialect to the other, and highlights every change made.
 
-### 1.2 The Problem in Practice
+### 1.2 Integration Decision: Third Mode in `validator.html`
+
+The Migration Helper is **integrated into `validator.html`** as a third mode alongside "FLAT Composition" and "OPT Template", rather than being a standalone page. The rationale:
+
+1. **Shared infrastructure**: The validator already has the platform selector (EHRBase vs Better), the same two-panel layout, and the same results area — all of which the Migration Helper needs.
+2. **Natural workflow**: A developer who just validated a FLAT composition and found platform-specific errors wants to immediately convert it. Switching modes is faster than switching pages.
+3. **No new dependencies**: The Migration Helper is pure JavaScript (string-based path transforms), adding ~400 lines to the existing ~2,200. No Pyodide dependency for this mode.
+4. **Consistent UX**: The mode toggle bar (`[FLAT Composition] [OPT Template] [Platform Migration]`) is an established pattern in the validator.
+
+The mode toggle becomes:
+```
+[FLAT Composition]  [OPT Template]  [Platform Migration]
+```
+
+### 1.3 The Problem in Practice
 
 Organizations migrating between platforms (or supporting both) face a systematic path translation problem:
 
@@ -45,15 +59,17 @@ These differences are systematic but numerous. A typical composition has 20–10
 | **Developers using EHRBase documentation** | EHRBase docs and community examples often show the old FLAT format or the Better dialect; developers need to translate to the current EHRBase 2.x dialect |
 | **oehrpy users** | The SDK targets EHRBase 2.x by default; users migrating from Better need to convert their existing payloads |
 
-### 1.4 Relationship to Existing Tools
+### 1.5 Relationship to Other Tools
 
 ```
-Validator:          "Is this FLAT composition valid?"
-Converter:          "Convert between canonical JSON and FLAT format"
-Migration Helper:   "Convert this FLAT composition from EHRBase format to Better format (or vice versa)"
+Validator (FLAT mode):       "Is this FLAT composition valid against this Web Template?"
+Validator (OPT mode):        "Is this OPT template well-formed and semantically correct?"
+Validator (Migration mode):  "Convert this FLAT composition between EHRBase and Better dialects"
+Converter (standalone):      "Convert between canonical JSON and FLAT format" (PRD-0009)
+Explorer (standalone):       "Browse this template's structure, paths, and constraints" (PRD-0010)
 ```
 
-All three tools share the same audience and design system. The Migration Helper is the most focused: it solves one specific problem (platform dialect translation) extremely well.
+The Migration Helper lives inside the validator because it operates on the same input (FLAT compositions) and shares the platform concept. The Converter and Explorer are standalone pages with different UI layouts. All tools are accessible via a shared "Tools" dropdown in the navigation.
 
 ---
 
@@ -343,7 +359,7 @@ Target (EHRBase 2.x):
 
 ### 5.1 Implementation Approach
 
-**Pure JavaScript.** All transformation rules are string-based path manipulation — no RM knowledge, no XML parsing, no Pyodide dependency. This keeps the tool fast (instant load, no 10MB runtime) and self-contained.
+**Pure JavaScript, integrated into `validator.html`.** All transformation rules are string-based path manipulation — no RM knowledge, no XML parsing, no Pyodide dependency. The migration mode loads instantly even if Pyodide hasn't finished initializing (unlike OPT mode which requires it).
 
 ### 5.2 Core Algorithm
 
@@ -426,19 +442,16 @@ function detectTreeId(flatComposition) {
 }
 ```
 
-### 5.6 File Structure
+### 5.6 Integration into `validator.html`
 
-```
-docs/
-├── migration.html         # New: platform migration helper
-├── explorer.html          # New (PRD-0010)
-├── converter.html         # New (PRD-0009)
-├── validator.html         # Existing
-├── index.html             # Landing page (add link)
-└── ...
-```
+No new HTML file — all migration code lives in `validator.html`. The implementation adds ~400 lines of JavaScript for the migration logic, UI mode switching, and change report rendering.
 
-Single HTML file. No Pyodide dependency — loads instantly.
+**Mode switching logic:** The existing `setMode()` function is extended to handle a third mode (`'migration'`). When activated:
+- Hide FLAT-mode panels and OPT-mode panels
+- Show migration-mode panels (Source input + Converted output)
+- Swap platform bar to source→target variant
+- Change button text from "Validate" to "Convert"
+- Wire `runValidation()` to call `runMigrationFlow()` instead
 
 ---
 
