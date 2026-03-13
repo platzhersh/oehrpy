@@ -2257,7 +2257,7 @@ function convertEhrbaseToBetter(flatComposition) {
 
     for (var s = 0; s < segments.length; s++) {
       var seg = segments[s];
-      var isLast = (s === segments.length - 1) && attrPart !== '';
+      var isLast = (s === segments.length - 1);
       var isFirst = (s === 0); // tree ID, don't index
 
       // Add :0 to non-leaf, non-first segments that don't already have an index
