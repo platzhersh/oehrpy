@@ -1109,7 +1109,8 @@ function canonicalToFlat(obj, platform) {
 
 // ── FLAT -> Tree conversion ──
 function flatToTree(flat) {
-  const root = {};
+  const RESERVED_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+  const root = Object.create(null);
 
   for (const [key, value] of Object.entries(flat)) {
     // Validate flat structure
@@ -1141,6 +1142,11 @@ function flatToTree(flat) {
       if (colonMatch) {
         segment = colonMatch[1];
         index = parseInt(colonMatch[2], 10);
+      }
+
+      // Guard against prototype pollution
+      if (RESERVED_KEYS.has(segment) || (attr && RESERVED_KEYS.has(attr))) {
+        break;
       }
 
       if (index !== null) {
