@@ -955,26 +955,33 @@ function canonicalToFlat(obj, platform) {
       if (NAMED_CONTAINER_KEYS.has(key) && typeof value === 'object') {
         // If value is an array, walk each item using item's name as path segment
         if (Array.isArray(value)) {
-          value.forEach(function(item, i) {
-            if (typeof item === 'object' && item !== null) {
-              let itemName = key;
-              if (item.name) {
-                const nameVal = typeof item.name === 'object' ? item.name.value : item.name;
-                if (nameVal) {
-                  itemName = nameVal.toLowerCase().replace(/\s+/g, '_');
-                }
-              }
-              const itemPath = path ? path + '/' + itemName : itemName;
-              // Add index for arrays with multiple items or if Better platform
+          // Group items by resolved name to determine which need indexing
+          const nameGroups = {};
+          const resolvedItems = value.map(function(item) {
+            let itemName = key;
+            if (typeof item === 'object' && item !== null && item.name) {
+              const nameVal = typeof item.name === 'object' ? item.name.value : item.name;
+              if (nameVal) itemName = nameVal.toLowerCase().replace(/\s+/g, '_');
+            }
+            if (!nameGroups[itemName]) nameGroups[itemName] = [];
+            const idx = nameGroups[itemName].length;
+            nameGroups[itemName].push(item);
+            return { item: item, itemName: itemName, nameIdx: idx };
+          });
+
+          resolvedItems.forEach(function(entry) {
+            if (typeof entry.item === 'object' && entry.item !== null) {
+              const itemPath = path ? path + '/' + entry.itemName : entry.itemName;
+              // Add index when multiple items share the same name, or always for Better
               let indexedPath = itemPath;
-              if (value.length > 1 || platform === 'better') {
-                indexedPath = itemPath + ':' + i;
+              if (nameGroups[entry.itemName].length > 1 || platform === 'better') {
+                indexedPath = itemPath + ':' + entry.nameIdx;
               }
-              walk(item, indexedPath);
+              walk(entry.item, indexedPath);
             } else {
               const arrPath = path ? path + '/' + key : key;
-              const indexedPath = platform === 'better' ? arrPath + ':' + i : arrPath;
-              result[indexedPath] = item;
+              const indexedPath = platform === 'better' ? arrPath + ':' + entry.nameIdx : arrPath;
+              result[indexedPath] = entry.item;
             }
           });
           continue;
@@ -1034,20 +1041,27 @@ function canonicalToFlat(obj, platform) {
     if (NAMED_CONTAINER_KEYS.has(key)) {
       // content, items, etc - walk children using their names
       if (Array.isArray(value)) {
-        value.forEach(function(item, i) {
-          if (typeof item === 'object' && item !== null) {
-            let itemName = key;
-            if (item.name) {
-              const nameVal = typeof item.name === 'object' ? item.name.value : item.name;
-              if (nameVal) {
-                itemName = nameVal.toLowerCase().replace(/\s+/g, '_');
-              }
-            }
-            const itemPath = prefix + '/' + itemName;
-            const indexedPath = (value.length > 1 || platform === 'better')
-              ? itemPath + ':' + i
+        // Group by resolved name for correct indexing
+        const nameGroups = {};
+        const resolvedItems = value.map(function(item) {
+          let itemName = key;
+          if (typeof item === 'object' && item !== null && item.name) {
+            const nameVal = typeof item.name === 'object' ? item.name.value : item.name;
+            if (nameVal) itemName = nameVal.toLowerCase().replace(/\s+/g, '_');
+          }
+          if (!nameGroups[itemName]) nameGroups[itemName] = [];
+          const idx = nameGroups[itemName].length;
+          nameGroups[itemName].push(item);
+          return { item: item, itemName: itemName, nameIdx: idx };
+        });
+
+        resolvedItems.forEach(function(entry) {
+          if (typeof entry.item === 'object' && entry.item !== null) {
+            const itemPath = prefix + '/' + entry.itemName;
+            const indexedPath = (nameGroups[entry.itemName].length > 1 || platform === 'better')
+              ? itemPath + ':' + entry.nameIdx
               : itemPath;
-            walk(item, indexedPath);
+            walk(entry.item, indexedPath);
           }
         });
       } else if (typeof value === 'object') {
@@ -1064,6 +1078,29 @@ function canonicalToFlat(obj, platform) {
         }
       } else {
         result[currentPath] = value;
+      }
+    }
+  }
+
+  // Better platform: map composition-level context fields to ctx/ prefix
+  if (platform === 'better') {
+    const CTX_MAP = {};
+    CTX_MAP[prefix + '/language|code'] = 'ctx/language';
+    CTX_MAP[prefix + '/language|terminology'] = null; // implied
+    CTX_MAP[prefix + '/territory|code'] = 'ctx/territory';
+    CTX_MAP[prefix + '/territory|terminology'] = null;
+    CTX_MAP[prefix + '/composer|name'] = 'ctx/composer_name';
+    CTX_MAP[prefix + '/context/start_time'] = 'ctx/time';
+    CTX_MAP[prefix + '/context/setting|code'] = 'ctx/setting';
+    CTX_MAP[prefix + '/context/setting|value'] = null;
+    CTX_MAP[prefix + '/context/setting|terminology'] = null;
+
+    for (const [oldKey, newKey] of Object.entries(CTX_MAP)) {
+      if (oldKey in result) {
+        if (newKey) {
+          result[newKey] = result[oldKey];
+        }
+        delete result[oldKey];
       }
     }
   }
@@ -1163,7 +1200,8 @@ function flatToTree(flat) {
 // ── JSON Syntax Highlighting ──
 function highlightJSON(json) {
   const str = typeof json === 'string' ? json : JSON.stringify(json, null, 2);
-  return str.replace(/("(?:[^"\\]|\\.)*")\s*:/g, '<span class="json-key">$1</span>:')
+  const escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return escaped.replace(/("(?:[^"\\]|\\.)*")\s*:/g, '<span class="json-key">$1</span>:')
             .replace(/:\s*("(?:[^"\\]|\\.)*")/g, ': <span class="json-string">$1</span>')
             .replace(/:\s*(-?\d+\.?\d*(?:[eE][+-]?\d+)?)/g, ': <span class="json-number">$1</span>')
             .replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>')

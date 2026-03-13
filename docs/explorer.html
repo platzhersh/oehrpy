@@ -247,7 +247,7 @@
     <span class="mode-label">Input</span>
     <div class="mode-toggle">
       <button class="mode-btn active" id="btn-mode-wt" onclick="setInputMode('wt')">Web Template JSON</button>
-      <button class="mode-btn" id="btn-mode-opt" onclick="setInputMode('opt')">OPT XML</button>
+      <button class="mode-btn" id="btn-mode-opt" onclick="setInputMode('opt')" disabled title="OPT XML parsing requires Pyodide (coming soon)" style="opacity:0.5;cursor:not-allowed;">OPT XML</button>
     </div>
     <span class="mode-desc" id="mode-desc">Paste a Web Template JSON to explore its structure</span>
   </div>
@@ -658,10 +658,13 @@ function selectNode(node) {
   html += '<div class="detail-section"><div class="detail-section-title">FLAT Paths</div>';
   var ehrbasePath = node.flatPath;
   var betterPath = addBetterIndexing(node.flatPath);
-  html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">EHRBase 2.x:</div>';
-  html += '<div class="detail-path"><span>' + esc(ehrbasePath) + '</span><button class="copy-btn" onclick="copyText(\'' + escAttr(ehrbasePath) + '\',this)">copy</button></div>';
-  html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;margin-top:8px;">Better:</div>';
-  html += '<div class="detail-path"><span>' + esc(betterPath) + '</span><button class="copy-btn" onclick="copyText(\'' + escAttr(betterPath) + '\',this)">copy</button></div>';
+  var ehrbaseActive = currentPlatform === 'ehrbase';
+  var activeStyle = 'font-weight:600;color:var(--text);';
+  var dimStyle = 'color:var(--text-dim);';
+  html += '<div style="font-size:11px;margin-bottom:4px;' + (ehrbaseActive ? activeStyle : dimStyle) + '">EHRBase 2.x' + (ehrbaseActive ? ' (active)' : '') + ':</div>';
+  html += '<div class="detail-path" style="' + (ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(ehrbasePath) + '</span><button class="copy-btn" onclick="copyText(\'' + escAttr(ehrbasePath) + '\',this)">copy</button></div>';
+  html += '<div style="font-size:11px;margin-bottom:4px;margin-top:8px;' + (!ehrbaseActive ? activeStyle : dimStyle) + '">Better' + (!ehrbaseActive ? ' (active)' : '') + ':</div>';
+  html += '<div class="detail-path" style="' + (!ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(betterPath) + '</span><button class="copy-btn" onclick="copyText(\'' + escAttr(betterPath) + '\',this)">copy</button></div>';
   html += '</div>';
 
   // Data type attributes
@@ -716,6 +719,10 @@ function addBetterIndexing(path) {
   }).join('/');
 }
 
+function formatPathForPlatform(path) {
+  return currentPlatform === 'better' ? addBetterIndexing(path) : path;
+}
+
 // === PATH LIST ===
 function renderPathList() {
   var body = document.getElementById('path-list-body');
@@ -730,9 +737,10 @@ function renderPathList() {
   var html = '';
   for (var j = 0; j < paths.length; j++) {
     var item = paths[j];
-    html += '<div class="path-row" data-path="' + esc(item.path) + '" data-uid="' + item.nodeUid + '" onclick="highlightNodeFromPath(this)">' +
+    var displayPath = formatPathForPlatform(item.path);
+    html += '<div class="path-row" data-path="' + esc(displayPath) + '" data-uid="' + item.nodeUid + '" onclick="highlightNodeFromPath(this)">' +
       '<span class="path-req">' + (item.required ? '&#10004;' : '') + '</span>' +
-      '<span class="path-text">' + esc(item.path) + '</span>' +
+      '<span class="path-text">' + esc(displayPath) + '</span>' +
       '<span class="path-rm">' + esc(item.rmType.replace('DV_','')) + '</span>' +
     '</div>';
   }
@@ -808,7 +816,7 @@ function exportCSV() {
   }
   var csv = 'path,rm_type,required\n';
   for (var j = 0; j < paths.length; j++) {
-    csv += '"' + paths[j].path + '","' + paths[j].rmType + '",' + (paths[j].required ? 'true' : 'false') + '\n';
+    csv += '"' + formatPathForPlatform(paths[j].path) + '","' + paths[j].rmType + '",' + (paths[j].required ? 'true' : 'false') + '\n';
   }
   var blob = new Blob([csv], { type: 'text/csv' });
   var url = URL.createObjectURL(blob);
@@ -822,7 +830,8 @@ function copyAllPaths() {
   var unique = {};
   var lines = [];
   for (var i = 0; i < allPaths.length; i++) {
-    if (!unique[allPaths[i].path]) { unique[allPaths[i].path] = true; lines.push(allPaths[i].path); }
+    var fp = formatPathForPlatform(allPaths[i].path);
+    if (!unique[fp]) { unique[fp] = true; lines.push(fp); }
   }
   navigator.clipboard.writeText(lines.join('\n')).then(function() { showToast('Copied ' + lines.length + ' paths'); });
 }
