@@ -1,0 +1,137 @@
+{
+  "name": "oehrpy-validator",
+  "displayName": "oehrpy FLAT Validator",
+  "description": "Validate openEHR FLAT format compositions against Web Templates",
+  "publisher": "platzhersh",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/platzhersh/oehrpy",
+    "directory": "vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "openEHR",
+    "FLAT",
+    "EHRBase",
+    "clinical",
+    "oehrpy"
+  ],
+  "activationEvents": [
+    "onLanguage:json"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "oehrpy.validateFlat",
+        "title": "oehrpy: Validate FLAT Composition"
+      },
+      {
+        "command": "oehrpy.selectWebTemplate",
+        "title": "oehrpy: Select Web Template for This File"
+      },
+      {
+        "command": "oehrpy.showValidPaths",
+        "title": "oehrpy: Show Valid Paths for Template"
+      }
+    ],
+    "configuration": {
+      "title": "oehrpy FLAT Validator",
+      "properties": {
+        "oehrpy.pythonPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to Python interpreter with oehrpy installed. Leave empty to auto-detect."
+        },
+        "oehrpy.platform": {
+          "type": "string",
+          "enum": [
+            "ehrbase",
+            "better"
+          ],
+          "default": "ehrbase",
+          "description": "CDR platform dialect for FLAT path validation."
+        },
+        "oehrpy.validateOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Validate FLAT compositions automatically on file save."
+        },
+        "oehrpy.webTemplatePaths": {
+          "type": "object",
+          "default": {},
+          "description": "Map of template IDs to web template file paths. Example: { \"IDCR - Adverse Reaction List.v1\": \"./templates/adverse_reaction_wt.json\" }"
+        },
+        "oehrpy.flatCompositionPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/*.flat.json"
+          ],
+          "description": "Glob patterns of files to always treat as FLAT compositions (overrides auto-detection)."
+        },
+        "oehrpy.webTemplatePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/*.wt.json",
+            "**/web_template.json"
+          ],
+          "description": "Glob patterns of files to always treat as Web Templates."
+        },
+        "oehrpy.validationTimeout": {
+          "type": "number",
+          "default": 5000,
+          "description": "Maximum time (ms) to wait for CLI validation before timeout."
+        },
+        "oehrpy.enableHover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show hover documentation for FLAT paths."
+        },
+        "oehrpy.enableQuickFix": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Quick Fix suggestions for invalid FLAT paths."
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "oehrpy.validateFlat",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "editorLangId == json"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src/ test/ --ext .ts",
+    "test": "node ./out/test/runTests.js",
+    "package": "vsce package",
+    "build": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0"
+  }
+}
