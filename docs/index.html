@@ -605,12 +605,12 @@ flat_data = builder.<span class="code-function">build</span>()
       dropdown.classList.toggle('is-open', open);
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
-    btn.addEventListener('click', function() { setOpen(!dropdown.classList.contains('is-open')); });
-    dropdown.addEventListener('mouseenter', function() { setOpen(true); });
-    dropdown.addEventListener('mouseleave', function() { setOpen(false); });
-    dropdown.addEventListener('focusin', function() { setOpen(true); });
-    dropdown.addEventListener('focusout', function() {
-      setTimeout(function() { if (!dropdown.contains(document.activeElement)) setOpen(false); }, 0);
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      setOpen(!dropdown.classList.contains('is-open'));
+    });
+    document.addEventListener('click', function(e) {
+      if (!dropdown.contains(e.target)) setOpen(false);
     });
     dropdown.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') { setOpen(false); btn.focus(); }
