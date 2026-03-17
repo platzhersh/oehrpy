@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.6.1 (2026-03-17)
+
+### Bug Fixes
+
+- Refactor dropdown click handling to use document-level event delegation (#32)
+  ([#32](https://github.com/platzhersh/oehrpy/pull/32),
+  [`c1b8f1f`](https://github.com/platzhersh/oehrpy/commit/c1b8f1fc7a58ae7d59897465b40dcce86ee47a3d))
+
+
 ## v0.6.0 (2026-03-13)
 
 ### Code Style
