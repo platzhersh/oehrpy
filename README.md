@@ -8,6 +8,7 @@
   <a href="https://github.com/platzhersh/oehrpy/blob/main/LICENSE"><img src="https://img.shields.io/pypi/l/oehrpy" alt="License"></a>
   <a href="https://github.com/platzhersh/oehrpy/actions/workflows/ci.yml"><img src="https://github.com/platzhersh/oehrpy/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-latest-blue" alt="Changelog"></a>
+  <a href="https://platzhersh.github.io/oehrpy/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Documentation"></a>
 </p>
 
 > **Pronunciation:** /oʊ.ɛər.paɪ/ ("o-air-pie") — short for "openehrpy", where "ehr" is pronounced like "air" (as in openEHR).
