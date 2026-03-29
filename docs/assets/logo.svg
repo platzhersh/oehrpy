@@ -1,25 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120">
+<svg viewBox="0 0 200 220" width="200" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fb923c"/>
+      <stop offset="100%" style="stop-color:#ea580c"/>
     </linearGradient>
   </defs>
-  <!-- Icon: stylized EHR heart/pulse -->
-  <circle cx="55" cy="60" r="42" fill="url(#grad)" opacity="0.12"/>
-  <circle cx="55" cy="60" r="32" fill="none" stroke="url(#grad)" stroke-width="3"/>
-  <!-- Pulse line through circle -->
-  <polyline points="23,60 40,60 47,40 55,78 63,48 70,60 87,60"
-    fill="none" stroke="url(#grad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Snake (Python) wrapping subtly -->
-  <path d="M45,28 Q55,22 65,28" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="63" cy="26" r="2" fill="#7c3aed"/>
-  <!-- Text -->
-  <text x="110" y="72" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="700" fill="#1e293b">
-    oehrpy
-  </text>
-  <!-- Subtitle -->
-  <text x="112" y="96" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#64748b" letter-spacing="0.5">
-    Python SDK for openEHR
-  </text>
+  <path d="M100 30 C55 30 45 65 45 85 C45 108 70 120 100 120 C130 120 155 108 155 85 C155 65 145 30 100 30"
+        fill="url(#blueGrad)"/>
+  <circle cx="72" cy="58" r="8" fill="#fff"/>
+  <path d="M100 170 C145 170 155 135 155 115 C155 92 130 80 100 80 C70 80 45 92 45 115 C45 135 55 170 100 170"
+        fill="url(#orangeGrad)"/>
+  <circle cx="128" cy="142" r="8" fill="#fff"/>
+  <text x="100" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#1f2937">oehrpy</text>
 </svg>
