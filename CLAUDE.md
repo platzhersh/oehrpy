@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **oehrpy** (pronounced /oʊ.ɛər.paɪ/ "o-air-pie") is a comprehensive Python SDK for openEHR that provides type-safe Reference Model classes, template-specific composition builders, EHRBase client, and AQL query builder. The project addresses the gap in the openEHR ecosystem where no comprehensive, actively maintained Python SDK exists.
 
+## Commit & PR Conventions
+
+- **PR titles** must follow [Conventional Commits](https://www.conventionalcommits.org/) format: `<type>(<optional scope>): <description>`
+- Common types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `ci`, `chore`, `perf`, `build`
+- Examples: `feat(aql): add pagination support`, `fix(client): handle timeout on composition create`, `docs: update README badges`
+- Keep the title under 70 characters, lowercase, no trailing period
+
 ## Key Commands
 
 ### Development Setup
