@@ -1,19 +1,22 @@
-<svg viewBox="0 0 200 220" width="200" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 400 120" width="400" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#3b82f6"/>
       <stop offset="100%" style="stop-color:#1d4ed8"/>
     </linearGradient>
-    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="orange" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#fb923c"/>
       <stop offset="100%" style="stop-color:#ea580c"/>
     </linearGradient>
   </defs>
-  <path d="M100 30 C55 30 45 65 45 85 C45 108 70 120 100 120 C130 120 155 108 155 85 C155 65 145 30 100 30"
-        fill="url(#blueGrad)"/>
-  <circle cx="72" cy="58" r="8" fill="#fff"/>
-  <path d="M100 170 C145 170 155 135 155 115 C155 92 130 80 100 80 C70 80 45 92 45 115 C45 135 55 170 100 170"
-        fill="url(#orangeGrad)"/>
-  <circle cx="128" cy="142" r="8" fill="#fff"/>
-  <text x="100" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#1f2937">oehrpy</text>
+  <g transform="translate(10, 5) scale(0.55)">
+    <path d="M80 20 C45 20 38 45 38 60 C38 77 55 85 80 85 C105 85 122 77 122 60 C122 45 115 20 80 20"
+          fill="url(#blue)"/>
+    <circle cx="60" cy="40" r="6" fill="#fff"/>
+    <path d="M80 140 C115 140 122 115 122 100 C122 83 105 75 80 75 C55 75 38 83 38 100 C38 115 45 140 80 140"
+          fill="url(#orange)"/>
+    <circle cx="100" cy="120" r="6" fill="#fff"/>
+  </g>
+  <text x="130" y="55" font-family="Inter, sans-serif" font-size="42" font-weight="600" fill="#1f2937">oehrpy</text>
+  <text x="132" y="80" font-family="Inter, sans-serif" font-size="14" font-weight="400" font-style="italic" fill="#64748b">openEHR, the Pythonic way</text>
 </svg>

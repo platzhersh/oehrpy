@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="oehrpy logo" width="200">
+  <img src="docs/assets/logo.svg" alt="oehrpy — openEHR, the Pythonic way" width="400">
 </p>
 
 <p align="center">
