@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Icon: stylized EHR heart/pulse -->
+  <circle cx="55" cy="60" r="42" fill="url(#grad)" opacity="0.12"/>
+  <circle cx="55" cy="60" r="32" fill="none" stroke="url(#grad)" stroke-width="3"/>
+  <!-- Pulse line through circle -->
+  <polyline points="23,60 40,60 47,40 55,78 63,48 70,60 87,60"
+    fill="none" stroke="url(#grad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Snake (Python) wrapping subtly -->
+  <path d="M45,28 Q55,22 65,28" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="63" cy="26" r="2" fill="#7c3aed"/>
+  <!-- Text -->
+  <text x="110" y="72" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="700" fill="#1e293b">
+    oehrpy
+  </text>
+  <!-- Subtitle -->
+  <text x="112" y="96" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#64748b" letter-spacing="0.5">
+    Python SDK for openEHR
+  </text>
+</svg>

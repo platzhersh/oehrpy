@@ -1,4 +1,14 @@
-# oehrpy - Python openEHR SDK
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="oehrpy logo" width="380">
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/oehrpy/"><img src="https://img.shields.io/pypi/v/oehrpy?color=blue" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/oehrpy/"><img src="https://img.shields.io/pypi/pyversions/oehrpy" alt="Python versions"></a>
+  <a href="https://github.com/platzhersh/oehrpy/blob/main/LICENSE"><img src="https://img.shields.io/pypi/l/oehrpy" alt="License"></a>
+  <a href="https://github.com/platzhersh/oehrpy/actions/workflows/ci.yml"><img src="https://github.com/platzhersh/oehrpy/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-latest-blue" alt="Changelog"></a>
+</p>
 
 > **Pronunciation:** /oʊ.ɛər.paɪ/ ("o-air-pie") — short for "openehrpy", where "ehr" is pronounced like "air" (as in openEHR).
 
