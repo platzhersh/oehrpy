@@ -440,6 +440,140 @@ class TestPlatformDialects:
         assert "no :0" in desc
 
 
+# ─── ctx/ Path Validation ──────────────────────────────────────────────
+
+
+class TestCtxPathValidation:
+    """Tests for ctx/ shorthand path handling (PRD-0007)."""
+
+    def test_ctx_bare_keys_accepted(self) -> None:
+        """All allowlisted bare ctx/ keys must not produce errors or warnings."""
+        wt = _make_web_template()
+        validator = FlatValidator.from_web_template(wt, platform="ehrbase")
+
+        flat = _make_valid_flat()
+        flat["ctx/language"] = "en"
+        flat["ctx/territory"] = "CH"
+        flat["ctx/composer_name"] = "Dr. Smith"
+        flat["ctx/composer_id"] = "12345"
+        flat["ctx/id_scheme"] = "scheme"
+        flat["ctx/id_namespace"] = "namespace"
+        flat["ctx/time"] = "2025-01-05T10:30:00Z"
+        flat["ctx/end_time"] = "2025-01-05T11:00:00Z"
+        flat["ctx/history_origin"] = "2025-01-05T10:30:00Z"
+        flat["ctx/health_care_facility"] = "Hospital"
+        flat["ctx/participation_name"] = "Nurse"
+        flat["ctx/participation_function"] = "requester"
+        flat["ctx/participation_mode"] = "face-to-face"
+        flat["ctx/participation_id"] = "nurse-1"
+        flat["ctx/setting"] = "primary care"
+
+        result = validator.validate(flat)
+
+        assert result.is_valid
+        ctx_errors = [e for e in result.errors if e.path.startswith("ctx/")]
+        assert ctx_errors == []
+        ctx_warnings = [w for w in result.warnings if w.path.startswith("ctx/")]
+        assert ctx_warnings == []
+
+    def test_ctx_pipe_attribute_variants_accepted(self) -> None:
+        """ctx/ keys with |attribute suffixes must be accepted."""
+        wt = _make_web_template()
+        validator = FlatValidator.from_web_template(wt, platform="ehrbase")
+
+        flat = _make_valid_flat()
+        flat["ctx/health_care_facility|name"] = "City Hospital"
+        flat["ctx/health_care_facility|id"] = "facility_id"
+        flat["ctx/language|code"] = "en"
+        flat["ctx/language|terminology"] = "ISO_639-1"
+        flat["ctx/territory|code"] = "CH"
+        flat["ctx/territory|terminology"] = "ISO_3166-1"
+
+        result = validator.validate(flat)
+
+        assert result.is_valid
+        ctx_errors = [e for e in result.errors if e.path.startswith("ctx/")]
+        assert ctx_errors == []
+
+    def test_unknown_ctx_path_produces_warning(self) -> None:
+        """An unknown ctx/ sub-path must produce a warning."""
+        wt = _make_web_template()
+        validator = FlatValidator.from_web_template(wt, platform="ehrbase")
+
+        flat = _make_valid_flat()
+        flat["ctx/invented_nonsense"] = "bogus"
+
+        result = validator.validate(flat)
+
+        # Unknown ctx/ should NOT cause an error (is_valid stays True)
+        ctx_errors = [e for e in result.errors if e.path.startswith("ctx/")]
+        assert ctx_errors == []
+
+        # But it SHOULD produce a warning
+        ctx_warnings = [w for w in result.warnings if w.path == "ctx/invented_nonsense"]
+        assert len(ctx_warnings) == 1
+        assert "Unknown ctx/ shorthand" in ctx_warnings[0].message
+
+    def test_ctx_paths_do_not_break_template_validation(self) -> None:
+        """Existing template-derived path validation must still work with ctx/ paths present."""
+        wt = _make_web_template()
+        validator = FlatValidator.from_web_template(wt, platform="ehrbase")
+
+        flat = _make_valid_flat()
+        flat["ctx/language"] = "en"
+        flat["ctx/territory"] = "CH"
+        flat["ctx/composer_name"] = "Dr. Smith"
+        flat["adverse_reaction_list/adverse_reaction/nonexistent|value"] = "x"
+
+        result = validator.validate(flat)
+
+        assert not result.is_valid
+        assert len(result.errors) == 1
+        assert result.errors[0].error_type == "unknown_path"
+        assert "nonexistent" in result.errors[0].path
+
+    def test_ctx_works_on_better_platform(self) -> None:
+        """ctx/ paths should be accepted regardless of platform."""
+        wt = _make_web_template()
+        validator = FlatValidator.from_web_template(wt, platform="better")
+
+        flat = {
+            "adverse_reaction_list/category:0|code": "433",
+            "adverse_reaction_list/category:0|value": "event",
+            "adverse_reaction_list/category:0|terminology": "openehr",
+            "adverse_reaction_list/language:0|code": "en",
+            "adverse_reaction_list/language:0|terminology": "ISO_639-1",
+            "adverse_reaction_list/territory:0|code": "CH",
+            "adverse_reaction_list/territory:0|terminology": "ISO_3166-1",
+            "adverse_reaction_list/composer:0|name": "Dr. Chregi",
+            "adverse_reaction_list/context:0/start_time:0": "2026-03-12T10:00:00Z",
+            "adverse_reaction_list/context:0/setting:0|code": "238",
+            "adverse_reaction_list/context:0/setting:0|value": "other care",
+            "adverse_reaction_list/context:0/setting:0|terminology": "openehr",
+            "adverse_reaction_list/adverse_reaction:0/causative_agent:0|value": "Penicillin",
+            "ctx/language": "en",
+            "ctx/territory": "CH",
+            "ctx/health_care_facility|name": "Hospital",
+        }
+
+        result = validator.validate(flat)
+        ctx_errors = [e for e in result.errors if e.path.startswith("ctx/")]
+        assert ctx_errors == []
+
+    def test_unknown_ctx_pipe_attribute_produces_warning(self) -> None:
+        """ctx/unknown_base|attr should still warn since the base is unknown."""
+        wt = _make_web_template()
+        validator = FlatValidator.from_web_template(wt, platform="ehrbase")
+
+        flat = _make_valid_flat()
+        flat["ctx/fake_field|name"] = "bogus"
+
+        result = validator.validate(flat)
+
+        ctx_warnings = [w for w in result.warnings if w.path == "ctx/fake_field|name"]
+        assert len(ctx_warnings) == 1
+
+
 # ─── Integration-style Tests ─────────────────────────────────────────
 
 

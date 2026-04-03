@@ -16,6 +16,32 @@ from openehr_sdk.validation.web_template import ParsedWebTemplate, enumerate_val
 
 ErrorType = Literal["unknown_path", "wrong_suffix", "missing_required", "index_mismatch"]
 
+# Static allowlist of ctx/ shorthand keys defined in the openEHR simSDT specification.
+# These are resolved by the CDR at ingest time and are not part of the Web Template tree.
+_CTX_ALLOWED_BASES: frozenset[str] = frozenset({
+    "ctx/language",
+    "ctx/territory",
+    "ctx/composer_name",
+    "ctx/composer_id",
+    "ctx/id_scheme",
+    "ctx/id_namespace",
+    "ctx/time",
+    "ctx/end_time",
+    "ctx/history_origin",
+    "ctx/health_care_facility",
+    "ctx/participation_name",
+    "ctx/participation_function",
+    "ctx/participation_mode",
+    "ctx/participation_id",
+    "ctx/setting",
+})
+
+
+def _is_valid_ctx_path(path: str) -> bool:
+    """Return True if *path* is a known ctx/ shorthand (with or without |attribute)."""
+    base = path.split("|")[0]
+    return base in _CTX_ALLOWED_BASES
+
 
 @dataclass
 class ValidationError:
@@ -208,6 +234,18 @@ def validate_composition(
 
     for path in flat_composition:
         checked_count += 1
+
+        # Handle ctx/ shorthand paths (not in the Web Template tree)
+        if path.startswith("ctx/"):
+            if not _is_valid_ctx_path(path):
+                warnings.append(
+                    ValidationError(
+                        path=path,
+                        error_type="unknown_path",
+                        message="Unknown ctx/ shorthand",
+                    )
+                )
+            continue
 
         if path in valid_path_set:
             continue
