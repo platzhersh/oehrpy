@@ -36,6 +36,7 @@ from openehr_sdk.validation.opt import (
 )
 from openehr_sdk.validation.path_checker import (
     ValidationError,
+    ValidationInfo,
     ValidationResult,
     validate_composition,
 )
@@ -143,6 +144,7 @@ __all__ = [
     "FlatValidator",
     "ParsedWebTemplate",
     "ValidationError",
+    "ValidationInfo",
     "ValidationResult",
     "WebTemplateNode",
     "enumerate_valid_paths",
