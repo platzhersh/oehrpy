@@ -74,8 +74,32 @@ This behaviour is confirmed by:
 
 ## Decision
 
-**The Web Template JSON is the sole authoritative source for FLAT path derivation in
-oehrpy.** OPT XML is never used to generate, validate, or infer FLAT paths.
+**OPT-to-Web-Template transformation is a CDR responsibility. oehrpy treats the Web
+Template endpoint as the authoritative output of that transformation and never
+reimplements the transformation itself.**
+
+Web Template generation is not an SDK concern. It is a **CDR responsibility**. The
+moment an OPT is uploaded to any openEHR-compliant instance — EHRBase, Better Platform,
+Nedap, eventually NeoEHR — the CDR becomes the authoritative source for what that
+template's FLAT paths look like. The CDR has already performed the OPT → Web Template
+transformation internally to handle composition validation and storage. Fetching the
+Web Template via `GET /definition/template/adl1.4/{id}` with
+`Accept: application/openehr.wt+json` simply accesses that already-computed view.
+
+This is **spec-backed, not implementation-specific.** The openEHR REST specification
+defines the Web Template endpoint as a standard interface. Better Platform had it first,
+EHRBase adopted the same format, and it is being formalised in REST 1.1.0. Fetching the
+Web Template from the CDR is portable across vendors.
+
+This also means **the CDR version matters, not the SDK version.** If a CDR changes its
+normalisation rules between releases (as EHRBase demonstrably did between 2.0 and
+2.26.0), the Web Template endpoint automatically returns the updated view. An SDK that
+hardcodes paths derived from OPT parsing would silently break; an SDK that fetches from
+the CDR picks up the change on the next call.
+
+In practical terms: the OPT is the *input* to the CDR; the Web Template is the *output*
+that application developers should consume. oehrpy never sits between these two — it
+consumes the output.
 
 Concretely:
 
@@ -101,8 +125,10 @@ Concretely:
 
 5. **Offline / Pyodide scenarios** (e.g., `FlatValidator` running in the browser via
    WebAssembly): a pre-fetched Web Template JSON must be bundled or supplied by the
-   caller. OPT XML is not an acceptable substitute. The Web Template can be exported
-   from the openEHR Archetype Designer (Better) without a live CDR.
+   caller. OPT XML is not an acceptable substitute — the OPT is the *input* to the
+   CDR, not the output that application code should consume. The Web Template can be
+   exported from the openEHR Archetype Designer (Better) or fetched once from any CDR
+   and cached for offline use.
 
 6. **OPT parsing (`OPTParser`)** is retained in the public API for legitimate offline
    use cases: extracting template metadata, listing archetypes, and as an input to
@@ -116,12 +142,14 @@ Concretely:
 Implement the CDR's internal OPT → Web Template normalisation rules in Python (e.g.,
 convert archetype concept names to snake_case, handle duplicate `id` suffixes).
 
-**Rejected.** The normalisation rules are not fully specified in any openEHR standard
+**Rejected.** OPT-to-Web-Template transformation is a CDR responsibility, not an SDK
+concern. The normalisation rules are not fully specified in any openEHR standard
 document. They differ between CDR implementations (EHRBase vs. Better Platform) and
-between CDR versions. Any Python reimplementation would be fragile, maintenance-heavy,
-and would produce subtly wrong results in edge cases (as the integration testing
-experience demonstrated). This approach creates a hidden, silent coupling to CDR
-internals.
+between CDR versions. Reimplementing them in Python would mean the SDK silently couples
+to CDR internals — and if the CDR changes its rules (as EHRBase did between 2.0 and
+2.26.0), the SDK produces wrong paths with no error. The integration testing experience
+confirmed this: every attempt to derive FLAT paths from OPT analysis produced subtly
+incorrect results that EHRBase rejected.
 
 ### Alternative B: Use the `/example?format=FLAT` endpoint to infer paths
 
