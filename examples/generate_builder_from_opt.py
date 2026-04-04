@@ -1,10 +1,14 @@
 """
-Example: Generate a template builder from an OPT file.
+Example: Generate a template builder skeleton from an OPT file.
 
 This script demonstrates how to:
 1. Parse an OPT (Operational Template) XML file
-2. Generate a Python builder class automatically
-3. Use the generated builder to create compositions
+2. Extract template metadata (template ID, concept, archetypes)
+3. Generate a Python builder class skeleton
+
+Note: The generated code contains metadata only, NOT FLAT path strings.
+FLAT paths cannot be reliably derived from OPT XML — they must come from
+the Web Template JSON provided by the CDR after OPT upload (see ADR-0005).
 
 Usage:
     python examples/generate_builder_from_opt.py path/to/template.opt
@@ -49,16 +53,16 @@ def main() -> None:
         print(f"  {i}. {obs.name}")
         print(f"     Archetype ID: {obs.archetype_id}")
 
-    # Step 3: Generate builder code
+    # Step 3: Generate builder skeleton (metadata only, no FLAT paths — see ADR-0005)
     print("\n" + "=" * 70)
-    print("Generating builder class...")
+    print("Generating builder skeleton (metadata only)...")
     print("=" * 70)
 
     generator = BuilderGenerator()
     code = generator.generate(template)
 
-    # Step 4: Display the generated code
-    print("\nGenerated Builder Code:")
+    # Step 4: Display the generated skeleton
+    print("\nGenerated Builder Skeleton (FLAT paths must come from Web Template):")
     print("-" * 70)
     print(code)
     print("-" * 70)

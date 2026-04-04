@@ -201,27 +201,38 @@ These patterns are not necessarily errors but are worth flagging:
 
 #### Category D — FLAT Path Impact Analysis
 
-This category is unique to oehrpy and connects OPT validation to FLAT format usage. For each issue found, report the downstream impact on FLAT paths:
+> **ADR-0005 Note (2026-04-04):** FLAT paths cannot be reliably derived from
+> OPT XML. The CDR applies undocumented normalisation rules when converting
+> OPT to Web Template, so any OPT-based FLAT path preview is **illustrative
+> only**. The authoritative FLAT paths come from the Web Template JSON
+> (fetched via `EHRBaseClient.get_web_template()` or the CDR's
+> `/example?format=FLAT` endpoint after upload).
 
-**D1. Name-to-path mapping preview**
+This category connects OPT validation to FLAT format usage. It provides
+**informational hints** about potential FLAT path implications, not
+authoritative path derivation:
 
-Show how each top-level concept will appear in FLAT paths:
+**D1. Name-to-path mapping preview (informational)**
+
+Show how each top-level concept *might* appear in FLAT paths, with an
+explicit caveat that the CDR's normalisation rules may produce different
+results:
 
 ```
 Template concept: "IDCR - Adverse Reaction List.v1"
-  -> Composition tree ID: "idcr___adverse_reaction_list_v1"
-  Warning: Template concept contains special characters (dashes, dots).
-    EHRBase derives the FLAT path prefix from this name.
-    Verify against /example?format=FLAT after upload.
+  -> Possible composition tree ID: "idcr___adverse_reaction_list_v1" (illustrative)
+  Note: The actual FLAT path prefix is determined by the CDR when the OPT
+    is uploaded. Verify against the Web Template or /example?format=FLAT.
 ```
 
-**D2. Renamed nodes**
+**D2. Renamed nodes (informational)**
 
-Flag any node where the ontology term name differs significantly from the `node_id` (which is what oehrpy v0.2.0 can already detect via `localizedNames` in the Web Template). At the OPT level, this is detectable when:
+Flag any node where the ontology term name differs significantly from the `node_id`. At the OPT level, this is detectable when:
 
-- `node_id` is `at0002` and the term definition is `"Causative agent"` -> FLAT path will use `causative_agent`, not `substance` (old archetype name before template override)
+- `node_id` is `at0002` and the term definition is `"Causative agent"` — the Web Template may use `causative_agent` instead of the original archetype name
 
-Report these proactively so developers can update their FLAT path strings before upload.
+Report these as informational hints. The actual FLAT path segment is
+determined by the Web Template `id` field, not by OPT analysis.
 
 ---
 

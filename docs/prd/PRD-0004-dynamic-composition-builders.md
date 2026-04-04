@@ -2,9 +2,27 @@
 
 **Version:** 1.0
 **Date:** 2026-01-31
-**Status:** Draft
+**Status:** Partially Superseded
 **Owner:** Open CIS Project
 **Priority:** P1 (High)
+
+> **ADR-0005 Impact (2026-04-04):** This PRD assumes that FLAT paths can be
+> derived from OPT XML at build time or runtime. ADR-0005 established that
+> FLAT paths **must** come from the Web Template JSON provided by the CDR, not
+> from OPT XML. The following requirements are affected:
+>
+> - **FR-1 (Runtime Builder Factory):** `from_opt()` cannot produce correct
+>   FLAT paths. A future implementation should accept a Web Template JSON
+>   instead, e.g. `CompositionBuilder.from_web_template(wt_json)`.
+> - **FR-2 (CLI Generation):** The generator now produces metadata-only
+>   skeletons. FLAT paths are not included in generated code.
+> - **FR-3 (Pre-built Builders):** VitalSignsBuilder already sources paths
+>   from the Web Template. Future builders should follow the same pattern.
+> - **FR-4 (Constraint Validation):** Constraints should be derived from
+>   the Web Template tree (`min`, `max`, `inputs`), not from OPT XML.
+>
+> The goals of this PRD remain valid; only the **input source** changes from
+> OPT XML to Web Template JSON for any FLAT-path-related functionality.
 
 ---
 
