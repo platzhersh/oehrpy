@@ -260,6 +260,10 @@ class EHRBaseClient:
 
     This client implements the openEHR REST API for EHRBase CDR.
 
+    Web Templates fetched via :meth:`get_web_template` are cached in memory
+    for the lifetime of the client instance to avoid repeated CDR round-trips
+    (see ADR-0005).
+
     Example:
         >>> config = EHRBaseConfig(
         ...     base_url="http://localhost:8080/ehrbase",
@@ -291,6 +295,7 @@ class EHRBaseClient:
                 **kwargs,
             )
         self._client: httpx.AsyncClient | None = None
+        self._web_template_cache: dict[str, dict[str, Any]] = {}
 
     async def __aenter__(self) -> EHRBaseClient:
         """Enter async context."""
@@ -818,6 +823,49 @@ class EHRBaseClient:
             f"/rest/openehr/v1/definition/template/adl1.4/{template_id}"
         )
         return self._handle_response(response)
+
+    async def get_web_template(
+        self,
+        template_id: str,
+        *,
+        use_cache: bool = True,
+    ) -> dict[str, Any]:
+        """Fetch the Web Template JSON for a given template.
+
+        The Web Template is the sole authoritative source for FLAT path
+        derivation (see ADR-0005). Results are cached in memory for the
+        lifetime of the client instance.
+
+        Args:
+            template_id: The template ID.
+            use_cache: If True (default), return a cached copy when available.
+                Pass False to force a fresh fetch from the CDR.
+
+        Returns:
+            Web Template JSON dict (contains a ``tree`` key).
+        """
+        if use_cache and template_id in self._web_template_cache:
+            return self._web_template_cache[template_id]
+
+        response = await self.client.get(
+            f"/rest/openehr/v1/definition/template/adl1.4/{template_id}",
+            headers={"Accept": "application/openehr.wt+json"},
+        )
+        wt: dict[str, Any] = self._handle_response(response)
+        self._web_template_cache[template_id] = wt
+        return wt
+
+    def clear_web_template_cache(self, template_id: str | None = None) -> None:
+        """Clear cached Web Templates.
+
+        Args:
+            template_id: If given, only clear the cache for this template.
+                If None, clear the entire cache.
+        """
+        if template_id is not None:
+            self._web_template_cache.pop(template_id, None)
+        else:
+            self._web_template_cache.clear()
 
     async def upload_template(self, template_xml: str) -> TemplateResponse:
         """Upload a new template.

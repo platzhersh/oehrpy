@@ -94,12 +94,16 @@ class FlatValidator:
     ) -> FlatValidator:
         """Create a validator by fetching a Web Template from EHRBase.
 
+        Uses :meth:`EHRBaseClient.get_web_template` which requests the Web
+        Template JSON format (``Accept: application/openehr.wt+json``) and
+        caches the result (see ADR-0005).
+
         Args:
             client: An EHRBaseClient instance.
             template_id: The template ID to fetch.
             platform: CDR platform dialect.
         """
-        web_template = await client.get_template(template_id)
+        web_template = await client.get_web_template(template_id)
         return cls.from_web_template(web_template, platform=platform)
 
     @property
