@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.7.0 (2026-04-04)
+
+### Documentation
+
+- Add openEHR workflow diagram page and PRD-0012 (#36)
+  ([#36](https://github.com/platzhersh/oehrpy/pull/36),
+  [`3b36429`](https://github.com/platzhersh/oehrpy/commit/3b36429cc754869785d9c19369a880962095edff))
+
+### Features
+
+- Add ADR-0005 Web Template as primary source for FLAT paths (#37)
+  ([#37](https://github.com/platzhersh/oehrpy/pull/37),
+  [`6ffa144`](https://github.com/platzhersh/oehrpy/commit/6ffa144847a07e762d121a7454af1dbd668ceca1))
+
+
 ## v0.6.2 (2026-04-04)
 
 ### Bug Fixes
