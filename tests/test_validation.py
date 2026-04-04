@@ -573,6 +573,29 @@ class TestCtxPathValidation:
         ctx_warnings = [w for w in result.warnings if w.path == "ctx/fake_field|name"]
         assert len(ctx_warnings) == 1
 
+    def test_ctx_keys_produce_simsdt_info_note(self) -> None:
+        """When ctx/ keys are present, an INFO note with the simSDT spec URL must appear."""
+        wt = _make_web_template()
+        validator = FlatValidator.from_web_template(wt, platform="ehrbase")
+
+        flat = _make_valid_flat()
+        flat["ctx/language"] = "en"
+
+        result = validator.validate(flat)
+
+        assert len(result.info) == 1
+        assert "simSDT" in result.info[0].message
+        assert "simplified_data_template.html" in result.info[0].message
+
+    def test_no_info_when_no_ctx_keys(self) -> None:
+        """When no ctx/ keys are present, the info list must be empty."""
+        wt = _make_web_template()
+        validator = FlatValidator.from_web_template(wt, platform="ehrbase")
+
+        result = validator.validate(_make_valid_flat())
+
+        assert result.info == []
+
 
 # ─── Integration-style Tests ─────────────────────────────────────────
 
