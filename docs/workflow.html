@@ -616,11 +616,15 @@
         <div class="phase-content">
           <div class="node">
             <div class="node-title">Parse OPT</div>
-            <div class="node-desc">Parse <code>.opt</code> files with <code>OPTParser</code> to extract template definitions</div>
+            <div class="node-desc">Parse <code>.opt</code> files with <code>OPTParser</code> to extract template metadata</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Fetch Web Template</div>
+            <div class="node-desc">Get Web Template JSON from CDR with <code>get_web_template()</code> for FLAT paths (ADR-0005)</div>
           </div>
           <div class="node">
             <div class="node-title">Generate Builder</div>
-            <div class="node-desc">Auto-generate type-safe builder classes with <code>BuilderGenerator</code></div>
+            <div class="node-desc">Generate metadata-only builder skeletons with <code>BuilderGenerator</code>; FLAT paths from Web Template</div>
           </div>
           <div class="node">
             <div class="node-title">Validate Template</div>
