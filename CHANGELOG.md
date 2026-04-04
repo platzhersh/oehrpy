@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.6.2 (2026-04-04)
+
+### Bug Fixes
+
+- **validation**: Accept ctx/ shorthand paths in FlatValidator (#35)
+  ([#35](https://github.com/platzhersh/oehrpy/pull/35),
+  [`9cac026`](https://github.com/platzhersh/oehrpy/commit/9cac0261679280fa569108423773bd84ed91ee23))
+
+
 ## v0.6.1 (2026-03-17)
 
 ### Bug Fixes
