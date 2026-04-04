@@ -18,23 +18,25 @@ ErrorType = Literal["unknown_path", "wrong_suffix", "missing_required", "index_m
 
 # Static allowlist of ctx/ shorthand keys defined in the openEHR simSDT specification.
 # These are resolved by the CDR at ingest time and are not part of the Web Template tree.
-_CTX_ALLOWED_BASES: frozenset[str] = frozenset({
-    "ctx/language",
-    "ctx/territory",
-    "ctx/composer_name",
-    "ctx/composer_id",
-    "ctx/id_scheme",
-    "ctx/id_namespace",
-    "ctx/time",
-    "ctx/end_time",
-    "ctx/history_origin",
-    "ctx/health_care_facility",
-    "ctx/participation_name",
-    "ctx/participation_function",
-    "ctx/participation_mode",
-    "ctx/participation_id",
-    "ctx/setting",
-})
+_CTX_ALLOWED_BASES: frozenset[str] = frozenset(
+    {
+        "ctx/language",
+        "ctx/territory",
+        "ctx/composer_name",
+        "ctx/composer_id",
+        "ctx/id_scheme",
+        "ctx/id_namespace",
+        "ctx/time",
+        "ctx/end_time",
+        "ctx/history_origin",
+        "ctx/health_care_facility",
+        "ctx/participation_name",
+        "ctx/participation_function",
+        "ctx/participation_mode",
+        "ctx/participation_id",
+        "ctx/setting",
+    }
+)
 
 
 def _is_valid_ctx_path(path: str) -> bool:
