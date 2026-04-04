@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workflow - oehrpy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #1a1a2e;
+      --bg-card: #252540;
+      --bg-deep: #0a0a14;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --border: #2d2d4d;
+      --border-light: #3b3b5c;
+      --border-hover: #4b4b6c;
+      --blue: #3b82f6;
+      --blue-light: #60a5fa;
+      --blue-dark: #1d4ed8;
+      --orange: #f97316;
+      --orange-light: #fdba74;
+      --orange-dark: #ea580c;
+      --green: #10b981;
+      --yellow: #fbbf24;
+      --code-bg: #252540;
+      --code-text: #fbbf24;
+      --dimmed-opacity: 0.45;
+      --badge-bg: rgba(107, 114, 128, 0.2);
+      --badge-text: #9ca3af;
+      --phase-active-border: var(--blue);
+      --phase-active-glow: rgba(59, 130, 246, 0.15);
+      --arrow-color: #4b4b6c;
+      --legend-bg: #1e1e36;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #F8FAFB;
+        --bg-card: #FFFFFF;
+        --bg-deep: #F0F2F5;
+        --text: #1A202C;
+        --text-muted: #4A5568;
+        --text-dim: #718096;
+        --border: #E2E8F0;
+        --border-light: #CBD5E0;
+        --border-hover: #A0AEC0;
+        --badge-bg: rgba(107, 114, 128, 0.1);
+        --badge-text: #718096;
+        --phase-active-glow: rgba(59, 130, 246, 0.08);
+        --arrow-color: #CBD5E0;
+        --legend-bg: #EDF2F7;
+        --code-bg: #EDF2F7;
+        --code-text: #C05621;
+      }
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .logo-header span {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    nav {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--text);
+    }
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .nav-dropdown-btn:hover { color: var(--text); }
+    .dropdown-arrow { font-size: 10px; }
+    .nav-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hover);
+      border-radius: 8px;
+      padding: 6px 0;
+      min-width: 160px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 200;
+    }
+    .nav-dropdown.is-open .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a {
+      display: block;
+      padding: 8px 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+    .nav-dropdown-menu a:hover { background: var(--border); color: var(--text); }
+    .nav-dropdown-menu a:focus { background: var(--border); color: var(--text); outline: none; }
+    .github-link {
+      background: var(--bg-card);
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: var(--text) !important;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .github-link:hover {
+      background: var(--border);
+    }
+
+    /* Page Content */
+    .page-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 60px 40px 80px;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--blue-light) 0%, var(--blue) 50%, var(--orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 48px;
+      max-width: 680px;
+    }
+
+    /* Workflow Diagram */
+    .workflow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Phase */
+    .phase {
+      position: relative;
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 24px;
+      padding: 28px 0;
+    }
+    .phase + .phase {
+      border-top: 1px solid var(--border);
+    }
+
+    .phase-label {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 4px;
+    }
+    .phase-number {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+    }
+    .phase-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .phase-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+      width: fit-content;
+    }
+    .badge-external {
+      background: var(--badge-bg);
+      color: var(--badge-text);
+    }
+    .badge-oehrpy {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--blue-light);
+    }
+
+    .phase-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    /* Nodes */
+    .node {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 14px 18px;
+      min-width: 140px;
+      transition: all 0.2s;
+    }
+    .node-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .node-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .node code {
+      font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+      font-size: 0.85em;
+      background: var(--code-bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--code-text);
+    }
+
+    /* Active phase (oehrpy scope) */
+    .phase.active .node {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 1px var(--phase-active-glow), 0 4px 12px var(--phase-active-glow);
+    }
+    .phase.active .node:hover {
+      border-color: var(--blue-light);
+      transform: translateY(-2px);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 8px 20px var(--phase-active-glow);
+    }
+    .phase.active .phase-name {
+      color: var(--text);
+    }
+
+    /* Dimmed phase (outside oehrpy scope) */
+    .phase.dimmed {
+      opacity: var(--dimmed-opacity);
+    }
+    .phase.dimmed .node {
+      border-style: dashed;
+    }
+    .phase.dimmed:hover {
+      opacity: 0.65;
+    }
+
+    /* Arrow between phases */
+    .phase-arrow {
+      display: flex;
+      justify-content: center;
+      padding: 4px 0;
+    }
+    .phase-arrow svg {
+      color: var(--arrow-color);
+    }
+
+    /* Scope Divider */
+    .scope-divider {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 0;
+    }
+    .scope-divider::before,
+    .scope-divider::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--blue), var(--orange), transparent);
+      opacity: 0.5;
+    }
+    .scope-divider-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--blue-light);
+      white-space: nowrap;
+    }
+
+    /* Legend */
+    .legend {
+      margin-top: 56px;
+      background: var(--legend-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+    }
+    .legend-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+    }
+    .legend-item {
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+    }
+    .legend-key {
+      font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--orange);
+      white-space: nowrap;
+      min-width: 100px;
+    }
+    .legend-value {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Scope indicator */
+    .scope-legend {
+      margin-top: 20px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .scope-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .scope-swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 2px solid;
+    }
+    .scope-swatch.active {
+      border-color: var(--blue);
+      background: var(--phase-active-glow);
+    }
+    .scope-swatch.dimmed {
+      border-color: var(--text-dim);
+      border-style: dashed;
+      opacity: 0.5;
+    }
+
+    /* Footer */
+    footer {
+      max-width: 960px;
+      margin: 0 auto 40px;
+      padding: 40px 40px 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    footer a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        padding: 16px 20px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      nav {
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      nav a:not(.github-link) {
+        font-size: 14px;
+      }
+      .github-link {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
+      .page-container {
+        padding: 40px 20px 60px;
+      }
+      .page-title {
+        font-size: 2rem;
+      }
+      .phase {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .phase-label {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .phase-number {
+        display: none;
+      }
+      .node {
+        min-width: auto;
+      }
+      .legend {
+        padding: 20px;
+      }
+      .legend-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 12px 16px;
+      }
+      nav {
+        gap: 12px;
+      }
+      .logo-header span {
+        font-size: 20px;
+      }
+      .page-container {
+        padding: 30px 16px 40px;
+      }
+      .page-title {
+        font-size: 1.75rem;
+      }
+      .page-subtitle {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <a href="index.html" class="logo-header">
+      <svg viewBox="0 0 80 80" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logo-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#60a5fa"/>
+            <stop offset="100%" style="stop-color:#3b82f6"/>
+          </linearGradient>
+          <linearGradient id="logo-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fdba74"/>
+            <stop offset="100%" style="stop-color:#f97316"/>
+          </linearGradient>
+        </defs>
+        <path d="M40 10 C20 10 15 25 15 35 C15 46 28 52 40 52 C52 52 65 46 65 35 C65 25 60 10 40 10"
+              fill="url(#logo-blue)"/>
+        <circle cx="28" cy="24" r="4" fill="#fff"/>
+        <path d="M40 70 C60 70 65 55 65 45 C65 34 52 28 40 28 C28 28 15 34 15 45 C15 55 20 70 40 70"
+              fill="url(#logo-orange)"/>
+        <circle cx="52" cy="56" r="4" fill="#fff"/>
+      </svg>
+      <span>oehrpy</span>
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="docs.html">Docs</a>
+      <a href="workflow.html" class="active">Workflow</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">Tools <span class="dropdown-arrow">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="validator.html">Validator</a>
+          <a href="converter.html">Converter</a>
+          <a href="explorer.html">Explorer</a>
+        </div>
+      </div>
+      <a href="brand-kit.html">Brand Kit</a>
+      <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
+    </nav>
+  </header>
+
+  <!-- Page Content -->
+  <main class="page-container">
+    <h1 class="page-title">openEHR Workflow</h1>
+    <p class="page-subtitle">
+      Where oehrpy fits in the openEHR data lifecycle &mdash; from clinical modelling to querying patient data. Phases highlighted in blue are handled by oehrpy.
+    </p>
+
+    <!-- Workflow Diagram -->
+    <div class="workflow">
+
+      <!-- Phase 1: Modelling (dimmed) -->
+      <section id="modelling" class="phase dimmed">
+        <div class="phase-label">
+          <span class="phase-number">Phase 1</span>
+          <span class="phase-name">Modelling</span>
+          <span class="phase-badge badge-external">Outside oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">Archetype Designer</div>
+            <div class="node-desc">Define archetypes &amp; templates using clinical modelling tools (e.g. Better Archetype Designer)</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Export .opt</div>
+            <div class="node-desc">Export an Operational Template (<code>.opt</code>) file from the modelling tool</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Arrow -->
+      <div class="phase-arrow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </div>
+
+      <!-- Phase 2: CDR Upload (dimmed) -->
+      <section id="upload" class="phase dimmed">
+        <div class="phase-label">
+          <span class="phase-number">Phase 2</span>
+          <span class="phase-name">CDR Upload</span>
+          <span class="phase-badge badge-external">Outside oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">Upload Template</div>
+            <div class="node-desc">Upload the <code>.opt</code> to your CDR (e.g. EHRBase) via its admin API</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Web Template</div>
+            <div class="node-desc">CDR generates a Web Template with FLAT paths and constraints</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scope Divider -->
+      <div class="scope-divider">
+        <span class="scope-divider-label">oehrpy scope</span>
+      </div>
+
+      <!-- Phase 3: App Development (active) -->
+      <section id="app-dev" class="phase active">
+        <div class="phase-label">
+          <span class="phase-number">Phase 3</span>
+          <span class="phase-name">App Development</span>
+          <span class="phase-badge badge-oehrpy">oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">Parse OPT</div>
+            <div class="node-desc">Parse <code>.opt</code> files with <code>OPTParser</code> to extract template definitions</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Generate Builder</div>
+            <div class="node-desc">Auto-generate type-safe builder classes with <code>BuilderGenerator</code></div>
+          </div>
+          <div class="node">
+            <div class="node-title">Validate Template</div>
+            <div class="node-desc">Validate OPT files against RM spec using <code>OPTValidator</code></div>
+          </div>
+          <div class="node">
+            <div class="node-title">Validate Composition</div>
+            <div class="node-desc">Catch FLAT path errors before submission with <code>FlatValidator</code></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Arrow -->
+      <div class="phase-arrow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </div>
+
+      <!-- Phase 4: Write Composition (active) -->
+      <section id="write" class="phase active">
+        <div class="phase-label">
+          <span class="phase-number">Phase 4</span>
+          <span class="phase-name">Write Composition</span>
+          <span class="phase-badge badge-oehrpy">oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">Template Builder</div>
+            <div class="node-desc">Construct compositions with type-safe builders (e.g. <code>VitalSignsBuilder</code>)</div>
+          </div>
+          <div class="node">
+            <div class="node-title">FLAT Format</div>
+            <div class="node-desc">Build FLAT compositions with <code>FlatBuilder</code> using dot-separated paths</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Canonical JSON</div>
+            <div class="node-desc">Serialize RM objects to openEHR canonical JSON with <code>_type</code> fields</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Submit to CDR</div>
+            <div class="node-desc">Send compositions via <code>EHRBaseClient</code> async REST client</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Arrow -->
+      <div class="phase-arrow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </div>
+
+      <!-- Phase 5: Read / Query (active) -->
+      <section id="read" class="phase active">
+        <div class="phase-label">
+          <span class="phase-number">Phase 5</span>
+          <span class="phase-name">Read / Query</span>
+          <span class="phase-badge badge-oehrpy">oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">AQL Builder</div>
+            <div class="node-desc">Build type-safe AQL queries with <code>AqlBuilder</code> fluent API</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Execute Query</div>
+            <div class="node-desc">Run AQL queries against the CDR via <code>EHRBaseClient</code></div>
+          </div>
+          <div class="node">
+            <div class="node-title">Deserialize</div>
+            <div class="node-desc">Parse query results back into typed RM objects for processing</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-title">Format Reference</div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <span class="legend-key">.opt</span>
+          <span class="legend-value">Operational Template &mdash; XML file exported from modelling tools</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">Web Template</span>
+          <span class="legend-value">CDR-generated JSON with FLAT paths and constraints</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">FLAT</span>
+          <span class="legend-value">Dot-separated paths like <code>bp:0/systolic|magnitude</code></span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">Canonical JSON</span>
+          <span class="legend-value">Hierarchical JSON with <code>_type</code> discriminator fields</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">AQL</span>
+          <span class="legend-value">Archetype Query Language for retrieving clinical data</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">RM</span>
+          <span class="legend-value">Reference Model &mdash; 134 Pydantic classes for openEHR 1.1.0</span>
+        </div>
+      </div>
+      <div class="scope-legend">
+        <div class="scope-legend-item">
+          <span class="scope-swatch active"></span>
+          oehrpy scope (Phases 3&ndash;5)
+        </div>
+        <div class="scope-legend-item">
+          <span class="scope-swatch dimmed"></span>
+          External tools (Phases 1&ndash;2)
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="docs.html">Docs</a> &middot; MIT License</p>
+  </footer>
+
+  <script>
+    // Dropdown toggle (consistent with other pages)
+    document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var dropdown = this.closest('.nav-dropdown');
+        var isOpen = dropdown.classList.contains('is-open');
+        document.querySelectorAll('.nav-dropdown').forEach(function(d) { d.classList.remove('is-open'); });
+        if (!isOpen) dropdown.classList.add('is-open');
+        this.setAttribute('aria-expanded', !isOpen);
+      });
+    });
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.nav-dropdown').forEach(function(d) { d.classList.remove('is-open'); });
+    });
+  </script>
+</body>
+</html>

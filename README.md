@@ -19,6 +19,8 @@ A comprehensive Python SDK for openEHR that provides type-safe Reference Model c
 
 This project addresses the gap in the openEHR ecosystem where no comprehensive, actively maintained Python SDK exists. It eliminates the need for developers to manually construct complex nested JSON structures when working with openEHR compositions.
 
+> **New to openEHR?** Start with the [workflow overview](https://platzhersh.github.io/oehrpy/workflow.html) to see where oehrpy fits in the openEHR data lifecycle.
+
 ## Installation
 
 ```bash
