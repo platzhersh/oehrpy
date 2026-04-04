@@ -115,12 +115,18 @@ All tools share the same design system and are accessible via a shared "Tools" d
 - File upload button (drag-and-drop or file picker)
 - Parse using Pyodide + oehrpy's `OPTParser` (already loaded in the browser from validator infrastructure)
 - Show parse errors if XML is malformed
+- **ADR-0005 limitation:** OPT input provides metadata only (node IDs, RM types,
+  archetype IDs, occurrences). FLAT paths **cannot** be derived from OPT XML.
+  When OPT is the only input, the FLAT Path columns/panels should display a note:
+  *"FLAT paths require Web Template JSON input. Upload the OPT to a CDR and
+  fetch the Web Template to see accurate FLAT paths."*
 
-#### Web Template JSON Input
+#### Web Template JSON Input (required for FLAT paths)
 
-- Textarea for pasting Web Template JSON (fetched from CDR's `/template/{id}` endpoint)
+- Textarea for pasting Web Template JSON (fetched from CDR's `/template/{id}` endpoint with `Accept: application/openehr.wt+json`)
 - Parse the `tree` structure to build the node hierarchy
 - Extract: `id`, `name`, `rmType`, `min`, `max`, `aqlPath`, `inputs` (coded values)
+- **This is the only input that produces accurate FLAT paths** (see ADR-0005)
 
 ### 4.2 Tree View
 
@@ -271,6 +277,9 @@ OPT XML input                    Web Template JSON input
       │                                    │
       ▼                                    ▼
   TemplateDefinition              ParsedTemplate (JS)
+  (metadata only —                (includes FLAT path
+   no FLAT paths,                  segments via 'id'
+   see ADR-0005)                   fields in tree)
       │                                    │
       └────────────┬───────────────────────┘
                    ▼
@@ -279,6 +288,9 @@ OPT XML input                    Web Template JSON input
           ┌────────┼────────┐
           ▼        ▼        ▼
       Tree View  Path List  Statistics
+                  ↑
+          (FLAT paths only available
+           from Web Template input)
 ```
 
 ### 5.3 Unified Node Model (JavaScript)

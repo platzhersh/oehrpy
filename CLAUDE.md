@@ -59,7 +59,7 @@ mypy src/openehr_sdk
 python -m generator.pydantic_generator
 ```
 
-**Generate builder from OPT file:**
+**Generate builder skeleton from OPT file (metadata only, no FLAT paths — see ADR-0005):**
 ```bash
 python examples/generate_builder_from_opt.py path/to/template.opt
 ```
@@ -82,16 +82,17 @@ python examples/generate_builder_from_opt.py path/to/template.opt
   - `FlatBuilder`: Fluent API for constructing FLAT format compositions
 
 **3. Template System** (`src/openehr_sdk/templates/`)
-- **OPT Parser** (`opt_parser.py`): Parses OPT 1.4 XML files to extract template definitions, archetype constraints, and terminology bindings
-- **Builder Generator** (`builder_generator.py`): Auto-generates type-safe Python builder classes from OPT files
-- **Pre-built Builders** (`builders.py`): Template-specific builders (e.g., VitalSignsBuilder)
-- Key workflow: OPT XML → Parser → Template Definition → Builder Generator → Python Builder Class
+- **OPT Parser** (`opt_parser.py`): Parses OPT 1.4 XML files to extract template metadata (template ID, concept, archetypes, constraints). Does NOT derive FLAT paths (see ADR-0005).
+- **Builder Generator** (`builder_generator.py`): Generates metadata-only class skeletons from OPT files. FLAT paths must be sourced from the Web Template JSON, not OPT XML (ADR-0005).
+- **Pre-built Builders** (`builders.py`): Template-specific builders (e.g., VitalSignsBuilder) with FLAT paths sourced from Web Template JSON.
+- Key workflow: OPT XML → Parser → Template Metadata; Web Template JSON → FLAT Path Derivation → Builder
 
 **4. EHRBase Client** (`src/openehr_sdk/client/ehrbase.py`)
 - Async REST client for EHRBase CDR operations
 - Uses httpx for async HTTP
 - Supports EHR creation, composition CRUD, and AQL queries
 - Handles multiple composition formats (CANONICAL, FLAT, STRUCTURED)
+- `get_web_template()` fetches Web Template JSON with in-memory caching (ADR-0005)
 
 **5. AQL Query Builder** (`src/openehr_sdk/aql/builder.py`)
 - Fluent API for building type-safe AQL queries

@@ -247,7 +247,7 @@
     <span class="mode-label">Input</span>
     <div class="mode-toggle">
       <button class="mode-btn active" id="btn-mode-wt" onclick="setInputMode('wt')">Web Template JSON</button>
-      <button class="mode-btn" id="btn-mode-opt" onclick="setInputMode('opt')" disabled title="OPT XML parsing requires Pyodide (coming soon)" style="opacity:0.5;cursor:not-allowed;">OPT XML</button>
+      <button class="mode-btn" id="btn-mode-opt" onclick="setInputMode('opt')" disabled title="OPT XML provides metadata only (no FLAT paths). Use Web Template JSON for FLAT paths (ADR-0005)." style="opacity:0.5;cursor:not-allowed;">OPT XML (metadata only)</button>
     </div>
     <span class="mode-desc" id="mode-desc">Paste a Web Template JSON to explore its structure</span>
   </div>
@@ -282,9 +282,11 @@
 
 Fetch from EHRBase:
 GET /rest/openehr/v1/definition/template/adl1.4/{template_id}
+Accept: application/openehr.wt+json
 
-The explorer reads the "tree" structure to show
-all nodes, FLAT paths, and constraints.' spellcheck="false"></textarea>
+The Web Template is the authoritative source for FLAT paths (ADR-0005).
+The explorer reads the "tree" structure to show all nodes, FLAT paths,
+and constraints.' spellcheck="false"></textarea>
   </div>
 
   <!-- Stats bar -->

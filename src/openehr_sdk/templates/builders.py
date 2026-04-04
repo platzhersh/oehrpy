@@ -174,14 +174,13 @@ class VitalSignsBuilder(TemplateBuilder):
 
     template_id = "IDCR - Vital Signs Encounter.v1"
 
-    # FLAT path prefixes for each observation type
-    # Based on the Web Template from EHRBase 2.26.0
-    # The template structure is:
-    #   COMPOSITION(vital_signs_observations) > SECTION(vital_signs) > OBSERVATION.*
-    # In FLAT format (EHRBase 2.26.0+):
-    #   composition_id/section_id/observation_id/element
-    # NOTE: NO template ID prefix, NO :0 indices, NO /any_event:0/ paths
-    # These IDs come from the web template 'id' fields
+    # FLAT path prefixes sourced from the Web Template JSON (ADR-0005).
+    # These IDs come from the Web Template 'id' fields as returned by
+    # EHRBase 2.26.0+ for template "IDCR - Vital Signs Encounter.v1".
+    # They CANNOT be derived from OPT XML; see ADR-0005 for rationale.
+    #
+    # Structure: COMPOSITION(vital_signs_observations) > SECTION(vital_signs) > OBSERVATION.*
+    # Format:    composition_id/section_id/observation_id/element
     _COMPOSITION_PREFIX = "vital_signs_observations"
     _BP_PREFIX = "vital_signs_observations/vital_signs/blood_pressure"
     _PULSE_PREFIX = "vital_signs_observations/vital_signs/pulse_heart_beat"

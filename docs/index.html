@@ -466,7 +466,7 @@
       <div class="feature-card">
         <div class="feature-icon">🏥</div>
         <h3>openEHR Native</h3>
-        <p>Full support for openEHR archetypes, templates (OPT), and compositions. Auto-generate type-safe builders from OPT files.</p>
+        <p>Full support for openEHR archetypes, templates (OPT), and compositions. Pre-built type-safe builders with FLAT paths sourced from Web Templates.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">⚡</div>
@@ -481,7 +481,7 @@
       <div class="feature-card">
         <div class="feature-icon">📄</div>
         <h3>OPT Parser</h3>
-        <p>Parse OPT 1.4 XML files and auto-generate type-safe Python builder classes. No manual FLAT path construction needed.</p>
+        <p>Parse OPT 1.4 XML files to extract template metadata. Use Web Templates from the CDR for FLAT path derivation.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#9989;</div>
@@ -503,12 +503,7 @@
       <pre><code><span class="code-comment"># Install oehrpy</span>
 pip install oehrpy
 
-<span class="code-comment"># Generate a builder from your OPT template</span>
-<span class="code-keyword">from</span> openehr_sdk.templates <span class="code-keyword">import</span> generate_builder_from_opt
-
-code = <span class="code-function">generate_builder_from_opt</span>(<span class="code-string">"vital_signs.opt"</span>)
-
-<span class="code-comment"># Use the type-safe builder</span>
+<span class="code-comment"># Use the pre-built type-safe builder</span>
 <span class="code-keyword">from</span> openehr_sdk.templates <span class="code-keyword">import</span> VitalSignsBuilder
 
 builder = <span class="code-function">VitalSignsBuilder</span>(composer_name=<span class="code-string">"Dr. Smith"</span>)

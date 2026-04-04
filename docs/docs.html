@@ -558,10 +558,10 @@ bp_cluster = CLUSTER(
 )</code></pre>
 
       <h2 id="opt-parser">OPT Parser &amp; Builder Generator</h2>
-      <p>oehrpy provides powerful tools for working with OPT (Operational Template) files. OPT files are XML documents that define constraints on openEHR archetypes for specific clinical use cases. With oehrpy, you can parse OPT files and automatically generate type-safe Python builder classes.</p>
+      <p>oehrpy provides tools for working with OPT (Operational Template) files. OPT files are XML documents that define constraints on openEHR archetypes for specific clinical use cases. With oehrpy, you can parse OPT files to extract template metadata (template ID, concept, archetypes) and generate builder class skeletons.</p>
 
-      <div class="note">
-        <p><strong>Key Feature:</strong> Generate template-specific builders with full IDE autocomplete from your OPT files - no manual FLAT path construction required!</p>
+      <div class="warning">
+        <p><strong>ADR-0005:</strong> FLAT paths cannot be reliably derived from OPT XML. The <code>BuilderGenerator</code> produces metadata-only class skeletons &mdash; no FLAT path strings. Use the <a href="#web-template">Web Template JSON</a> from the CDR for accurate FLAT paths. See <a href="https://github.com/platzhersh/oehrpy/blob/main/docs/adr/0005-web-template-as-primary-source-of-truth-for-flat-paths.md">ADR-0005</a> for details.</p>
       </div>
 
       <h3>Parsing OPT Files</h3>
@@ -597,58 +597,49 @@ entries = template.list_entries()
         <li><code>all_nodes</code> - Dictionary of all nodes by path</li>
       </ul>
 
-      <h3>Generating Builder Classes</h3>
-      <p>The most powerful feature is automatic builder generation. This creates type-safe Python classes with methods for each observation type:</p>
+      <h3>Generating Builder Skeletons</h3>
+      <p>Generate metadata-only class skeletons from OPT files. The generated code includes template ID, concept, and discovered archetypes, but <strong>not</strong> FLAT path strings (see ADR-0005):</p>
       <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> generate_builder_from_opt
 
-<span class="comment"># Generate builder code from OPT file</span>
+<span class="comment"># Generate a builder skeleton (metadata only, no FLAT paths)</span>
 code = generate_builder_from_opt(<span class="string">"vital_signs.opt"</span>)
 
-<span class="comment"># Save to file for use in your project</span>
+<span class="comment"># Save to file</span>
 generate_builder_from_opt(
     <span class="string">"vital_signs.opt"</span>,
-    output_path=<span class="string">"my_project/builders/vital_signs_builder.py"</span>
+    output_path=<span class="string">"my_project/builders/vital_signs_skeleton.py"</span>
 )
 
 <span class="comment"># Use a custom class name</span>
 generate_builder_from_opt(
     <span class="string">"vital_signs.opt"</span>,
-    output_path=<span class="string">"vital_signs_builder.py"</span>,
+    output_path=<span class="string">"vital_signs_skeleton.py"</span>,
     class_name=<span class="string">"MyVitalSignsBuilder"</span>
 )</code></pre>
 
-      <h3>Using the BuilderGenerator Class</h3>
-      <p>For more control, use the <code>BuilderGenerator</code> class directly:</p>
-      <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> parse_opt, BuilderGenerator
+      <p>The generated skeleton must be supplemented with FLAT paths from the Web Template JSON. Fetch it after uploading the OPT to a CDR:</p>
+      <pre><code><span class="keyword">async with</span> EHRBaseClient(...) <span class="keyword">as</span> client:
+    <span class="comment"># Fetch Web Template (cached automatically)</span>
+    wt = <span class="keyword">await</span> client.get_web_template(<span class="string">"IDCR - Vital Signs Encounter.v1"</span>)
+    <span class="comment"># wt["tree"] contains the authoritative FLAT path segments</span></code></pre>
 
-<span class="comment"># Parse the template</span>
-template = parse_opt(<span class="string">"vital_signs.opt"</span>)
+      <h3 id="web-template">Web Template as FLAT Path Source</h3>
+      <p>The Web Template JSON is the sole authoritative source for FLAT path derivation (ADR-0005). The <code>EHRBaseClient</code> provides cached fetching:</p>
+      <pre><code><span class="keyword">async with</span> EHRBaseClient(...) <span class="keyword">as</span> client:
+    <span class="comment"># Fetch with Accept: application/openehr.wt+json (cached in memory)</span>
+    wt = <span class="keyword">await</span> client.get_web_template(<span class="string">"IDCR - Vital Signs Encounter.v1"</span>)
 
-<span class="comment"># Create generator and generate code</span>
-generator = BuilderGenerator()
-code = generator.generate(template)
+    <span class="comment"># Force refresh from CDR</span>
+    wt = <span class="keyword">await</span> client.get_web_template(<span class="string">"IDCR - Vital Signs Encounter.v1"</span>, use_cache=<span class="keyword">False</span>)
 
-<span class="comment"># Or generate directly to a file</span>
-generator.generate_to_file(
-    template,
-    output_path=<span class="string">"generated_builder.py"</span>,
-    class_name=<span class="string">"VitalSignsBuilder"</span>
-)</code></pre>
+    <span class="comment"># Clear cache</span>
+    client.clear_web_template_cache()</code></pre>
 
       <h3>Complete Workflow Example</h3>
-      <p>Here's a complete example of the OPT-to-composition workflow:</p>
-      <pre><code><span class="comment"># Step 1: Generate the builder (do this once)</span>
-<span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> generate_builder_from_opt
+      <p>Here's a complete example using the pre-built <code>VitalSignsBuilder</code> (which has FLAT paths sourced from the Web Template):</p>
+      <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> VitalSignsBuilder
 
-generate_builder_from_opt(
-    <span class="string">"vital_signs.opt"</span>,
-    output_path=<span class="string">"vital_signs_builder.py"</span>
-)
-
-<span class="comment"># Step 2: Use the generated builder in your application</span>
-<span class="keyword">from</span> vital_signs_builder <span class="keyword">import</span> VitalSignsBuilder
-
-<span class="comment"># Create the builder</span>
+<span class="comment"># Create the builder (FLAT paths sourced from Web Template)</span>
 builder = VitalSignsBuilder(composer_name=<span class="string">"Dr. Smith"</span>)
 
 <span class="comment"># Add clinical observations (type-safe with IDE autocomplete!)</span>
@@ -670,12 +661,12 @@ flat_data = builder.build()
         format=<span class="string">"FLAT"</span>
     )</code></pre>
 
-      <div class="warning">
-        <p><strong>Note:</strong> The generated builder classes extend <code>TemplateBuilder</code> and automatically handle FLAT path construction, event indexing, and time formatting.</p>
+      <div class="note">
+        <p><strong>Note:</strong> Pre-built builders like <code>VitalSignsBuilder</code> have FLAT paths verified against the Web Template from EHRBase. The <code>BuilderGenerator</code> produces metadata-only skeletons that need FLAT paths added manually from the Web Template.</p>
       </div>
 
       <h2 id="template-builders">Template Builders</h2>
-      <p>Template builders provide a high-level API for creating compositions without knowing FLAT paths.</p>
+      <p>Template builders provide a high-level API for creating compositions. FLAT paths in pre-built builders are sourced from the Web Template JSON (ADR-0005).</p>
 
       <h3>Vital Signs Builder</h3>
       <pre><code><span class="keyword">from</span> openehr_sdk.templates <span class="keyword">import</span> VitalSignsBuilder
@@ -954,7 +945,7 @@ validator = FlatValidator.from_web_template(wt, platform=<span class="string">"e
     <span class="keyword">print</span>(path)</code></pre>
 
       <h2 id="opt-validator">OPT Validator</h2>
-      <p>The <code>OPTValidator</code> validates OPT 1.4 (Operational Template) XML files before parsing or code generation. It checks well-formedness, semantic integrity, structural quality, and FLAT path impact &mdash; catching issues that would otherwise surface as cryptic errors downstream.</p>
+      <p>The <code>OPTValidator</code> validates OPT 1.4 (Operational Template) XML files before parsing or code generation. It checks well-formedness, semantic integrity, and structural quality &mdash; catching issues that would otherwise surface as cryptic errors downstream. It also provides informational hints about potential FLAT path implications (though authoritative FLAT paths come from the Web Template, per ADR-0005).</p>
 
       <h3>Basic Usage</h3>
       <pre><code><span class="keyword">from</span> openehr_sdk.validation.opt <span class="keyword">import</span> OPTValidator
@@ -988,7 +979,7 @@ result = validator.validate_string(xml_content)
     <span class="keyword">for</span> issue <span class="keyword">in</span> e.result.errors:
         <span class="keyword">print</span>(<span class="string">f"  {issue.message}"</span>)
 
-<span class="comment"># Validate before generating a builder</span>
+<span class="comment"># Validate before generating a builder skeleton</span>
 <span class="keyword">try</span>:
     code = generate_builder_from_opt(<span class="string">"template.opt"</span>, validate=<span class="keyword">True</span>)
 <span class="keyword">except</span> OPTValidationError <span class="keyword">as</span> e:
@@ -1005,7 +996,7 @@ python -m openehr_sdk.validate_opt_cli template.opt --output json
 <span class="comment"># Treat warnings as errors</span>
 python -m openehr_sdk.validate_opt_cli template.opt --strict
 
-<span class="comment"># Include FLAT path impact analysis</span>
+<span class="comment"># Include FLAT path impact hints (informational, see ADR-0005)</span>
 python -m openehr_sdk.validate_opt_cli template.opt --show-flat-paths</code></pre>
       <p>Exit code <code>0</code> means valid, <code>1</code> means errors were found (or warnings in <code>--strict</code> mode).</p>
 
@@ -1015,7 +1006,7 @@ python -m openehr_sdk.validate_opt_cli template.opt --show-flat-paths</code></pr
         <li><strong>Well-formedness (errors)</strong> &mdash; XML validity, correct namespace, required fields (<code>template_id</code>, <code>concept</code>, <code>language</code>), valid archetype IDs, RM type names against the 1.1.0 registry, occurrence constraints, and duplicate node IDs</li>
         <li><strong>Semantic integrity (errors)</strong> &mdash; missing term definitions for referenced <code>node_id</code>s, orphaned terminology bindings, mandatory nodes without resolvable names</li>
         <li><strong>Structural warnings</strong> &mdash; draft lifecycle state, unstable archetype versions (<code>v0</code>), prohibited nodes still in the tree, unconstrained archetype slots, special characters in concept names or term names, overuse of the same archetype</li>
-        <li><strong>FLAT path impact (info)</strong> &mdash; detects renamed nodes whose FLAT paths differ from the archetype defaults, and sibling nodes that produce colliding FLAT path segments</li>
+        <li><strong>FLAT path impact (info)</strong> &mdash; informational hints about renamed nodes and potential path collisions. Note: authoritative FLAT paths come from the Web Template JSON, not OPT analysis (ADR-0005)</li>
       </ul>
 
       <h3>Validation Result</h3>

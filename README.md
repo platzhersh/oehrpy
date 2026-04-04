@@ -110,21 +110,21 @@ flat_data = builder.build()
 # }
 ```
 
-### Generate Builders from OPT Files
+### Generate Builder Skeletons from OPT Files
 
-Automatically generate template-specific builder classes from OPT (Operational Template) files:
+Generate template metadata skeletons from OPT (Operational Template) files. The generated code includes the template ID, concept, and discovered archetypes, but **not** FLAT path strings — FLAT paths must come from the [Web Template JSON](docs/adr/0005-web-template-as-primary-source-of-truth-for-flat-paths.md) provided by the CDR:
 
 ```python
 from openehr_sdk.templates import generate_builder_from_opt, parse_opt
 
-# Parse an OPT file
+# Parse an OPT file (metadata extraction)
 template = parse_opt("path/to/your-template.opt")
 print(f"Template: {template.template_id}")
 print(f"Observations: {len(template.list_observations())}")
 
-# Generate Python builder code
+# Generate a Python builder skeleton (metadata only, no FLAT paths)
 code = generate_builder_from_opt("path/to/your-template.opt")
-print(code)  # Full Python class ready to use
+print(code)  # Class skeleton with template_id and archetype list
 
 # Or save directly to a file
 from openehr_sdk.templates import BuilderGenerator
@@ -138,7 +138,7 @@ generator.generate_to_file(template, "my_template_builder.py")
 python examples/generate_builder_from_opt.py path/to/template.opt
 ```
 
-This eliminates the need to manually code builders - just provide your OPT file and get a fully type-safe builder class with methods for each observation type.
+The generated skeleton must be supplemented with FLAT paths from the Web Template. Fetch it via `EHRBaseClient.get_web_template(template_id)` after uploading the OPT to a CDR. See [ADR-0005](docs/adr/0005-web-template-as-primary-source-of-truth-for-flat-paths.md) for the rationale.
 
 ### OPT Validation
 

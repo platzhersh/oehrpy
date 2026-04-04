@@ -188,35 +188,41 @@ class TestOPTParser:
 
 
 class TestBuilderGenerator:
-    """Tests for builder generator."""
+    """Tests for builder generator.
+
+    The BuilderGenerator produces metadata-only class skeletons (ADR-0005).
+    It does NOT generate FLAT path strings — those must come from the Web
+    Template JSON.
+    """
 
     @property
     def sample_opt_path(self) -> Path:
         """Get path to sample OPT file."""
         return Path(__file__).parent / "fixtures" / "vital_signs.opt"
 
-    def test_generate_builder_code(self) -> None:
-        """Test generating builder code from OPT."""
+    def test_generate_builder_skeleton(self) -> None:
+        """Test generating a metadata-only builder skeleton from OPT."""
         code = generate_builder_from_opt(self.sample_opt_path)
 
         # Check imports
         assert "from __future__ import annotations" in code
         assert "from .builders import TemplateBuilder" in code
 
-        # Check class definition - the ehrbase template has a different ID format
+        # Check class definition
         assert "class VitalSignsEncounterBuilder(TemplateBuilder):" in code
         assert 'template_id = "IDCR - Vital Signs Encounter.v1"' in code
 
-        # The ehrbase template should generate methods for the observations it contains
-        # Note: Method generation depends on the OPT parser correctly extracting observations
-        # If no methods are generated, that's a parser issue, not a generator issue
-        assert "VitalSignsEncounterBuilder" in code
+        # ADR-0005: generated code must NOT contain FLAT path strings
+        assert "set_quantity" not in code
+        assert "any_event" not in code
+
+        # Should contain ADR-0005 note
+        assert "ADR-0005" in code
 
     def test_derived_class_name(self) -> None:
         """Test class name derivation."""
         generator = BuilderGenerator()
 
-        # Test various template ID formats
         result = generator._derive_class_name("IDCR - Vital Signs Encounter.v1")
         assert result == "VitalSignsEncounterBuilder"
         assert generator._derive_class_name("Problem List.v1") == "ProblemListBuilder"
@@ -231,21 +237,8 @@ class TestBuilderGenerator:
         assert generator._derive_short_name("Pulse/Heart Beat") == "pulse_heart_beat"
         assert generator._derive_short_name("Body Temperature") == "body_temperature"
 
-    def test_unit_guessing(self) -> None:
-        """Test unit guessing for common measurements."""
-        generator = BuilderGenerator()
-
-        assert generator._guess_unit("Systolic") == "mm[Hg]"
-        assert generator._guess_unit("Diastolic") == "mm[Hg]"
-        assert generator._guess_unit("Pulse Rate") == "/min"
-        assert generator._guess_unit("Heart Rate") == "/min"
-        assert generator._guess_unit("Body Temperature") == "Cel"
-        assert generator._guess_unit("SpO2") == "%"
-        assert generator._guess_unit("Weight") == "kg"
-        assert generator._guess_unit("Height") == "cm"
-
     def test_generate_to_file(self) -> None:
-        """Test generating builder to a file."""
+        """Test generating builder skeleton to a file."""
         import tempfile
 
         template = parse_opt(self.sample_opt_path)
@@ -275,18 +268,13 @@ class TestBuilderGenerator:
         assert "class CustomVitalsBuilder(TemplateBuilder):" in code
         assert "VitalSignsEncounterBuilder" not in code
 
-    def test_composition_name_derivation(self) -> None:
-        """Test that composition name is derived from template, not hardcoded."""
-        template = parse_opt(self.sample_opt_path)
-        generator = BuilderGenerator()
+    def test_no_flat_paths_in_generated_code(self) -> None:
+        """ADR-0005: generated code must not contain FLAT path strings."""
+        code = generate_builder_from_opt(self.sample_opt_path)
 
-        code = generator.generate(template)
-
-        # Verify the generator has the method
-        assert hasattr(generator, "_derive_composition_name")
-
-        # The composition name should be derived from the template concept
-        # For "IDCR - Vital Signs Encounter.v1" it should extract something reasonable
-        # The actual derived name depends on the generator's logic
-        assert "VitalSignsEncounterBuilder" in code
-        assert 'template_id = "IDCR - Vital Signs Encounter.v1"' in code
+        # Must not contain path-like patterns that look like FLAT paths
+        assert "self._flat.set(" not in code
+        assert "set_quantity(" not in code
+        assert "prefix =" not in code
+        # Must reference ADR-0005
+        assert "Web Template" in code
