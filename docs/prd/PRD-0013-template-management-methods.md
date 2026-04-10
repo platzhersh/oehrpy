@@ -116,8 +116,8 @@ content. Both require a **delete-and-re-upload** strategy:
 | CDR | Endpoint | Behavior |
 |-----|----------|----------|
 | **EHRBase** | `DELETE /rest/openehr/v1/definition/template/adl1.4/{template_id}` | Hard-delete. Returns 204 on success. Returns 409 Conflict if compositions exist. Returns 404 if not found. |
-| **Better (EHR Server API)** | `DELETE /rest/v1/template/{templateId}` | **Retire** (soft-delete). Returns 200 with `{"action": "DELETE"}`. Returns 404 if not found (TMPL-3021). Template can be unretired via Admin API. |
-| **Better (Admin API)** | `DELETE /admin/rest/v1/templates/{templateId}` | **Permanent delete**. Requires admin credentials. Returns 200 on success. Returns 404 if not found. |
+| **Better (EHR Server API)** | `DELETE /rest/v1/template/{templateId}` | Deletes a template. Returns 200 with `{"action": "DELETE"}`. Returns 404 if not found (TMPL-3021). No 409 documented — unclear whether it blocks when compositions exist. Template can be unretired via Admin API (suggesting this is a retire/soft-delete). |
+| **Better (Admin API)** | `DELETE /admin/rest/v1/templates/{templateId}` | **Permanently** deletes all active and inactive templates for a given template ID. Optional `id` query parameter (integer) to target a specific internal version. Returns **204** on success. Returns 404 if not found. No 409 documented — may force-delete regardless of compositions. |
 
 Better's two-tier deletion model introduces a design decision: should
 `delete_template()` use the EHR Server API (retire, reversible) or the Admin
@@ -224,7 +224,9 @@ class EHRBaseClient:
         On Better, the default behavior retires the template
         (soft-delete, reversible via the Admin API's unretire
         endpoint). Pass ``permanent=True`` to permanently delete
-        via the Admin API (requires admin credentials).
+        via the Admin API (requires admin credentials). Note: the
+        Admin API permanently deletes **all active and inactive**
+        versions of the template.
 
         Args:
             template_id: The template ID to delete.
@@ -235,6 +237,8 @@ class EHRBaseClient:
             NotFoundError: If the template does not exist.
             ValidationError: If the template cannot be deleted because
                 compositions reference it (HTTP 409, EHRBase).
+                Better's behavior when compositions exist is
+                undocumented — see open questions.
         """
 ```
 
@@ -339,7 +343,7 @@ relevant endpoint discovered so far:
 | **Upload template** | `POST /rest/openehr/v1/definition/template/adl1.4` | `POST /rest/v1/template` (supports tags param) | `POST /admin/rest/v1/templates` | `POST /rest/openehr/v1/definition/template/adl1.4` |
 | **Get OPT XML** | `GET .../adl1.4/{id}` with `Accept: application/xml` | `GET /rest/v1/template/{id}/opt` (dedicated sub-resource) | — | `GET /rest/openehr/v1/definition/template/adl1.4/{template_id}` (returns canonical OPT XML) |
 | **Get web template** | `GET .../adl1.4/{id}` with `Accept: application/openehr.wt+json` | `GET /rest/v1/template/{id}` (returns web template JSON by default) | `GET /admin/rest/v1/templates/{id}` | — |
-| **Delete template** | `DELETE .../adl1.4/{id}` → 204 (hard-delete; 409 if compositions exist) | `DELETE /rest/v1/template/{id}` → 200 (**retire**/soft-delete) | `DELETE /admin/rest/v1/templates/{id}` → 200 (**permanent** delete) | **Not available** (read-only + upload) |
+| **Delete template** | `DELETE .../adl1.4/{id}` → 204 (hard-delete; 409 if compositions exist) | `DELETE /rest/v1/template/{id}` → 200 (soft-delete/retire; no 409 documented) | `DELETE /admin/rest/v1/templates/{id}` → **204** (**permanent** delete of all active+inactive versions; optional `id` query param for specific version) | **Not available** (read-only + upload) |
 | **Update template** | Not supported (405/501) | Not supported (PUT is for tagging only) | Not supported | **Not available** |
 | **Retire template** | N/A | Implicit via DELETE (see above) | `PUT /admin/rest/v1/templates/{id}/retire` | N/A |
 | **Unretire template** | N/A | N/A | `PUT /admin/rest/v1/templates/{id}/unretire` | N/A |
@@ -416,10 +420,19 @@ update_template(template_id, xml)
 
 Better has a two-tier deletion model:
 
-| Tier | Endpoint | Effect | Reversible? | Auth required |
-|------|----------|--------|-------------|---------------|
-| **Retire** (EHR Server API) | `DELETE /rest/v1/template/{id}` | Soft-delete; template is retired but not removed from the database | Yes — via `PUT /admin/rest/v1/templates/{id}/unretire` | Standard user |
-| **Permanent delete** (Admin API) | `DELETE /admin/rest/v1/templates/{id}` | Hard-delete; template is permanently removed | No | Admin credentials |
+| Tier | Endpoint | Effect | Response | Reversible? | Auth required |
+|------|----------|--------|----------|-------------|---------------|
+| **Retire** (EHR Server API) | `DELETE /rest/v1/template/{id}` | Soft-delete; template is retired but not removed from the database | HTTP 200, `{"action": "DELETE"}` | Yes — via `PUT /admin/rest/v1/templates/{id}/unretire` | Standard user |
+| **Permanent delete** (Admin API) | `DELETE /admin/rest/v1/templates/{id}` | Permanently deletes **all active and inactive** templates for a given template ID. Optional `id` integer query parameter targets a specific internal version instead of all. | HTTP **204** | No | Admin credentials |
+
+**Important difference in response codes:** The EHR Server API returns
+**200** with a JSON body, while the Admin API returns **204** with no body.
+The SDK must handle both.
+
+Neither API documents a 409 Conflict response. It is unclear from the
+OpenAPI docs whether either endpoint blocks deletion when compositions
+reference the template. This needs to be verified against a live Better
+instance (see Open Questions).
 
 **Proposed SDK behavior:**
 
@@ -446,11 +459,14 @@ hard-delete). On Better, it selects between retire and permanent delete.
 
 ### Open Questions
 
-| # | Question | Impact on implementation |
-|---|----------|------------------------|
-| 1 | Does Better's EHR Server API DELETE (retire) block when compositions reference the template, or does it retire regardless? | Determines whether `delete_template()` on Better can fail with a conflict error, or always succeeds. |
-| 2 | Does Better's `POST /rest/v1/template` handle re-upload of an existing template ID (upsert), or reject it as a duplicate? | If upsert is supported, `update_template()` on Better could skip the delete step entirely. |
-| 3 | Does the Admin API permanent delete block when compositions reference the template? | Affects error handling for `permanent=True` on Better. |
+Neither Better API documents a 409 Conflict response for template deletion.
+This needs testing against a live instance to determine actual behavior.
+
+| # | Question | What the docs say | Impact on implementation |
+|---|----------|-------------------|------------------------|
+| 1 | Does Better's EHR Server API DELETE (retire) block when compositions reference the template, or retire regardless? | Only documents 200 (success) and 404 (not found). No 409. | Determines whether `delete_template()` on Better can fail with a conflict error, or always succeeds. If it always succeeds, no 409 handling needed for Better. |
+| 2 | Does Better's `POST /rest/v1/template` handle re-upload of an existing template ID (upsert), or reject it as a duplicate? | Docs say "Uploads an operational template" with 201 (success) and 400 (invalid). No mention of conflict/duplicate behavior. | If upsert is supported, `update_template()` on Better could skip the delete step entirely — significantly simplifying the flow. |
+| 3 | Does the Admin API permanent delete block when compositions reference the template? | Only documents 204 (success) and 404 (not found). No 409. Description says "permanently delete all active and inactive templates". | If it force-deletes regardless, `permanent=True` could leave orphaned compositions. The SDK should at minimum document this risk. |
 
 ---
 
