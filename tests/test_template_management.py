@@ -30,6 +30,14 @@ SAMPLE_OPT_XML = """\
 </template>
 """
 
+MISMATCHED_OPT_XML = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="http://schemas.openehr.org/v1">
+  <template_id><value>Different Template.v1</value></template_id>
+  <concept>Different Template</concept>
+</template>
+"""
+
 
 def _mock_response(
     status_code: int = 200,
@@ -312,21 +320,39 @@ class TestUpdateTemplate:
             return_value=_mock_response(204),
         )
         ehrbase_client._client.post = AsyncMock(
-            return_value=_mock_response(400, json_data={"message": "Invalid XML"}),
+            return_value=_mock_response(400, json_data={"message": "Schema validation failed"}),
         )
 
         with pytest.raises(ValidationError, match="old template was deleted"):
-            await ehrbase_client.update_template("Test Template.v1", "<bad>xml</bad>")
+            await ehrbase_client.update_template("Test Template.v1", SAMPLE_OPT_XML)
 
     @pytest.mark.asyncio()
     async def test_put_validation_error(self, ehrbase_client: EHRBaseClient) -> None:
         """400 from PUT raises ValidationError directly (no fallback)."""
         ehrbase_client._client.put = AsyncMock(
-            return_value=_mock_response(400, json_data={"message": "Invalid XML"}),
+            return_value=_mock_response(400, json_data={"message": "Schema validation failed"}),
         )
 
         with pytest.raises(ValidationError):
-            await ehrbase_client.update_template("Test Template.v1", "<bad>xml</bad>")
+            await ehrbase_client.update_template("Test Template.v1", SAMPLE_OPT_XML)
+
+    @pytest.mark.asyncio()
+    async def test_template_id_mismatch_raises(self, ehrbase_client: EHRBaseClient) -> None:
+        """Mismatched template ID in XML vs argument raises ValidationError."""
+        with pytest.raises(ValidationError, match="Template ID mismatch"):
+            await ehrbase_client.update_template("Test Template.v1", MISMATCHED_OPT_XML)
+
+        # Verify no HTTP calls were made
+        ehrbase_client._client.put.assert_not_called()
+        ehrbase_client._client.delete.assert_not_called()
+
+    @pytest.mark.asyncio()
+    async def test_malformed_xml_raises(self, ehrbase_client: EHRBaseClient) -> None:
+        """Unparseable XML raises ValidationError before any HTTP calls."""
+        with pytest.raises(ValidationError, match="Could not parse template XML"):
+            await ehrbase_client.update_template("Test Template.v1", "not xml at all <<<")
+
+        ehrbase_client._client.put.assert_not_called()
 
     @pytest.mark.asyncio()
     async def test_cache_invalidation_on_put(self, ehrbase_client: EHRBaseClient) -> None:

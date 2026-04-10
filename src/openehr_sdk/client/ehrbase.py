@@ -1002,6 +1002,26 @@ class EHRBaseClient:
                 cannot be deleted because compositions reference it
                 (EHRBase, HTTP 409).
         """
+        # Validate that the XML's embedded template ID matches the argument
+        # to prevent deleting template A and uploading template B.
+        try:
+            root = ET.fromstring(template_xml)
+            ns_path = (
+                ".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value"
+            )
+            xml_tid_elem = root.find(ns_path)
+            if xml_tid_elem is None:
+                xml_tid_elem = root.find(".//template_id/value")
+            if xml_tid_elem is not None and xml_tid_elem.text and xml_tid_elem.text != template_id:
+                raise ValidationError(
+                    f"Template ID mismatch: argument is '{template_id}' "
+                    f"but the XML contains '{xml_tid_elem.text}'",
+                )
+        except ET.ParseError as e:
+            raise ValidationError(
+                f"Could not parse template XML: {e}",
+            ) from e
+
         # Try standard PUT first (future-proofing)
         response = await self.client.put(
             f"/rest/openehr/v1/definition/template/adl1.4/{template_id}",

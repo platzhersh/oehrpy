@@ -4,12 +4,12 @@ Tests get_template_opt(), update_template(), and delete_template()
 against a real EHRBase instance.
 """
 
+import contextlib
 from pathlib import Path
 
 import pytest
 
 from openehr_sdk.client import EHRBaseClient, NotFoundError, ValidationError
-from openehr_sdk.templates import VitalSignsBuilder
 
 
 @pytest.fixture
@@ -67,12 +67,9 @@ class TestDeleteTemplate:
         vital_signs_opt_xml: str,
     ) -> None:
         """Upload then delete — template should no longer appear in list."""
-        # Upload a fresh template (use a unique ID to avoid conflicts)
-        # We'll use the existing vital signs template and re-upload if needed
-        try:
+        # Upload a fresh template (may already exist — ignore errors)
+        with contextlib.suppress(Exception):
             await ehrbase_client.upload_template(vital_signs_opt_xml)
-        except (ValidationError, Exception):
-            pass  # Already exists, that's fine
 
         templates_before = await ehrbase_client.list_templates()
         template_ids_before = {t.template_id for t in templates_before}
@@ -142,9 +139,7 @@ class TestUpdateTemplate:
         """Upload, update, then get_template_opt() returns content."""
         # Update with the same XML (content hasn't changed, but tests the flow)
         try:
-            result = await ehrbase_client.update_template(
-                vital_signs_template, vital_signs_opt_xml
-            )
+            result = await ehrbase_client.update_template(vital_signs_template, vital_signs_opt_xml)
         except ValidationError as e:
             if e.status_code == 409:
                 pytest.skip("Cannot update: compositions reference this template")
@@ -169,9 +164,7 @@ class TestUpdateTemplate:
 
         # Update
         try:
-            await ehrbase_client.update_template(
-                vital_signs_template, vital_signs_opt_xml
-            )
+            await ehrbase_client.update_template(vital_signs_template, vital_signs_opt_xml)
         except ValidationError as e:
             if e.status_code == 409:
                 pytest.skip("Cannot update: compositions reference this template")
