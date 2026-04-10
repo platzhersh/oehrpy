@@ -165,8 +165,9 @@ class EHRBaseClient:
         """Download the raw OPT 1.4 XML for a template.
 
         On EHRBase, uses the standard openEHR REST endpoint with
-        ``Accept: application/xml``. On Better, uses the dedicated
-        ``/rest/v1/template/{id}/opt`` sub-resource.
+        ``Accept: application/xml``. On Better, uses the openEHR REST
+        endpoint ``GET .../adl1.4/{template_id}`` which returns
+        canonical OPT XML directly.
 
         Args:
             template_id: The template ID.
@@ -334,12 +335,12 @@ relevant endpoint discovered so far:
 
 | Operation | EHRBase (openEHR REST) | Better — EHR Server API | Better — Admin API | Better — OpenEHR REST API |
 |-----------|------------------------|------------------------|--------------------|--------------------------|
-| **List templates** | `GET /rest/openehr/v1/definition/template/adl1.4` | `GET /rest/v1/template` (supports tag filtering & search) | `GET /admin/rest/v1/templates` | Likely mirrors standard |
-| **Upload template** | `POST /rest/openehr/v1/definition/template/adl1.4` | `POST /rest/v1/template` (supports tags param) | `POST /admin/rest/v1/templates` | Likely mirrors standard |
-| **Get web template** | `GET .../adl1.4/{id}` with `Accept: application/openehr.wt+json` | `GET /rest/v1/template/{id}` (returns web template JSON by default) | `GET /admin/rest/v1/templates/{id}` | Likely mirrors standard |
-| **Get OPT XML** | `GET .../adl1.4/{id}` with `Accept: application/xml` | `GET /rest/v1/template/{id}/opt` (dedicated sub-resource) | — | Unknown |
-| **Delete template** | `DELETE .../adl1.4/{id}` → 204 (hard-delete; 409 if compositions exist) | `DELETE /rest/v1/template/{id}` → 200 (**retire**/soft-delete) | `DELETE /admin/rest/v1/templates/{id}` → 200 (**permanent** delete) | Unknown |
-| **Update template** | Not supported (405/501) | Not supported (PUT is for tagging only) | Not supported | Unknown |
+| **List templates** | `GET /rest/openehr/v1/definition/template/adl1.4` | `GET /rest/v1/template` (supports tag filtering & search) | `GET /admin/rest/v1/templates` | `GET /rest/openehr/v1/definition/template/adl1.4` |
+| **Upload template** | `POST /rest/openehr/v1/definition/template/adl1.4` | `POST /rest/v1/template` (supports tags param) | `POST /admin/rest/v1/templates` | `POST /rest/openehr/v1/definition/template/adl1.4` |
+| **Get OPT XML** | `GET .../adl1.4/{id}` with `Accept: application/xml` | `GET /rest/v1/template/{id}/opt` (dedicated sub-resource) | — | `GET /rest/openehr/v1/definition/template/adl1.4/{template_id}` (returns canonical OPT XML) |
+| **Get web template** | `GET .../adl1.4/{id}` with `Accept: application/openehr.wt+json` | `GET /rest/v1/template/{id}` (returns web template JSON by default) | `GET /admin/rest/v1/templates/{id}` | — |
+| **Delete template** | `DELETE .../adl1.4/{id}` → 204 (hard-delete; 409 if compositions exist) | `DELETE /rest/v1/template/{id}` → 200 (**retire**/soft-delete) | `DELETE /admin/rest/v1/templates/{id}` → 200 (**permanent** delete) | **Not available** (read-only + upload) |
+| **Update template** | Not supported (405/501) | Not supported (PUT is for tagging only) | Not supported | **Not available** |
 | **Retire template** | N/A | Implicit via DELETE (see above) | `PUT /admin/rest/v1/templates/{id}/retire` | N/A |
 | **Unretire template** | N/A | N/A | `PUT /admin/rest/v1/templates/{id}/unretire` | N/A |
 | **Tag template** | N/A | `PUT /rest/v1/template/{id}/tag` | — | N/A |
@@ -347,6 +348,17 @@ relevant endpoint discovered so far:
 | **Get metadata + tags** | N/A | `GET /rest/v1/template/{id}/meta` | — | N/A |
 | **Get XSD** | N/A | `GET /rest/v1/template/{id}/xsd` | — | N/A |
 | **Get TDS** | N/A | `GET /rest/v1/template/{id}/tds` | — | N/A |
+
+**Key insight:** Better's OpenEHR REST API layer is **read-only for
+templates** (list + upload + get OPT by ID). It does not expose DELETE or
+PUT. This means `delete_template()` and `update_template()` on Better
+**must** use the proprietary EHR Server API or Admin API — the openEHR
+standard endpoints are insufficient.
+
+Notably, Better's OpenEHR REST `GET /rest/openehr/v1/definition/template/adl1.4/{template_id}`
+returns the canonical OPT XML directly (no `Accept` header negotiation needed).
+This provides an alternative path for `get_template_opt()` on Better, though
+the EHR Server API's `/opt` sub-resource achieves the same result.
 
 ### Abstraction Strategy
 
@@ -438,8 +450,7 @@ hard-delete). On Better, it selects between retire and permanent delete.
 |---|----------|------------------------|
 | 1 | Does Better's EHR Server API DELETE (retire) block when compositions reference the template, or does it retire regardless? | Determines whether `delete_template()` on Better can fail with a conflict error, or always succeeds. |
 | 2 | Does Better's `POST /rest/v1/template` handle re-upload of an existing template ID (upsert), or reject it as a duplicate? | If upsert is supported, `update_template()` on Better could skip the delete step entirely. |
-| 3 | Does Better's OpenEHR REST API layer (third sidebar item) mirror the standard endpoints, and could it serve as a unified path? | Could simplify the abstraction if Better's openEHR REST layer supports the same paths as EHRBase. |
-| 4 | Does the Admin API permanent delete block when compositions reference the template? | Affects error handling for `permanent=True` on Better. |
+| 3 | Does the Admin API permanent delete block when compositions reference the template? | Affects error handling for `permanent=True` on Better. |
 
 ---
 
