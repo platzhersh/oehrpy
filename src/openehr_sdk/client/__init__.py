@@ -7,6 +7,7 @@ openEHR Clinical Data Repositories.
 
 from .ehrbase import (
     AuthenticationError,
+    CDRType,
     CompositionFormat,
     CompositionResponse,
     CompositionVersionResponse,
@@ -17,11 +18,13 @@ from .ehrbase import (
     NotFoundError,
     PreconditionFailedError,
     QueryResponse,
+    TemplateResponse,
     ValidationError,
     VersionedCompositionResponse,
 )
 
 __all__ = [
+    "CDRType",
     "EHRBaseClient",
     "EHRBaseConfig",
     "EHRResponse",
@@ -29,6 +32,7 @@ __all__ = [
     "CompositionFormat",
     "CompositionVersionResponse",
     "QueryResponse",
+    "TemplateResponse",
     "VersionedCompositionResponse",
     "EHRBaseError",
     "AuthenticationError",

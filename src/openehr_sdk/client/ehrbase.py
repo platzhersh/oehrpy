@@ -29,6 +29,13 @@ import httpx
 from defusedxml import ElementTree as ET
 
 
+class CDRType(str, Enum):
+    """Supported CDR backends."""
+
+    EHRBASE = "ehrbase"
+    BETTER = "better"
+
+
 class CompositionFormat(str, Enum):
     """Supported composition formats."""
 
@@ -242,6 +249,7 @@ class EHRBaseConfig:
     """Configuration for EHRBase client."""
 
     base_url: str = "http://localhost:8080/ehrbase"
+    cdr_type: CDRType = CDRType.EHRBASE
     username: str | None = None
     password: str | None = None
     timeout: float = 30.0
@@ -348,6 +356,16 @@ class EHRBaseClient:
             raise PreconditionFailedError(
                 "Version conflict: the preceding version UID does not match the latest version",
                 status_code=response.status_code,
+            )
+        if response.status_code == 409:
+            try:
+                error_data = response.json()
+            except Exception:
+                error_data = {"message": response.text}
+            raise ValidationError(
+                error_data.get("message", "Conflict: resource cannot be modified"),
+                status_code=response.status_code,
+                response=error_data,
             )
         if response.status_code == 400 or response.status_code == 422:
             try:
@@ -916,6 +934,184 @@ class EHRBaseClient:
 
         data = self._handle_response(response)
         return TemplateResponse.from_response(data)
+
+    async def get_template_opt(self, template_id: str) -> str:
+        """Download the raw OPT 1.4 XML for a template.
+
+        On EHRBase, uses the standard openEHR REST endpoint with
+        ``Accept: application/xml``. On Better, uses the openEHR REST
+        endpoint which returns canonical OPT XML directly.
+
+        Args:
+            template_id: The template ID.
+
+        Returns:
+            The OPT XML content as a string.
+
+        Raises:
+            NotFoundError: If the template does not exist.
+        """
+        if self.config.cdr_type == CDRType.BETTER:
+            response = await self.client.get(
+                f"/rest/openehr/v1/definition/template/adl1.4/{template_id}",
+                headers={"Accept": "application/xml"},
+            )
+        else:
+            response = await self.client.get(
+                f"/rest/openehr/v1/definition/template/adl1.4/{template_id}",
+                headers={"Accept": "application/xml"},
+            )
+
+        if response.status_code == 404:
+            raise NotFoundError(
+                f"Template not found: {template_id}",
+                status_code=404,
+            )
+        if response.status_code >= 400:
+            self._handle_response(response)
+
+        return response.text
+
+    async def update_template(
+        self,
+        template_id: str,
+        template_xml: str,
+    ) -> TemplateResponse:
+        """Update an existing template.
+
+        Attempts a standard PUT. If the CDR does not support PUT
+        (neither EHRBase nor Better do today), falls back to
+        delete-and-re-upload.
+
+        Warning:
+            The delete-and-re-upload fallback is not atomic. If the
+            delete succeeds but the re-upload fails, the template will
+            be missing from the CDR. The error message will indicate
+            this so the caller can re-upload manually.
+
+        Args:
+            template_id: The template ID to update.
+            template_xml: The updated OPT 1.4 XML content.
+
+        Returns:
+            TemplateResponse with the updated template details.
+
+        Raises:
+            NotFoundError: If the template does not exist.
+            ValidationError: If the XML is invalid, or if the template
+                cannot be deleted because compositions reference it
+                (EHRBase, HTTP 409).
+        """
+        # Validate that the XML's embedded template ID matches the argument
+        # to prevent deleting template A and uploading template B.
+        try:
+            root = ET.fromstring(template_xml)
+            ns_path = (
+                ".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value"
+            )
+            xml_tid_elem = root.find(ns_path)
+            if xml_tid_elem is None:
+                xml_tid_elem = root.find(".//template_id/value")
+            if xml_tid_elem is not None and xml_tid_elem.text and xml_tid_elem.text != template_id:
+                raise ValidationError(
+                    f"Template ID mismatch: argument is '{template_id}' "
+                    f"but the XML contains '{xml_tid_elem.text}'",
+                )
+        except ET.ParseError as e:
+            raise ValidationError(
+                f"Could not parse template XML: {e}",
+            ) from e
+
+        # Try standard PUT first (future-proofing)
+        response = await self.client.put(
+            f"/rest/openehr/v1/definition/template/adl1.4/{template_id}",
+            content=template_xml,
+            headers={
+                "Content-Type": "application/xml",
+                "Accept": "*/*",
+            },
+        )
+
+        if response.status_code in (200, 204):
+            self.clear_web_template_cache(template_id)
+            if response.status_code == 204:
+                return TemplateResponse(template_id=template_id)
+            data = self._handle_response(response)
+            return TemplateResponse.from_response(data)
+
+        # PUT not supported — fall back to delete + re-upload
+        if response.status_code in (405, 501):
+            # Delete the existing template (may raise NotFoundError or ValidationError)
+            await self.delete_template(template_id)
+
+            # Re-upload
+            try:
+                result = await self.upload_template(template_xml)
+                self.clear_web_template_cache(template_id)
+                return result
+            except (ValidationError, EHRBaseError) as upload_err:
+                raise ValidationError(
+                    f"Template update failed: old template was deleted but new "
+                    f"template could not be uploaded ({upload_err}). Re-upload "
+                    f"the template manually to restore it.",
+                    status_code=getattr(upload_err, "status_code", None),
+                ) from upload_err
+
+        # Any other error — let _handle_response raise the appropriate exception
+        self._handle_response(response)
+        # Should not reach here, but satisfy type checker
+        return TemplateResponse(template_id=template_id)  # pragma: no cover
+
+    async def delete_template(
+        self,
+        template_id: str,
+        *,
+        permanent: bool = False,
+    ) -> None:
+        """Delete a template from the CDR.
+
+        On EHRBase, always performs a hard-delete (the ``permanent``
+        parameter is ignored since EHRBase has no soft-delete).
+
+        On Better, the default behavior retires the template
+        (soft-delete, reversible via the Admin API's unretire
+        endpoint). Pass ``permanent=True`` to permanently delete
+        via the Admin API (requires admin credentials). Note: the
+        Admin API permanently deletes **all active and inactive**
+        versions of the template.
+
+        Args:
+            template_id: The template ID to delete.
+            permanent: If True, permanently delete on Better
+                (uses Admin API). Ignored on EHRBase.
+
+        Raises:
+            NotFoundError: If the template does not exist.
+            ValidationError: If the template cannot be deleted because
+                compositions reference it (HTTP 409, EHRBase).
+        """
+        if self.config.cdr_type == CDRType.BETTER:
+            if permanent:
+                response = await self.client.delete(
+                    f"/admin/rest/v1/templates/{template_id}",
+                )
+            else:
+                response = await self.client.delete(
+                    f"/rest/v1/template/{template_id}",
+                )
+        else:
+            response = await self.client.delete(
+                f"/rest/openehr/v1/definition/template/adl1.4/{template_id}",
+            )
+
+        # Better EHR Server API returns 200 with {"action": "DELETE"}
+        # Better Admin API returns 204
+        # EHRBase returns 204
+        if response.status_code in (200, 204):
+            self.clear_web_template_cache(template_id)
+            return
+
+        self._handle_response(response)
 
     # Health Check
 
