@@ -186,6 +186,8 @@ jobs:
           EHRBASE_URL: http://localhost:8080/ehrbase
           EHRBASE_USER: ehrbase-user
           EHRBASE_PASSWORD: SuperSecretPassword
+          EHRBASE_ADMIN_USER: ehrbase-admin
+          EHRBASE_ADMIN_PASSWORD: EvenMoreSecretPassword
 
       - name: Show EHRBase logs on failure
         if: failure()

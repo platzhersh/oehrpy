@@ -205,6 +205,39 @@ class TestDeleteTemplate:
         assert exc_info.value.status_code == 409
 
     @pytest.mark.asyncio()
+    async def test_405_falls_back_to_admin_api(self) -> None:
+        """EHRBase 2.x 405 on standard endpoint falls back to admin API."""
+        config = EHRBaseConfig(
+            base_url="http://localhost:8080/ehrbase",
+            admin_username="admin",
+            admin_password="admin-pass",
+        )
+        client = EHRBaseClient(config=config)
+        client._client = AsyncMock(spec=httpx.AsyncClient)
+
+        # First call (standard endpoint) returns 405, second (admin) returns 204
+        client._client.delete = AsyncMock(
+            side_effect=[_mock_response(405, text="Method Not Allowed"), _mock_response(204)],
+        )
+
+        await client.delete_template("Test Template.v1")
+
+        assert client._client.delete.call_count == 2
+        admin_call = client._client.delete.call_args_list[1]
+        assert "/rest/admin/template/Test Template.v1" in admin_call.args[0]
+        assert admin_call.kwargs["auth"] == ("admin", "admin-pass")
+
+    @pytest.mark.asyncio()
+    async def test_405_without_admin_creds_raises(self, ehrbase_client: EHRBaseClient) -> None:
+        """EHRBase 2.x 405 without admin credentials raises EHRBaseError."""
+        ehrbase_client._client.delete = AsyncMock(
+            return_value=_mock_response(405, text="Method Not Allowed"),
+        )
+
+        with pytest.raises(EHRBaseError):
+            await ehrbase_client.delete_template("Test Template.v1")
+
+    @pytest.mark.asyncio()
     async def test_cache_invalidation(self, ehrbase_client: EHRBaseClient) -> None:
         """Successful delete clears web template cache for that template."""
         ehrbase_client._web_template_cache["Test Template.v1"] = {"tree": {}}
