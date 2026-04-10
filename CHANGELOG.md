@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.8.0 (2026-04-10)
+
+### Features
+
+- Add template management methods (PRD-0013)
+  ([`03c11e8`](https://github.com/platzhersh/oehrpy/commit/03c11e8c878907970ccb12c1915bfe51d6cbd210))
+
+
 ## v0.7.0 (2026-04-04)
 
 ### Documentation
