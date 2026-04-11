@@ -5,8 +5,8 @@ The canonical JSON format is the standard openEHR JSON serialization format,
 which includes a `_type` field for polymorphic type identification.
 
 Example:
-    >>> from openehr_sdk.rm import DV_QUANTITY
-    >>> from openehr_sdk.serialization import to_canonical, from_canonical
+    >>> from oehrpy.rm import DV_QUANTITY
+    >>> from oehrpy.serialization import to_canonical, from_canonical
     >>>
     >>> # Create a DV_QUANTITY
     >>> bp = DV_QUANTITY(magnitude=120.0, units="mm[Hg]", property=...)
@@ -62,7 +62,7 @@ def _build_registry() -> None:
         return  # Already built
 
     # Import all RM types and register them
-    from openehr_sdk import rm
+    from oehrpy import rm
 
     for name in dir(rm):
         cls = getattr(rm, name)

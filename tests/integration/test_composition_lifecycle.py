@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from openehr_sdk.client import (
+from oehrpy.client import (
     CompositionFormat,
     CompositionVersionResponse,
     EHRBaseClient,
     PreconditionFailedError,
     VersionedCompositionResponse,
 )
-from openehr_sdk.templates import VitalSignsBuilder
+from oehrpy.templates import VitalSignsBuilder
 
 
 @pytest.mark.integration

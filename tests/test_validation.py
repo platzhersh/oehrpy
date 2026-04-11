@@ -6,13 +6,13 @@ from typing import Any
 
 import pytest
 
-from openehr_sdk.validation import (
+from oehrpy.validation import (
     FlatValidator,
     enumerate_valid_paths,
     parse_web_template,
 )
-from openehr_sdk.validation.platforms import get_dialect
-from openehr_sdk.validation.suggestions import suggest_path, suggest_segment
+from oehrpy.validation.platforms import get_dialect
+from oehrpy.validation.suggestions import suggest_path, suggest_segment
 
 # ─── Fixtures ───────────────────────────────────────────────────────
 

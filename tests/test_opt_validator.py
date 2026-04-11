@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from openehr_sdk.validation.opt import (
+from oehrpy.validation.opt import (
     OPTValidationError,
     OPTValidator,
     issue_codes,
@@ -806,7 +806,7 @@ class TestOPTValidatorIntegration:
 
     def test_parse_opt_with_validation(self) -> None:
         """parse_opt with validate=True raises on real OPT with issues."""
-        from openehr_sdk.templates import parse_opt
+        from oehrpy.templates import parse_opt
 
         # The sample vital_signs.opt has validation issues (missing term defs etc.)
         # so validate=True should raise
@@ -815,14 +815,14 @@ class TestOPTValidatorIntegration:
 
     def test_parse_opt_string_with_validation(self) -> None:
         """parse_opt from string with validate=True works."""
-        from openehr_sdk.templates import parse_opt
+        from oehrpy.templates import parse_opt
 
         template = parse_opt(MINIMAL_VALID_OPT, validate=True)
         assert template.template_id == "Test Template.v1"
 
     def test_parse_opt_with_validation_failure(self) -> None:
         """parse_opt with validate=True raises on invalid OPT."""
-        from openehr_sdk.templates import parse_opt
+        from oehrpy.templates import parse_opt
 
         # OPT with invalid RM type should raise
         xml = _make_opt(rm_type_name="INVALID_TYPE_XYZ")
@@ -832,7 +832,7 @@ class TestOPTValidatorIntegration:
 
     def test_generate_builder_with_validation(self) -> None:
         """generate_builder_from_opt raises when validate=True and OPT has issues."""
-        from openehr_sdk.templates import generate_builder_from_opt
+        from oehrpy.templates import generate_builder_from_opt
 
         # The sample vital_signs.opt has validation issues,
         # so explicit validate=True should raise
@@ -841,7 +841,7 @@ class TestOPTValidatorIntegration:
 
     def test_generate_builder_validation_disabled(self) -> None:
         """generate_builder_from_opt skips validation by default."""
-        from openehr_sdk.templates import generate_builder_from_opt
+        from oehrpy.templates import generate_builder_from_opt
 
         code = generate_builder_from_opt(self.sample_opt_path)
         assert "Builder" in code
@@ -856,7 +856,7 @@ class TestCLI:
 
     def test_cli_valid_file(self) -> None:
         """CLI returns 0 for a valid OPT file."""
-        from openehr_sdk.validate_opt_cli import main
+        from oehrpy.validate_opt_cli import main
 
         exit_code = main([self.sample_opt_path])
         # May return 0 or 1 depending on warnings in the fixture
@@ -864,21 +864,21 @@ class TestCLI:
 
     def test_cli_json_output(self) -> None:
         """CLI JSON output mode works."""
-        from openehr_sdk.validate_opt_cli import main
+        from oehrpy.validate_opt_cli import main
 
         exit_code = main([self.sample_opt_path, "--output", "json"])
         assert exit_code in (0, 1)
 
     def test_cli_file_not_found(self) -> None:
         """CLI returns 1 for a non-existent file."""
-        from openehr_sdk.validate_opt_cli import main
+        from oehrpy.validate_opt_cli import main
 
         exit_code = main(["/nonexistent/file.opt"])
         assert exit_code == 1
 
     def test_cli_strict_mode(self) -> None:
         """CLI strict mode treats warnings as errors."""
-        from openehr_sdk.validate_opt_cli import main
+        from oehrpy.validate_opt_cli import main
 
         # The sample OPT likely has warnings (e.g., lifecycle_state)
         exit_code = main([self.sample_opt_path, "--strict"])
@@ -887,7 +887,7 @@ class TestCLI:
 
     def test_cli_show_flat_paths(self) -> None:
         """CLI --show-flat-paths option works."""
-        from openehr_sdk.validate_opt_cli import main
+        from oehrpy.validate_opt_cli import main
 
         exit_code = main([self.sample_opt_path, "--show-flat-paths"])
         assert exit_code in (0, 1)
@@ -898,13 +898,13 @@ class TestRMTypeRegistry:
 
     def test_known_types_loaded(self) -> None:
         """RM type registry loads the expected number of types."""
-        from openehr_sdk.validation.opt.rm_types import KNOWN_RM_TYPES
+        from oehrpy.validation.opt.rm_types import KNOWN_RM_TYPES
 
         assert len(KNOWN_RM_TYPES) >= 130  # Should be ~134
 
     def test_common_types_present(self) -> None:
         """Common RM types are in the registry."""
-        from openehr_sdk.validation.opt.rm_types import KNOWN_RM_TYPES
+        from oehrpy.validation.opt.rm_types import KNOWN_RM_TYPES
 
         common = [
             "COMPOSITION",
@@ -929,7 +929,7 @@ class TestRMTypeRegistry:
 
     def test_suggest_rm_type(self) -> None:
         """RM type suggestion works for common misspellings."""
-        from openehr_sdk.validation.opt.rm_types import suggest_rm_type
+        from oehrpy.validation.opt.rm_types import suggest_rm_type
 
         # DV_CODED_QUANTITY -> should suggest DV_QUANTITY or DV_CODED_TEXT
         suggestion = suggest_rm_type("DV_CODED_QUANTITY")

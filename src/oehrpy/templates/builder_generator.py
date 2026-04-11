@@ -16,8 +16,8 @@ Template JSON as input instead (a future version of this generator may accept
 Web Template JSON directly).
 
 Example:
-    >>> from openehr_sdk.templates.opt_parser import parse_opt
-    >>> from openehr_sdk.templates.builder_generator import BuilderGenerator
+    >>> from oehrpy.templates.opt_parser import parse_opt
+    >>> from oehrpy.templates.builder_generator import BuilderGenerator
     >>>
     >>> template = parse_opt("vital_signs.opt")
     >>> generator = BuilderGenerator()
@@ -278,11 +278,11 @@ def generate_builder_from_opt(
         Generated Python source code.
 
     Raises:
-        openehr_sdk.validation.opt.OPTValidationError: If validate=True
+        oehrpy.validation.opt.OPTValidationError: If validate=True
             and the OPT has validation errors.
     """
     if validate:
-        from openehr_sdk.validation.opt import OPTValidationError, OPTValidator
+        from oehrpy.validation.opt import OPTValidationError, OPTValidator
 
         validator = OPTValidator()
         result = validator.validate_file(opt_path)

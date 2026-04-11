@@ -349,7 +349,7 @@ def parse_opt(source: str | Path, *, validate: bool = False) -> TemplateDefiniti
         Parsed TemplateDefinition.
 
     Raises:
-        openehr_sdk.validation.opt.OPTValidationError: If validate=True
+        oehrpy.validation.opt.OPTValidationError: If validate=True
             and validation errors are found.
     """
     is_file = isinstance(source, Path) or (
@@ -357,7 +357,7 @@ def parse_opt(source: str | Path, *, validate: bool = False) -> TemplateDefiniti
     )
 
     if validate:
-        from openehr_sdk.validation.opt import OPTValidationError, OPTValidator
+        from oehrpy.validation.opt import OPTValidationError, OPTValidator
 
         validator = OPTValidator()
         if is_file:

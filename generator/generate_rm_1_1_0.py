@@ -193,7 +193,7 @@ def main():
     """Generate RM 1.1.0 and BASE classes."""
     generator = SimpleRMGenerator()
 
-    output_file = Path("src/openehr_sdk/rm/rm_types.py")
+    output_file = Path("src/oehrpy/rm/rm_types.py")
     print(f"\n{'=' * 60}")
     print(f"Generating RM 1.1.0 + BASE types")
     print(f"{'=' * 60}")

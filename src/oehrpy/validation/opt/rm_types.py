@@ -15,7 +15,7 @@ def get_known_rm_types() -> frozenset[str]:
     """
     from pydantic import BaseModel
 
-    import openehr_sdk.rm.rm_types as rm_module
+    import oehrpy.rm.rm_types as rm_module
 
     return frozenset(
         name

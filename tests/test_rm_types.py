@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from openehr_sdk.rm import (
+from oehrpy.rm import (
     CODE_PHRASE,
     COMPOSITION,
     DV_BOOLEAN,

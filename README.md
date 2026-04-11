@@ -61,7 +61,7 @@ pip install -e .
 ### Creating RM Objects
 
 ```python
-from openehr_sdk.rm import (
+from oehrpy.rm import (
     DV_QUANTITY, DV_TEXT, DV_CODED_TEXT,
     CODE_PHRASE, TERMINOLOGY_ID
 )
@@ -86,7 +86,7 @@ print(f"Blood pressure: {bp_systolic.magnitude} {bp_systolic.units}")
 Build compositions using type-safe builders without knowing FLAT paths:
 
 ```python
-from openehr_sdk.templates import VitalSignsBuilder
+from oehrpy.templates import VitalSignsBuilder
 
 # Create a vital signs composition
 builder = VitalSignsBuilder(composer_name="Dr. Smith")
@@ -115,7 +115,7 @@ flat_data = builder.build()
 Generate template metadata skeletons from OPT (Operational Template) files. The generated code includes the template ID, concept, and discovered archetypes, but **not** FLAT path strings — FLAT paths must come from the [Web Template JSON](docs/adr/0005-web-template-as-primary-source-of-truth-for-flat-paths.md) provided by the CDR:
 
 ```python
-from openehr_sdk.templates import generate_builder_from_opt, parse_opt
+from oehrpy.templates import generate_builder_from_opt, parse_opt
 
 # Parse an OPT file (metadata extraction)
 template = parse_opt("path/to/your-template.opt")
@@ -127,7 +127,7 @@ code = generate_builder_from_opt("path/to/your-template.opt")
 print(code)  # Class skeleton with template_id and archetype list
 
 # Or save directly to a file
-from openehr_sdk.templates import BuilderGenerator
+from oehrpy.templates import BuilderGenerator
 
 generator = BuilderGenerator()
 generator.generate_to_file(template, "my_template_builder.py")
@@ -145,7 +145,7 @@ The generated skeleton must be supplemented with FLAT paths from the Web Templat
 Validate OPT 1.4 XML files before uploading to a CDR. The validator checks for XML well-formedness, semantic integrity, structural issues, and FLAT path impact:
 
 ```python
-from openehr_sdk.validation import OPTValidator
+from oehrpy.validation import OPTValidator
 
 validator = OPTValidator()
 result = validator.validate_file("path/to/template.opt")
@@ -190,7 +190,7 @@ oehrpy-validate-opt template.opt --show-flat-paths
 
 **Integrate with OPT parsing and builder generation:**
 ```python
-from openehr_sdk.templates import parse_opt, generate_builder_from_opt
+from oehrpy.templates import parse_opt, generate_builder_from_opt
 
 # Validate during parsing (raises OPTValidationError on errors)
 template = parse_opt("template.opt", validate=True)
@@ -202,8 +202,8 @@ code = generate_builder_from_opt("template.opt", validate=True)
 ### Canonical JSON Serialization
 
 ```python
-from openehr_sdk.rm import DV_QUANTITY, CODE_PHRASE, TERMINOLOGY_ID
-from openehr_sdk.serialization import to_canonical, from_canonical
+from oehrpy.rm import DV_QUANTITY, CODE_PHRASE, TERMINOLOGY_ID
+from oehrpy.serialization import to_canonical, from_canonical
 
 # Serialize to canonical JSON (with _type fields)
 quantity = DV_QUANTITY(magnitude=120.0, units="mm[Hg]", ...)
@@ -217,7 +217,7 @@ restored = from_canonical(canonical, expected_type=DV_QUANTITY)
 ### FLAT Format Builder
 
 ```python
-from openehr_sdk.serialization import FlatBuilder
+from oehrpy.serialization import FlatBuilder
 
 # For EHRBase 2.26.0+, use composition tree ID as prefix
 builder = FlatBuilder(composition_prefix="vital_signs_observations")
@@ -232,7 +232,7 @@ flat_data = builder.build()
 ### EHRBase REST Client
 
 ```python
-from openehr_sdk.client import EHRBaseClient
+from oehrpy.client import EHRBaseClient
 
 async with EHRBaseClient(
     base_url="http://localhost:8080/ehrbase",
@@ -262,7 +262,7 @@ async with EHRBaseClient(
 ### AQL Query Builder
 
 ```python
-from openehr_sdk.aql import AQLBuilder
+from oehrpy.aql import AQLBuilder
 
 # Build complex queries with a fluent API
 query = (
@@ -344,7 +344,7 @@ pytest tests/ -v
 ### Type Checking
 
 ```bash
-mypy src/openehr_sdk
+mypy src/oehrpy
 ```
 
 ### Regenerating RM Classes
@@ -359,7 +359,7 @@ python -m generator.pydantic_generator
 
 ```text
 oehrpy/
-├── src/openehr_sdk/       # Main package
+├── src/oehrpy/       # Main package
 │   ├── rm/                # Generated RM + BASE classes (134 types)
 │   ├── serialization/     # JSON serialization (canonical + FLAT)
 │   ├── client/            # EHRBase REST client

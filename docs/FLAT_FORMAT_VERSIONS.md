@@ -259,7 +259,7 @@ Based on our findings, it appears:
 - **Outdated Docs:** https://docs.ehrbase.org/docs/EHRbase/Explore/Simplified-data-template/WebTemplate
 - **Working Example:** GET `/rest/openehr/v1/definition/template/adl1.4/{id}/example?format=FLAT`
 - **WebTemplate Spec:** GET `/rest/definition/template/adl1.4/{id}/webtemplate`
-- **Our Implementation:** `src/openehr_sdk/templates/builders.py` (VitalSignsBuilder)
+- **Our Implementation:** `src/oehrpy/templates/builders.py` (VitalSignsBuilder)
 
 ---
 

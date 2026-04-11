@@ -1,47 +1,15 @@
-"""
-Template builders and OPT parsing for openEHR.
+"""Backwards-compatible shim: openehr_sdk.templates -> oehrpy.templates."""
 
-This module provides:
-- OPT (Operational Template) XML parser — for metadata extraction only
-- Template-specific composition builders with FLAT paths sourced from
-  Web Template JSON (see ADR-0005)
-- Pre-built builders for common templates (e.g. ``VitalSignsBuilder``)
-- OPT-to-Builder skeleton generator (metadata only, no FLAT paths)
+import importlib
+import warnings
 
-.. note::
 
-    FLAT paths are derived exclusively from the Web Template JSON, never
-    from OPT XML.  The ``BuilderGenerator`` produces class skeletons
-    without FLAT path strings.  See ``docs/adr/0005-*.md`` for details.
-"""
-
-from .builder_generator import (
-    BuilderGenerator,
-    generate_builder_from_opt,
-)
-from .builders import (
-    TemplateBuilder,
-    VitalSignsBuilder,
-)
-from .opt_parser import (
-    ArchetypeNode,
-    ConstraintDefinition,
-    OPTParser,
-    TemplateDefinition,
-    parse_opt,
-)
-
-__all__ = [
-    # OPT Parser
-    "OPTParser",
-    "TemplateDefinition",
-    "ArchetypeNode",
-    "ConstraintDefinition",
-    "parse_opt",
-    # Builder Generator
-    "BuilderGenerator",
-    "generate_builder_from_opt",
-    # Builders
-    "TemplateBuilder",
-    "VitalSignsBuilder",
-]
+def __getattr__(name: str):  # type: ignore[no-untyped-def]
+    warnings.warn(
+        "The 'openehr_sdk.templates' module has been renamed to 'oehrpy.templates'. "
+        "Please update your imports. "
+        "The 'openehr_sdk' name will be removed in a future release.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return getattr(importlib.import_module("oehrpy.templates"), name)

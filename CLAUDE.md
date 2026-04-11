@@ -27,7 +27,7 @@ pip install -e ".[dev,generator]"
 pytest tests/ -v
 
 # Run tests with coverage
-pytest tests/ -v --tb=short --cov=src/openehr_sdk --cov-report=term-missing
+pytest tests/ -v --tb=short --cov=src/oehrpy --cov-report=term-missing
 
 # Run specific test file
 pytest tests/test_templates.py -v
@@ -48,7 +48,7 @@ ruff format --check .
 ### Type Checking
 ```bash
 # Run mypy on the SDK
-mypy src/openehr_sdk
+mypy src/oehrpy
 ```
 
 ### Code Generation
@@ -68,33 +68,33 @@ python examples/generate_builder_from_opt.py path/to/template.opt
 
 ### Core Components
 
-**1. Reference Model (RM) Classes** (`src/openehr_sdk/rm/`)
+**1. Reference Model (RM) Classes** (`src/oehrpy/rm/`)
 - 134 Pydantic v2 models for openEHR RM 1.1.0 types (includes BASE types)
 - Generated code from BMM/JSON Schema specifications
 - Located in single `rm_types.py` module to avoid circular imports
 - All classes support Pydantic v2 validation
 
-**2. Serialization Layer** (`src/openehr_sdk/serialization/`)
+**2. Serialization Layer** (`src/oehrpy/serialization/`)
 - **Canonical JSON** (`canonical.py`): Converts RM objects to/from openEHR canonical JSON format (with `_type` fields)
 - **FLAT Format** (`flat.py`): EHRBase FLAT format support - flattens hierarchical compositions into dot-separated paths
   - `FlatPath`: Parses FLAT paths (e.g., `"vital_signs/bp:0/systolic|magnitude"`)
   - `FlatContext`: Handles composition context fields (`ctx/language`, `ctx/composer_name`, etc.)
   - `FlatBuilder`: Fluent API for constructing FLAT format compositions
 
-**3. Template System** (`src/openehr_sdk/templates/`)
+**3. Template System** (`src/oehrpy/templates/`)
 - **OPT Parser** (`opt_parser.py`): Parses OPT 1.4 XML files to extract template metadata (template ID, concept, archetypes, constraints). Does NOT derive FLAT paths (see ADR-0005).
 - **Builder Generator** (`builder_generator.py`): Generates metadata-only class skeletons from OPT files. FLAT paths must be sourced from the Web Template JSON, not OPT XML (ADR-0005).
 - **Pre-built Builders** (`builders.py`): Template-specific builders (e.g., VitalSignsBuilder) with FLAT paths sourced from Web Template JSON.
 - Key workflow: OPT XML → Parser → Template Metadata; Web Template JSON → FLAT Path Derivation → Builder
 
-**4. EHRBase Client** (`src/openehr_sdk/client/ehrbase.py`)
+**4. EHRBase Client** (`src/oehrpy/client/ehrbase.py`)
 - Async REST client for EHRBase CDR operations
 - Uses httpx for async HTTP
 - Supports EHR creation, composition CRUD, and AQL queries
 - Handles multiple composition formats (CANONICAL, FLAT, STRUCTURED)
 - `get_web_template()` fetches Web Template JSON with in-memory caching (ADR-0005)
 
-**5. AQL Query Builder** (`src/openehr_sdk/aql/builder.py`)
+**5. AQL Query Builder** (`src/oehrpy/aql/builder.py`)
 - Fluent API for building type-safe AQL queries
 - Avoids manual string concatenation errors
 
@@ -124,7 +124,7 @@ python examples/generate_builder_from_opt.py path/to/template.opt
 
 ### Important Files
 
-- **`src/openehr_sdk/rm/rm_types.py`**: All 134 generated RM classes (large file, ~10k lines)
+- **`src/oehrpy/rm/rm_types.py`**: All 134 generated RM classes (large file, ~10k lines)
 - **`generator/pydantic_generator.py`**: Core code generation logic
 - **`pyproject.toml`**: Build config, dependencies, tool settings (mypy, ruff, pytest)
 - **`.github/workflows/ci.yml`**: CI pipeline (lint → type-check → test)
@@ -202,9 +202,9 @@ docker-compose down -v
 ## Ruff Configuration
 
 Per-file ignores in `pyproject.toml`:
-- `src/openehr_sdk/rm/*.py`: N801, N817, E402, SIM105 (generated code)
+- `src/oehrpy/rm/*.py`: N801, N817, E402, SIM105 (generated code)
 - `generator/*.py`: E501, F541, F401 (generator code)
-- `src/openehr_sdk/templates/opt_parser.py`: N817 (allows ET acronym for ElementTree)
+- `src/oehrpy/templates/opt_parser.py`: N817 (allows ET acronym for ElementTree)
 
 ## Python Version Support
 

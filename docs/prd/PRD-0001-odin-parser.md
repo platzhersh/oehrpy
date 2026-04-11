@@ -547,7 +547,7 @@ from generator.pydantic_generator import generate_from_bmm_schema
 
 generate_from_bmm_schema(
     schema,
-    output_dir="src/openehr_sdk/rm",
+    output_dir="src/oehrpy/rm",
     rm_version="1.1.0"
 )
 ```

@@ -504,7 +504,7 @@
 pip install oehrpy
 
 <span class="code-comment"># Use the pre-built type-safe builder</span>
-<span class="code-keyword">from</span> openehr_sdk.templates <span class="code-keyword">import</span> VitalSignsBuilder
+<span class="code-keyword">from</span> oehrpy.templates <span class="code-keyword">import</span> VitalSignsBuilder
 
 builder = <span class="code-function">VitalSignsBuilder</span>(composer_name=<span class="code-string">"Dr. Smith"</span>)
 builder.<span class="code-function">add_blood_pressure</span>(systolic=<span class="code-number">120</span>, diastolic=<span class="code-number">80</span>)

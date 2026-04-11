@@ -1,37 +1,15 @@
-"""
-Serialization utilities for openEHR Reference Model objects.
+"""Backwards-compatible shim: openehr_sdk.serialization -> oehrpy.serialization."""
 
-This module provides functions for serializing and deserializing
-openEHR RM objects to/from various formats:
+import importlib
+import warnings
 
-- Canonical JSON: Standard openEHR JSON with _type discriminator
-- FLAT format: Simplified format used by EHRBase
-"""
 
-from .canonical import (
-    from_canonical,
-    get_type_registry,
-    register_type,
-    to_canonical,
-)
-from .flat import (
-    FlatBuilder,
-    FlatContext,
-    FlatPath,
-    flatten_dict,
-    unflatten_dict,
-)
-
-__all__ = [
-    # Canonical JSON
-    "from_canonical",
-    "to_canonical",
-    "register_type",
-    "get_type_registry",
-    # FLAT format
-    "FlatBuilder",
-    "FlatContext",
-    "FlatPath",
-    "flatten_dict",
-    "unflatten_dict",
-]
+def __getattr__(name: str):  # type: ignore[no-untyped-def]
+    warnings.warn(
+        "The 'openehr_sdk.serialization' module has been renamed to 'oehrpy.serialization'. "
+        "Please update your imports. "
+        "The 'openehr_sdk' name will be removed in a future release.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return getattr(importlib.import_module("oehrpy.serialization"), name)

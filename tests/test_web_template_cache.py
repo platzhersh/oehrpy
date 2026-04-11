@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from openehr_sdk.client.ehrbase import EHRBaseClient, EHRBaseConfig
+from oehrpy.client.ehrbase import EHRBaseClient, EHRBaseConfig
 
 
 def _fake_web_template(template_id: str = "test-template") -> dict[str, Any]:

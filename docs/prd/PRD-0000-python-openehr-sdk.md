@@ -213,7 +213,7 @@ specifications-ITS-BMM/
 
 **Generated Code Structure:**
 ```python
-# openehr_sdk/rm/data_types/quantity.py
+# oehrpy/rm/data_types/quantity.py
 
 from __future__ import annotations
 from typing import Optional
@@ -236,7 +236,7 @@ class DvQuantity(DvAmount):
 
 **Package Structure:**
 ```
-openehr_sdk/
+oehrpy/
 ├── __init__.py
 ├── rm/
 │   ├── __init__.py
@@ -283,8 +283,8 @@ openehr_sdk/
 
 **JSON Canonical Format:**
 ```python
-from openehr_sdk.rm.data_types import DvQuantity
-from openehr_sdk.serialization import to_canonical, from_canonical
+from oehrpy.rm.data_types import DvQuantity
+from oehrpy.serialization import to_canonical, from_canonical
 
 # Create instance
 bp_systolic = DvQuantity(magnitude=120.0, units="mm[Hg]")
@@ -304,7 +304,7 @@ assert isinstance(restored, DvQuantity)
 
 **FLAT Format Support:**
 ```python
-from openehr_sdk.serialization.flat import to_flat, from_flat
+from oehrpy.serialization.flat import to_flat, from_flat
 
 composition = VitalSignsComposition(...)
 flat_data = to_flat(composition, template_id="IDCR - Vital Signs Encounter.v1")
@@ -341,12 +341,12 @@ flat_data = to_flat(composition, template_id="IDCR - Vital Signs Encounter.v1")
 
 **Generated Code Example:**
 ```python
-# openehr_sdk/templates/idcr_vital_signs.py
+# oehrpy/templates/idcr_vital_signs.py
 
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field
-from openehr_sdk.rm.data_types import DvQuantity, DvDateTime, DvCodedText
+from oehrpy.rm.data_types import DvQuantity, DvDateTime, DvCodedText
 
 class BloodPressureEvent(BaseModel):
     """Single blood pressure measurement event."""
@@ -408,12 +408,12 @@ class VitalSignsComposition(BaseModel):
     
     def to_flat(self) -> dict:
         """Convert to EHRBase FLAT format for API submission."""
-        from openehr_sdk.serialization.flat import composition_to_flat
+        from oehrpy.serialization.flat import composition_to_flat
         return composition_to_flat(self)
     
     def to_canonical(self) -> dict:
         """Convert to openEHR canonical JSON format."""
-        from openehr_sdk.serialization.canonical import composition_to_canonical
+        from oehrpy.serialization.canonical import composition_to_canonical
         return composition_to_canonical(self)
 ```
 
@@ -421,8 +421,8 @@ class VitalSignsComposition(BaseModel):
 ```python
 # api/src/services/vital_signs.py
 
-from openehr_sdk.templates.idcr_vital_signs import VitalSignsComposition
-from openehr_sdk.client import EHRBaseClient
+from oehrpy.templates.idcr_vital_signs import VitalSignsComposition
+from oehrpy.client import EHRBaseClient
 
 async def record_vital_signs(
     ehr_id: str,
@@ -457,8 +457,8 @@ async def record_vital_signs(
 This phase can leverage the existing `api/src/ehrbase/client.py` but wrap it with typed request/response models.
 
 ```python
-from openehr_sdk.client import EHRBaseClient
-from openehr_sdk.templates.idcr_vital_signs import VitalSignsComposition
+from oehrpy.client import EHRBaseClient
+from oehrpy.templates.idcr_vital_signs import VitalSignsComposition
 
 client = EHRBaseClient(base_url="http://localhost:8080/ehrbase")
 
@@ -723,7 +723,7 @@ composition = {
 
 **After (Template Builder):**
 ```python
-from openehr_sdk.templates.idcr_vital_signs import VitalSignsComposition
+from oehrpy.templates.idcr_vital_signs import VitalSignsComposition
 
 composition = VitalSignsComposition(composer_name="Dr. Smith")
 composition.blood_pressure.add_reading(systolic=120, diastolic=80)

@@ -19,7 +19,7 @@ The current workflow requires developers to manually run:
 ```bash
 ruff format .
 ruff check .
-mypy src/openehr_sdk
+mypy src/oehrpy
 ```
 
 This is error-prone and often forgotten, leading to failed CI runs and additional commits just for formatting fixes.
@@ -47,7 +47,7 @@ repos:
       - id: mypy
         additional_dependencies: [pydantic>=2.0, httpx>=0.25]
         args: [--config-file=pyproject.toml]
-        files: ^src/openehr_sdk/
+        files: ^src/oehrpy/
 ```
 
 ### Implementation Plan

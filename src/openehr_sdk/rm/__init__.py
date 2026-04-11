@@ -1,17 +1,15 @@
-"""
-openEHR Reference Model (RM) 1.1.0 type definitions.
+"""Backwards-compatible shim: openehr_sdk.rm -> oehrpy.rm."""
 
-This module contains Pydantic models for all openEHR Reference Model classes,
-generated from the official JSON Schema specifications.
-"""
+import importlib
+import warnings
 
-# Import all generated classes
-from .rm_types import *  # noqa: F403, F401
 
-# Re-export for convenience
-__all__ = [
-    # Export all uppercase names (classes) from rm_types
-    name
-    for name in dir()
-    if not name.startswith("_") and name[0].isupper()
-]
+def __getattr__(name: str):  # type: ignore[no-untyped-def]
+    warnings.warn(
+        "The 'openehr_sdk.rm' module has been renamed to 'oehrpy.rm'. "
+        "Please update your imports. "
+        "The 'openehr_sdk' name will be removed in a future release.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return getattr(importlib.import_module("oehrpy.rm"), name)

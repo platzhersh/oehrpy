@@ -1,42 +1,15 @@
-"""
-REST client for EHRBase and openEHR CDR servers.
+"""Backwards-compatible shim: openehr_sdk.client -> oehrpy.client."""
 
-This module provides async HTTP clients for interacting with
-openEHR Clinical Data Repositories.
-"""
+import importlib
+import warnings
 
-from .ehrbase import (
-    AuthenticationError,
-    CDRType,
-    CompositionFormat,
-    CompositionResponse,
-    CompositionVersionResponse,
-    EHRBaseClient,
-    EHRBaseConfig,
-    EHRBaseError,
-    EHRResponse,
-    NotFoundError,
-    PreconditionFailedError,
-    QueryResponse,
-    TemplateResponse,
-    ValidationError,
-    VersionedCompositionResponse,
-)
 
-__all__ = [
-    "CDRType",
-    "EHRBaseClient",
-    "EHRBaseConfig",
-    "EHRResponse",
-    "CompositionResponse",
-    "CompositionFormat",
-    "CompositionVersionResponse",
-    "QueryResponse",
-    "TemplateResponse",
-    "VersionedCompositionResponse",
-    "EHRBaseError",
-    "AuthenticationError",
-    "NotFoundError",
-    "PreconditionFailedError",
-    "ValidationError",
-]
+def __getattr__(name: str):  # type: ignore[no-untyped-def]
+    warnings.warn(
+        "The 'openehr_sdk.client' module has been renamed to 'oehrpy.client'. "
+        "Please update your imports. "
+        "The 'openehr_sdk' name will be removed in a future release.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return getattr(importlib.import_module("oehrpy.client"), name)

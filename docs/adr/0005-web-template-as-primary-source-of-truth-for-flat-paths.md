@@ -26,7 +26,7 @@ time.
 
 oehrpy's initial approach used an `OPTParser` to extract archetype structure from OPT
 XML and generate FLAT paths from it (see `BuilderGenerator` in
-`src/openehr_sdk/templates/builder_generator.py`). The intent was to allow offline
+`src/oehrpy/templates/builder_generator.py`). The intent was to allow offline
 builder generation without a live CDR.
 
 This approach caused persistent, hard-to-diagnose failures. During integration testing

@@ -313,7 +313,7 @@ oehrpy validate-opt template.opt --strict
 oehrpy validate-opt template.opt --show-flat-paths
 
 # Validate and then generate builder (fail fast pattern)
-oehrpy validate-opt template.opt && python -m openehr_sdk.templates.generate template.opt
+oehrpy validate-opt template.opt && python -m oehrpy.templates.generate template.opt
 ```
 
 ---
@@ -323,7 +323,7 @@ oehrpy validate-opt template.opt && python -m openehr_sdk.templates.generate tem
 The OPT validator lives alongside the FLAT validator in `oehrpy.validation`:
 
 ```
-src/openehr_sdk/
+src/oehrpy/
 └── validation/
     ├── __init__.py             # Public API: FlatValidator, OPTValidator, results
     ├── path_checker.py         # FLAT validation (existing)
