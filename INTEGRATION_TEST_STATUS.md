@@ -44,8 +44,8 @@ vital_signs_observations/vital_signs/blood_pressure/systolic|magnitude
 - Auto-generate required fields: `category`, `context/start_time`, `context/setting`
 
 **Files Modified:**
-- `src/openehr_sdk/serialization/flat.py` - FlatContext and FlatBuilder
-- `src/openehr_sdk/templates/builders.py` - VitalSignsBuilder paths
+- `src/oehrpy/serialization/flat.py` - FlatContext and FlatBuilder
+- `src/oehrpy/templates/builders.py` - VitalSignsBuilder paths
 - `tests/test_flat.py` - Unit test expectations
 - `tests/test_templates.py` - Builder test expectations
 

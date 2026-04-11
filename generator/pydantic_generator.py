@@ -19,7 +19,7 @@ from .bmm_parser import BmmClass, BmmProperty, BmmSchema, BmmTypeRef
 class GeneratorConfig:
     """Configuration for the code generator."""
 
-    output_dir: Path = field(default_factory=lambda: Path("src/openehr_sdk/rm"))
+    output_dir: Path = field(default_factory=lambda: Path("src/oehrpy/rm"))
     # Map of BMM type names to Python type strings
     primitive_map: dict[str, str] = field(
         default_factory=lambda: {
@@ -447,7 +447,7 @@ def generate_rm_models(
 
     Args:
         bmm_path: Path to the BMM JSON directory. Defaults to bundled BMM files.
-        output_dir: Output directory for generated code. Defaults to src/openehr_sdk/rm.
+        output_dir: Output directory for generated code. Defaults to src/oehrpy/rm.
     """
     from .bmm_parser import load_rm_schema
 
@@ -467,5 +467,5 @@ def generate_rm_models(
 if __name__ == "__main__":
     import sys
 
-    output = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("src/openehr_sdk/rm")
+    output = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("src/oehrpy/rm")
     generate_rm_models(output_dir=output)

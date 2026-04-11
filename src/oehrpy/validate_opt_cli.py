@@ -1,7 +1,7 @@
 """CLI entry point for OPT validation.
 
 Usage:
-    python -m openehr_sdk.validate_opt_cli path/to/template.opt [options]
+    python -m oehrpy.validate_opt_cli path/to/template.opt [options]
 
 Options:
     --output json    Output results as JSON (for CI/CD integration)
@@ -16,7 +16,7 @@ import glob
 import sys
 from pathlib import Path
 
-from openehr_sdk.validation.opt import OPTValidator
+from oehrpy.validation.opt import OPTValidator
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -99,7 +99,7 @@ def _print_text_result(
     show_flat_paths: bool,
 ) -> None:
     """Print validation result in human-readable text format."""
-    from openehr_sdk.validation.opt import OPTValidationResult
+    from oehrpy.validation.opt import OPTValidationResult
 
     if not isinstance(result, OPTValidationResult):
         return

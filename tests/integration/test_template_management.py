@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from openehr_sdk.client import EHRBaseClient, NotFoundError, ValidationError
+from oehrpy.client import EHRBaseClient, NotFoundError, ValidationError
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ class TestGetTemplateOpt:
         vital_signs_template: str,
     ) -> None:
         """Downloaded OPT XML can be parsed by OPTParser."""
-        from openehr_sdk.templates.opt_parser import OPTParser
+        from oehrpy.templates.opt_parser import OPTParser
 
         opt_xml = await ehrbase_client.get_template_opt(vital_signs_template)
 

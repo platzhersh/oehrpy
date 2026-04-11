@@ -230,7 +230,7 @@ We've implemented the **actual** EHRBase 2.26.0 format by:
 3. **Implementing new structure** - No `:0` indices, direct paths
 4. **Documenting differences** - Created comprehensive format guide
 
-**Implementation:** `src/openehr_sdk/templates/builders.py` (VitalSignsBuilder)
+**Implementation:** `src/oehrpy/templates/builders.py` (VitalSignsBuilder)
 
 ### For Other Users
 
@@ -300,8 +300,8 @@ New users following documentation get HTTP 422 errors and have no idea why.
 
 ## Related SDK Code
 
-- `src/openehr_sdk/serialization/flat.py` - FlatBuilder implementation
-- `src/openehr_sdk/templates/builders.py` - VitalSignsBuilder using new format
+- `src/oehrpy/serialization/flat.py` - FlatBuilder implementation
+- `src/oehrpy/templates/builders.py` - VitalSignsBuilder using new format
 - `tests/test_templates.py` - Tests validating new format
 - `docs/FLAT_FORMAT_VERSIONS.md` - Format comparison documentation
 - `docs/flat-format-learnings.md` - Implementation guide

@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from openehr_sdk.client.ehrbase import (
+from oehrpy.client.ehrbase import (
     CDRType,
     EHRBaseClient,
     EHRBaseConfig,

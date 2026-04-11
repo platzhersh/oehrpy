@@ -2,8 +2,8 @@
 
 import pytest
 
-from openehr_sdk.client import CompositionFormat, EHRBaseClient, NotFoundError, ValidationError
-from openehr_sdk.templates import VitalSignsBuilder
+from oehrpy.client import CompositionFormat, EHRBaseClient, NotFoundError, ValidationError
+from oehrpy.templates import VitalSignsBuilder
 
 
 @pytest.mark.integration

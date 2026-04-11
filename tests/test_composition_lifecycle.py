@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from openehr_sdk.client import (
+from oehrpy.client import (
     CompositionFormat,
     CompositionVersionResponse,
     EHRBaseClient,
@@ -199,7 +199,7 @@ class TestListCompositionVersions:
 
 class TestPreconditionFailedError:
     def test_is_ehrbase_error(self) -> None:
-        from openehr_sdk.client import EHRBaseError
+        from oehrpy.client import EHRBaseError
 
         err = PreconditionFailedError("conflict", status_code=412)
         assert isinstance(err, EHRBaseError)

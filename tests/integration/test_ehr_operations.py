@@ -2,7 +2,7 @@
 
 import pytest
 
-from openehr_sdk.client import EHRBaseClient, NotFoundError
+from oehrpy.client import EHRBaseClient, NotFoundError
 
 
 @pytest.mark.integration

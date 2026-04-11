@@ -258,7 +258,7 @@ No server required. All validation logic reimplemented in JavaScript (or compile
 ### 6.1 Module Structure
 
 ```
-src/openehr_sdk/
+src/oehrpy/
 └── validation/
     ├── __init__.py          # Public API: FlatValidator, ValidationResult, ValidationError
     ├── web_template.py      # Web Template parser + path enumerator

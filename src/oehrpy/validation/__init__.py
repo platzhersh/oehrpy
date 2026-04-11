@@ -6,7 +6,7 @@ Provides two validators:
   semantic integrity, and FLAT path impact
 
 Example (FLAT validation):
-    >>> from openehr_sdk.validation import FlatValidator
+    >>> from oehrpy.validation import FlatValidator
     >>>
     >>> validator = FlatValidator.from_web_template(wt_json, platform="ehrbase")
     >>> result = validator.validate(flat_composition)
@@ -15,7 +15,7 @@ Example (FLAT validation):
     ...         print(f"{error.path}: {error.message}")
 
 Example (OPT validation):
-    >>> from openehr_sdk.validation import OPTValidator
+    >>> from oehrpy.validation import OPTValidator
     >>>
     >>> validator = OPTValidator()
     >>> result = validator.validate_file("template.opt")
@@ -28,20 +28,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from openehr_sdk.validation.opt import (
+from oehrpy.validation.opt import (
     OPTValidationError,
     OPTValidationIssue,
     OPTValidationResult,
     OPTValidator,
 )
-from openehr_sdk.validation.path_checker import (
+from oehrpy.validation.path_checker import (
     ValidationError,
     ValidationInfo,
     ValidationResult,
     validate_composition,
 )
-from openehr_sdk.validation.platforms import PlatformType
-from openehr_sdk.validation.web_template import (
+from oehrpy.validation.platforms import PlatformType
+from oehrpy.validation.web_template import (
     ParsedWebTemplate,
     WebTemplateNode,
     enumerate_valid_paths,
@@ -49,7 +49,7 @@ from openehr_sdk.validation.web_template import (
 )
 
 if TYPE_CHECKING:
-    from openehr_sdk.client.ehrbase import EHRBaseClient
+    from oehrpy.client.ehrbase import EHRBaseClient
 
 
 class FlatValidator:

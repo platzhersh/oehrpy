@@ -4,7 +4,7 @@ Validates OPT 1.4 XML files for well-formedness, semantic integrity,
 structural issues, and FLAT path impact before upload to a CDR.
 
 Example:
-    >>> from openehr_sdk.validation.opt import OPTValidator
+    >>> from oehrpy.validation.opt import OPTValidator
     >>>
     >>> validator = OPTValidator()
     >>> result = validator.validate_file("path/to/template.opt")

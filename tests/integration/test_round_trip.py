@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from openehr_sdk.client import CompositionFormat, EHRBaseClient, EHRBaseError
-from openehr_sdk.templates import VitalSignsBuilder
+from oehrpy.client import CompositionFormat, EHRBaseClient, EHRBaseError
+from oehrpy.templates import VitalSignsBuilder
 
 
 @pytest.mark.integration
@@ -253,7 +253,7 @@ class TestRoundTripWorkflows:
                 elem = root.find(f".//{ns}template_id/{ns}value")
                 if elem is None:
                     elem = root.find(".//template_id/value")
-                from openehr_sdk.client.ehrbase import TemplateResponse
+                from oehrpy.client.ehrbase import TemplateResponse
 
                 template_response = TemplateResponse(
                     template_id=elem.text if elem is not None else ""

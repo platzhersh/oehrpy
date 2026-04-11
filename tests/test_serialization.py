@@ -2,14 +2,14 @@
 
 import pytest
 
-from openehr_sdk.rm import (
+from oehrpy.rm import (
     CODE_PHRASE,
     DV_CODED_TEXT,
     DV_QUANTITY,
     DV_TEXT,
     TERMINOLOGY_ID,
 )
-from openehr_sdk.serialization import from_canonical, to_canonical
+from oehrpy.serialization import from_canonical, to_canonical
 
 
 class TestToCanonical:

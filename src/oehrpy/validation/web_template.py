@@ -6,8 +6,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from openehr_sdk.validation.platforms import get_dialect
-from openehr_sdk.validation.required_fields import STRUCTURAL_RM_TYPES, VALID_SUFFIXES
+from oehrpy.validation.platforms import get_dialect
+from oehrpy.validation.required_fields import STRUCTURAL_RM_TYPES, VALID_SUFFIXES
 
 
 @dataclass

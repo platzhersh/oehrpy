@@ -91,7 +91,7 @@ Implement a thin JavaScript <-> Python bridge:
 async function runPythonValidation(wtJson, flatObj, platform) {
   const result = await pyodide.runPythonAsync(`
     import json
-    from openehr_sdk.validation import FlatValidator
+    from oehrpy.validation import FlatValidator
 
     wt = json.loads('''${JSON.stringify(wtJson)}''')
     flat = json.loads('''${JSON.stringify(flatObj)}''')

@@ -9,8 +9,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from openehr_sdk.client import CompositionFormat, EHRBaseClient
-from openehr_sdk.rm import (
+from oehrpy.client import CompositionFormat, EHRBaseClient
+from oehrpy.rm import (
     ARCHETYPE_ID,
     ARCHETYPED,
     CODE_PHRASE,
@@ -150,7 +150,7 @@ class TestCanonicalFormat:
         )
 
         # Convert to dict for submission
-        from openehr_sdk.serialization import to_canonical
+        from oehrpy.serialization import to_canonical
 
         canonical_data = to_canonical(composition)
 
@@ -252,7 +252,7 @@ class TestCanonicalFormat:
             ],
         )
 
-        from openehr_sdk.serialization import to_canonical
+        from oehrpy.serialization import to_canonical
 
         canonical_data = to_canonical(composition)
 
@@ -362,7 +362,7 @@ class TestCanonicalFormat:
             ],
         )
 
-        from openehr_sdk.serialization import from_canonical, to_canonical
+        from oehrpy.serialization import from_canonical, to_canonical
 
         # Create (use JSON format - EHRBase 2.0 uses JSON instead of CANONICAL)
         canonical_data = to_canonical(original_composition)

@@ -214,7 +214,7 @@ Templates (OPT files) will be uploaded **as part of the integration test flow**,
 # tests/integration/conftest.py
 
 import pytest
-from openehr_sdk.client import EHRBaseClient
+from oehrpy.client import EHRBaseClient
 
 @pytest.fixture
 async def ehrbase_client():
@@ -238,7 +238,7 @@ async def vital_signs_template(ehrbase_client):
 @pytest.mark.integration
 async def test_create_composition(ehrbase_client, vital_signs_template):
     """Test creating a composition with VitalSignsBuilder."""
-    from openehr_sdk.templates import VitalSignsBuilder
+    from oehrpy.templates import VitalSignsBuilder
 
     # Create EHR
     ehr = await ehrbase_client.create_ehr()

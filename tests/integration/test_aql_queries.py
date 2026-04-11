@@ -2,9 +2,9 @@
 
 import pytest
 
-from openehr_sdk.aql import AQLBuilder
-from openehr_sdk.client import EHRBaseClient
-from openehr_sdk.templates import VitalSignsBuilder
+from oehrpy.aql import AQLBuilder
+from oehrpy.client import EHRBaseClient
+from oehrpy.templates import VitalSignsBuilder
 
 
 @pytest.mark.integration

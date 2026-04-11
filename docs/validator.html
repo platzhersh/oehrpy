@@ -1388,16 +1388,16 @@ async function initPyodide() {
 
     // Import and verify
     await pyodideInstance.runPythonAsync(
-      'from openehr_sdk.validation import FlatValidator\n' +
-      'from openehr_sdk.validation.opt import OPTValidator\n' +
+      'from oehrpy.validation import FlatValidator\n' +
+      'from oehrpy.validation.opt import OPTValidator\n' +
       'import json\n' +
-      'import openehr_sdk\n'
+      'import oehrpy\n'
     );
     if (pyodideTimedOut) return;
 
     // Get version info
     oehrpyVersion = await pyodideInstance.runPythonAsync(
-      'openehr_sdk.__version__ if hasattr(openehr_sdk, "__version__") else "unknown"'
+      'oehrpy.__version__ if hasattr(oehrpy, "__version__") else "unknown"'
     );
     if (pyodideTimedOut) return;
 
@@ -1462,7 +1462,7 @@ async function runPythonValidation(wtJson, flatObj, platform) {
 
   var resultStr = await pyodideInstance.runPythonAsync(
     'import json\n' +
-    'from openehr_sdk.validation import FlatValidator\n' +
+    'from oehrpy.validation import FlatValidator\n' +
     '\n' +
     '_wt = json.loads(_wt_json_str)\n' +
     '_flat = json.loads(_flat_json_str)\n' +
@@ -1511,7 +1511,7 @@ async function runOPTValidation(xmlContent) {
 
   var resultStr = await pyodideInstance.runPythonAsync(
     'import json\n' +
-    'from openehr_sdk.validation.opt import OPTValidator\n' +
+    'from oehrpy.validation.opt import OPTValidator\n' +
     '\n' +
     '_validator = OPTValidator()\n' +
     '_result = _validator.validate_string(_opt_xml)\n' +

@@ -50,7 +50,7 @@ oehrpy ships a single hand-crafted `VitalSignsBuilder`. The OPT parser (`opt_par
 #### FR-1: Runtime Builder Factory
 
 ```python
-from openehr_sdk.templates import CompositionBuilder
+from oehrpy.templates import CompositionBuilder
 
 # Load from a local OPT file
 builder = CompositionBuilder.from_opt("path/to/medication_order.opt")
@@ -72,7 +72,7 @@ composition = (
 
 ```bash
 # Generate a builder module from an OPT file
-python -m openehr_sdk.templates.generate path/to/template.opt --output my_builder.py
+python -m oehrpy.templates.generate path/to/template.opt --output my_builder.py
 ```
 
 - Wrap the existing `builder_generator.py` in a proper CLI entry point
@@ -102,7 +102,7 @@ Builders optionally validate values against OPT constraints:
 
 - **NFR-1**: Runtime builder creation from an OPT file must complete in under 500ms for typical templates
 - **NFR-2**: Generated builder code must pass ruff and mypy checks
-- **NFR-3**: Pre-built builders must be importable from `openehr_sdk.templates.builders`
+- **NFR-3**: Pre-built builders must be importable from `oehrpy.templates.builders`
 
 ---
 

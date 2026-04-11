@@ -17,7 +17,7 @@ Usage:
 import sys
 from pathlib import Path
 
-from openehr_sdk.templates import BuilderGenerator, parse_opt
+from oehrpy.templates import BuilderGenerator, parse_opt
 
 
 def main() -> None:

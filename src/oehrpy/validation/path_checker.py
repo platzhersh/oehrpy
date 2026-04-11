@@ -6,13 +6,13 @@ import re
 from dataclasses import dataclass, field
 from typing import Literal
 
-from openehr_sdk.validation.platforms import PlatformType
-from openehr_sdk.validation.required_fields import (
+from oehrpy.validation.platforms import PlatformType
+from oehrpy.validation.required_fields import (
     REQUIRED_FIELD_GROUPS,
     VALID_SUFFIXES,
 )
-from openehr_sdk.validation.suggestions import suggest_path, suggest_segment
-from openehr_sdk.validation.web_template import ParsedWebTemplate, enumerate_valid_paths
+from oehrpy.validation.suggestions import suggest_path, suggest_segment
+from oehrpy.validation.web_template import ParsedWebTemplate, enumerate_valid_paths
 
 ErrorType = Literal["unknown_path", "wrong_suffix", "missing_required", "index_mismatch"]
 
@@ -201,7 +201,7 @@ def _check_renamed_segment(
     segments = base_path_clean.split("/")
     suffix_part = "|" + path.split("|")[1] if "|" in path else ""
 
-    from openehr_sdk.validation.web_template import _slugify
+    from oehrpy.validation.web_template import _slugify
 
     for node in parsed.nodes.values():
         if node.original_name is None:

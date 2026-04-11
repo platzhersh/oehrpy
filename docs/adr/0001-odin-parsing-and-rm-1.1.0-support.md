@@ -56,7 +56,7 @@ This means:
 
 ### Version Selection Question
 
-Should users be able to specify which RM version they want to use at runtime (e.g., `openehr_sdk.rm.v1_0_4.DV_QUANTITY` vs `openehr_sdk.rm.v1_1_0.DV_QUANTITY`)?
+Should users be able to specify which RM version they want to use at runtime (e.g., `oehrpy.rm.v1_0_4.DV_QUANTITY` vs `oehrpy.rm.v1_1_0.DV_QUANTITY`)?
 
 **Arguments against multi-version support:**
 - Significant complexity in code generation and package structure
@@ -95,7 +95,7 @@ We will:
 
 3. **Generate RM classes from 1.1.0 by default**
    - The generated package will use RM 1.1.0 as the default and only version
-   - All classes will be available at `openehr_sdk.rm.*` (no version namespacing)
+   - All classes will be available at `oehrpy.rm.*` (no version namespacing)
 
 4. **Make the generator version-agnostic**
    - The generator will accept a `--rm-version` parameter (e.g., `1.0.4`, `1.1.0`, `latest`)
@@ -104,7 +104,7 @@ We will:
 
 5. **Do NOT expose version selection to end users**
    - No runtime version switching
-   - No parallel imports like `from openehr_sdk.rm.v1_0_4 import DV_QUANTITY`
+   - No parallel imports like `from oehrpy.rm.v1_0_4 import DV_QUANTITY`
    - Users get RM 1.1.0 classes, period
 
 6. **Document compatibility and migration**
@@ -189,13 +189,13 @@ For users currently on 1.0.4:
 
 ```python
 # Before (implied 1.0.4)
-from openehr_sdk.rm import DV_QUANTITY, DV_CODED_TEXT
+from oehrpy.rm import DV_QUANTITY, DV_CODED_TEXT
 
 # After (explicit 1.1.0, but same imports work)
-from openehr_sdk.rm import DV_QUANTITY, DV_CODED_TEXT
+from oehrpy.rm import DV_QUANTITY, DV_CODED_TEXT
 
 # New 1.1.0 features (optional)
-from openehr_sdk.rm import DV_SCALE  # New in 1.1.0
+from oehrpy.rm import DV_SCALE  # New in 1.1.0
 
 # DV_CODED_TEXT now has preferred_term field
 coded_text = DV_CODED_TEXT(

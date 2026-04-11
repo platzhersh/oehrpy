@@ -271,8 +271,8 @@ When one of the following becomes available:
 - `pyproject.toml` - Added E501 exception for test files
 
 **Source Code**:
-- `src/openehr_sdk/client/ehrbase.py` - Template upload 201/204/409 handling
-- `src/openehr_sdk/templates/builders.py` - Updated FLAT path prefixes (currently using double-nesting structure)
+- `src/oehrpy/client/ehrbase.py` - Template upload 201/204/409 handling
+- `src/oehrpy/templates/builders.py` - Updated FLAT path prefixes (currently using double-nesting structure)
 
 **Tests**:
 - `tests/integration/conftest.py` - EHRBase client fixtures, template upload, 409 handling
@@ -288,7 +288,7 @@ When one of the following becomes available:
 
 ### Current VitalSignsBuilder Paths
 
-Located in `src/openehr_sdk/templates/builders.py`:
+Located in `src/oehrpy/templates/builders.py`:
 
 ```python
 # Current implementation (double-nesting, not working):
@@ -425,7 +425,7 @@ Integration testing infrastructure is **complete and working**. CANONICAL format
 ## Appendix: Example Error Output
 
 ```python
-openehr_sdk.client.ehrbase.ValidationError: Could not consume Parts [
+oehrpy.client.ehrbase.ValidationError: Could not consume Parts [
     vital_signs/vital_signs:0/blood_pressure:0/any_event:0/time,
     vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|magnitude,
     vital_signs/vital_signs:0/blood_pressure:0/any_event:0/systolic|unit,

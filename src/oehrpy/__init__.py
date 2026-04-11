@@ -9,8 +9,8 @@ This package provides:
 - AQL query builder
 
 Quick Start:
-    >>> from openehr_sdk.rm import DV_QUANTITY, DV_TEXT
-    >>> from openehr_sdk import to_canonical, from_canonical
+    >>> from oehrpy.rm import DV_QUANTITY, DV_TEXT
+    >>> from oehrpy import to_canonical, from_canonical
     >>>
     >>> # Create RM objects
     >>> text = DV_TEXT(value="Hello")
@@ -20,7 +20,7 @@ Quick Start:
     >>> # {"_type": "DV_TEXT", "value": "Hello"}
 
 For template-based compositions:
-    >>> from openehr_sdk.templates import VitalSignsBuilder
+    >>> from oehrpy.templates import VitalSignsBuilder
     >>>
     >>> builder = VitalSignsBuilder(composer_name="Dr. Smith")
     >>> builder.add_blood_pressure(systolic=120, diastolic=80)
@@ -31,7 +31,7 @@ For template-based compositions:
 __version__ = "0.8.1"
 
 # Re-export main components for convenient access
-from openehr_sdk.serialization import (
+from oehrpy.serialization import (
     FlatBuilder,
     FlatContext,
     from_canonical,

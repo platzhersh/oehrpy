@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from openehr_sdk.client import EHRBaseClient, EHRBaseError, ValidationError
+from oehrpy.client import EHRBaseClient, EHRBaseError, ValidationError
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from openehr_sdk.templates import (
+from oehrpy.templates import (
     BuilderGenerator,
     VitalSignsBuilder,
     generate_builder_from_opt,
