@@ -28,7 +28,7 @@ For template-based compositions:
     >>> flat_data = builder.build()
 """
 
-__version__ = "0.8.1"
+__version__ = "0.9.0"
 
 # Re-export main components for convenient access
 from oehrpy.serialization import (

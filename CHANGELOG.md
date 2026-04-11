@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.9.0 (2026-04-11)
+
+### Features
+
+- Rename package from openehr_sdk to oehrpy (#40)
+  ([#40](https://github.com/platzhersh/oehrpy/pull/40),
+  [`6b9b835`](https://github.com/platzhersh/oehrpy/commit/6b9b835e2a679d4497342e65f3827235cc0446e5))
+
+
 ## v0.8.1 (2026-04-11)
 
 ### Bug Fixes
