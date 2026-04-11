@@ -133,6 +133,7 @@ jobs:
             -e SECURITY_AUTHPASSWORD=SuperSecretPassword \
             -e SECURITY_AUTHADMINUSER=ehrbase-admin \
             -e SECURITY_AUTHADMINPASSWORD=EvenMoreSecretPassword \
+            -e ADMIN_API_ACTIVE=true \
             ehrbase/ehrbase:2.26.0
 
       - name: Wait for EHRBase

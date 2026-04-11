@@ -29,6 +29,7 @@ services:
       SECURITY_AUTHPASSWORD: SuperSecretPassword
       SECURITY_AUTHADMINUSER: ehrbase-admin
       SECURITY_AUTHADMINPASSWORD: EvenMoreSecretPassword
+      ADMIN_API_ACTIVE: "true"
     ports:
       - "8080:8080"
     depends_on:
