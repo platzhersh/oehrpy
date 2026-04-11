@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.8.1 (2026-04-11)
+
+### Bug Fixes
+
+- Add fallback to admin API for EHRBase 2.x template deletion (#39)
+  ([#39](https://github.com/platzhersh/oehrpy/pull/39),
+  [`88a985e`](https://github.com/platzhersh/oehrpy/commit/88a985e68bbda001bac595349465e13e37a4ac99))
+
+
 ## v0.8.0 (2026-04-10)
 
 ### Features
