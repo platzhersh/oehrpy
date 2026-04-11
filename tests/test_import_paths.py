@@ -1,9 +1,6 @@
 """Tests for import paths: both new (oehrpy) and legacy (openehr_sdk) shim."""
 
-import importlib
 import warnings
-
-import pytest
 
 
 class TestNewImportPaths:
@@ -31,7 +28,7 @@ class TestNewImportPaths:
         assert EHRBaseClient is not None
 
     def test_import_serialization(self):
-        from oehrpy.serialization import to_canonical, from_canonical
+        from oehrpy.serialization import from_canonical, to_canonical
 
         assert to_canonical is not None
         assert from_canonical is not None
@@ -130,10 +127,10 @@ class TestLegacyShimImports:
 
     def test_legacy_objects_are_same_as_new(self):
         """Verify shim returns the exact same objects as the new package."""
-        from oehrpy.rm import DV_TEXT as new_dv_text
+        from oehrpy.rm import DV_TEXT as NewDvText  # noqa: N811
 
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
-            from openehr_sdk.rm import DV_TEXT as old_dv_text
+            from openehr_sdk.rm import DV_TEXT as OldDvText  # noqa: N811
 
-        assert new_dv_text is old_dv_text
+        assert NewDvText is OldDvText
