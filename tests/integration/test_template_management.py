@@ -80,11 +80,12 @@ class TestDeleteTemplate:
         # Find the vital signs template ID
         vital_id = next(tid for tid in template_ids_before if "vital" in tid.lower())
 
-        # Delete it — may fail with 409 if compositions exist
+        # Delete it — may fail with 409/422 if compositions exist
+        # (standard API returns 409, admin API returns 422)
         try:
             await ehrbase_client.delete_template(vital_id)
         except ValidationError as e:
-            if e.status_code == 409:
+            if e.status_code in (409, 422):
                 pytest.skip("Cannot delete: compositions reference this template")
             raise
 
@@ -119,7 +120,7 @@ class TestDeleteTemplate:
         try:
             await ehrbase_client.delete_template(vital_signs_template)
         except ValidationError as e:
-            if e.status_code == 409:
+            if e.status_code in (409, 422):
                 pytest.skip("Cannot delete: compositions reference this template")
             raise
 
@@ -141,7 +142,7 @@ class TestUpdateTemplate:
         try:
             result = await ehrbase_client.update_template(vital_signs_template, vital_signs_opt_xml)
         except ValidationError as e:
-            if e.status_code == 409:
+            if e.status_code in (409, 422):
                 pytest.skip("Cannot update: compositions reference this template")
             raise
 
@@ -166,7 +167,7 @@ class TestUpdateTemplate:
         try:
             await ehrbase_client.update_template(vital_signs_template, vital_signs_opt_xml)
         except ValidationError as e:
-            if e.status_code == 409:
+            if e.status_code in (409, 422):
                 pytest.skip("Cannot update: compositions reference this template")
             raise
 

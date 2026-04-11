@@ -27,10 +27,24 @@ def ehrbase_password() -> str:
 
 
 @pytest.fixture
+def ehrbase_admin_user() -> str:
+    """Get EHRBase admin username from environment or use default."""
+    return os.getenv("EHRBASE_ADMIN_USER", "ehrbase-admin")
+
+
+@pytest.fixture
+def ehrbase_admin_password() -> str:
+    """Get EHRBase admin password from environment or use default."""
+    return os.getenv("EHRBASE_ADMIN_PASSWORD", "EvenMoreSecretPassword")
+
+
+@pytest.fixture
 async def ehrbase_client(
     ehrbase_url: str,
     ehrbase_user: str,
     ehrbase_password: str,
+    ehrbase_admin_user: str,
+    ehrbase_admin_password: str,
 ) -> EHRBaseClient:
     """Provide authenticated EHRBase client.
 
@@ -40,6 +54,8 @@ async def ehrbase_client(
         base_url=ehrbase_url,
         username=ehrbase_user,
         password=ehrbase_password,
+        admin_username=ehrbase_admin_user,
+        admin_password=ehrbase_admin_password,
     ) as client:
         # Verify connection before running tests
         healthy = await client.health_check()

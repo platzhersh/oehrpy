@@ -252,6 +252,8 @@ class EHRBaseConfig:
     cdr_type: CDRType = CDRType.EHRBASE
     username: str | None = None
     password: str | None = None
+    admin_username: str | None = None
+    admin_password: str | None = None
     timeout: float = 30.0
     verify_ssl: bool = True
 
@@ -260,6 +262,13 @@ class EHRBaseConfig:
         """Get auth tuple if credentials are provided."""
         if self.username and self.password:
             return (self.username, self.password)
+        return None
+
+    @property
+    def admin_auth(self) -> tuple[str, str] | None:
+        """Get admin auth tuple if admin credentials are provided."""
+        if self.admin_username and self.admin_password:
+            return (self.admin_username, self.admin_password)
         return None
 
 
@@ -1070,8 +1079,10 @@ class EHRBaseClient:
     ) -> None:
         """Delete a template from the CDR.
 
-        On EHRBase, always performs a hard-delete (the ``permanent``
-        parameter is ignored since EHRBase has no soft-delete).
+        On EHRBase 2.x the standard openEHR REST endpoint does not
+        support ``DELETE`` (returns 405).  When admin credentials are
+        configured the client automatically falls back to the EHRBase
+        admin API (``/rest/admin/template/{id}``).
 
         On Better, the default behavior retires the template
         (soft-delete, reversible via the Admin API's unretire
@@ -1089,6 +1100,8 @@ class EHRBaseClient:
             NotFoundError: If the template does not exist.
             ValidationError: If the template cannot be deleted because
                 compositions reference it (HTTP 409, EHRBase).
+            EHRBaseError: If the server does not support template deletion
+                and no admin credentials are configured.
         """
         if self.config.cdr_type == CDRType.BETTER:
             if permanent:
@@ -1104,9 +1117,17 @@ class EHRBaseClient:
                 f"/rest/openehr/v1/definition/template/adl1.4/{template_id}",
             )
 
+            # EHRBase 2.x does not support DELETE on the standard endpoint.
+            # Fall back to the admin API when admin credentials are available.
+            if response.status_code == 405 and self.config.admin_auth:
+                response = await self.client.delete(
+                    f"/rest/admin/template/{template_id}",
+                    auth=self.config.admin_auth,
+                )
+
         # Better EHR Server API returns 200 with {"action": "DELETE"}
         # Better Admin API returns 204
-        # EHRBase returns 204
+        # EHRBase returns 204 (standard) or 200 (admin)
         if response.status_code in (200, 204):
             self.clear_web_template_cache(template_id)
             return
