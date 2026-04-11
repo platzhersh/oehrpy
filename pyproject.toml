@@ -55,7 +55,7 @@ Repository = "https://github.com/platzhersh/oehrpy"
 Issues = "https://github.com/platzhersh/oehrpy/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/oehrpy", "src/openehr_sdk"]
+packages = ["src/oehrpy"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -79,7 +79,6 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
 "generator/*.py" = ["E501", "F541", "F401"]  # Generator code (long lines, f-strings, unused imports)
 "src/oehrpy/templates/opt_parser.py" = ["N817"]  # Allow ET as acronym for ElementTree
 "src/oehrpy/client/ehrbase.py" = ["N817"]  # Allow ET as acronym for ElementTree
-"src/openehr_sdk/**/*.py" = ["E501"]  # Backwards-compatible shim package
 "tests/**/*.py" = ["E501"]  # Test assertions with long FLAT paths
 
 [tool.semantic_release]

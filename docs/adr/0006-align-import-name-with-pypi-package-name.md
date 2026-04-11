@@ -4,7 +4,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -50,10 +50,13 @@ downstream code on upgrade.
 ## Decision
 
 We will **rename the Python package from `openehr_sdk` to `oehrpy`** so that
-the import name matches the PyPI distribution name, and provide a
-**backwards-compatible shim** using PEP 562 module-level `__getattr__` so that
-existing `from openehr_sdk import ...` code continues to work with a
-deprecation warning.
+the import name matches the PyPI distribution name. This is a **breaking
+change** with no backwards-compatible shim.
+
+Since the project is still in `0.x` (pre-1.0), breaking changes are acceptable
+without a major version bump per semver conventions. The user base is small
+enough that the cost of a clean break is far lower than maintaining a
+compatibility shim indefinitely.
 
 ### 1. Rename the Package Directory
 
@@ -63,62 +66,20 @@ src/openehr_sdk/  -->  src/oehrpy/
 
 All internal absolute imports change from `openehr_sdk.*` to `oehrpy.*`.
 
-### 2. Create a Backwards-Compatible Shim
+### 2. No Backwards-Compatible Shim
 
-A thin `src/openehr_sdk/` package remains, included in the same wheel via
-hatchling:
+An earlier draft of this ADR proposed a PEP 562 `__getattr__` shim package
+at `src/openehr_sdk/` to provide deprecation warnings. This was rejected in
+favour of a clean break because:
 
-```toml
-# pyproject.toml
-[tool.hatch.build.targets.wheel]
-packages = ["src/oehrpy", "src/openehr_sdk"]
-```
+- The project is pre-1.0 with a small user base.
+- Shims risk becoming a "definitive provisorium" -- temporary solutions that
+  persist indefinitely.
+- A clean break is simpler to maintain and reason about.
+- Users upgrading can do a straightforward find-and-replace:
+  `openehr_sdk` -> `oehrpy`.
 
-The shim package uses PEP 562 (`__getattr__`) to transparently redirect all
-attribute access and submodule imports to `oehrpy`, emitting a
-`DeprecationWarning` on first use:
-
-```python
-# src/openehr_sdk/__init__.py
-import importlib
-import warnings
-
-def __getattr__(name):
-    warnings.warn(
-        "The 'openehr_sdk' module has been renamed to 'oehrpy'. "
-        "Please update your imports: "
-        "'from oehrpy import ...' instead of 'from openehr_sdk import ...'. "
-        "The 'openehr_sdk' name will be removed in a future release.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return getattr(importlib.import_module("oehrpy"), name)
-```
-
-Each submodule (`openehr_sdk.rm`, `openehr_sdk.client`, etc.) gets a similar
-one-file shim that redirects to the corresponding `oehrpy.*` submodule.
-The submodules that need shims:
-
-- `openehr_sdk.aql` -> `oehrpy.aql`
-- `openehr_sdk.client` -> `oehrpy.client`
-- `openehr_sdk.client.ehrbase` -> `oehrpy.client.ehrbase`
-- `openehr_sdk.rm` -> `oehrpy.rm`
-- `openehr_sdk.serialization` -> `oehrpy.serialization`
-- `openehr_sdk.templates` -> `oehrpy.templates`
-- `openehr_sdk.validation` -> `oehrpy.validation`
-- `openehr_sdk.validation.opt` -> `oehrpy.validation.opt`
-
-### 3. Deprecation Timeline
-
-- **v0.9.0**: Introduce the rename. `openehr_sdk` shim emits
-  `DeprecationWarning`. Both import names work.
-- **v1.0.0** (or later): Remove the `openehr_sdk` shim package entirely.
-  Only `oehrpy` imports work.
-
-This follows PEP 387 guidance on providing at least one major release cycle
-of deprecation.
-
-### 4. Documentation Updates Required
+### 3. Documentation Updates Required
 
 All of the following files contain `openehr_sdk` import examples, path
 references, or configuration that must be updated to `oehrpy`:
@@ -159,11 +120,11 @@ references, or configuration that must be updated to `oehrpy`:
 - `index.html`
 - `validator.html`
 
-### 5. Configuration Updates Required
+### 4. Configuration Updates Required
 
 **`pyproject.toml`:**
 
-- `[tool.hatch.build.targets.wheel]` -- update `packages` to include both
+- `[tool.hatch.build.targets.wheel]` -- update `packages` to `["src/oehrpy"]`
 - `[project.scripts]` -- update `oehrpy-validate-opt` entry point module path
 - `[tool.mypy]` -- update `openehr_sdk.rm.rm_types` override
 - `[tool.ruff.lint.per-file-ignores]` -- update `src/openehr_sdk/...` paths
@@ -175,7 +136,7 @@ references, or configuration that must be updated to `oehrpy`:
 - `mypy src/openehr_sdk` -> `mypy src/oehrpy`
 - `--cov=src/openehr_sdk` -> `--cov=src/oehrpy`
 
-### 6. Source Code Updates Required
+### 5. Source Code Updates Required
 
 **Internal imports (all files under `src/oehrpy/`):**
 
@@ -207,11 +168,16 @@ All 14 test files that `from openehr_sdk import ...` must update to
   know the import name.
 - **Industry convention**: Most modern Python packages use matching
   distribution and import names.
-- **Backwards compatible**: Existing code continues to work with a deprecation
-  warning, giving users time to migrate.
+- **No shim maintenance**: Clean break means no compatibility code to carry.
+- **Simpler codebase**: Only one package directory, one import name to reason
+  about.
 
 ### Negative
 
+- **Breaking change**: Existing code using `from openehr_sdk import ...` will
+  fail on upgrade with `ModuleNotFoundError`.
+  - *Mitigation*: Simple find-and-replace migration (`openehr_sdk` -> `oehrpy`).
+    Project is pre-1.0 with small user base.
 - **Large-scale rename**: Touching 40+ files across source, tests, docs, and
   config. Risk of missed references.
   - *Mitigation*: Mechanical find-and-replace across the entire repo, followed
@@ -219,14 +185,6 @@ All 14 test files that `from openehr_sdk import ...` must update to
 - **Documentation churn**: Historical ADRs and PRDs contain old import names.
   - *Mitigation*: Update docs as part of the rename PR. ADRs that discuss
     historical decisions can note the rename without rewriting history.
-- **Shim maintenance**: The `openehr_sdk` compatibility package must be
-  maintained until removal.
-  - *Mitigation*: Shims are thin (one `__getattr__` function per module) and
-    require no ongoing changes.
-- **Breaking change on shim removal**: When `openehr_sdk` is eventually
-  removed, any code that hasn't migrated will break.
-  - *Mitigation*: Clear deprecation warnings, multi-release timeline, migration
-    guide in changelog.
 
 ## Alternatives Considered
 
@@ -259,8 +217,16 @@ Publish a thin `openehr-sdk` package on PyPI that depends on `oehrpy`.
 - Users might install the wrong package.
 - Same result achievable by including the shim in the main distribution.
 
+### Alternative 4: Backwards-Compatible Shim via PEP 562
+
+Keep a thin `src/openehr_sdk/` shim package using `__getattr__` to redirect
+imports with `DeprecationWarning`.
+
+**Rejected** because:
+- Risk of the shim becoming permanent ("definitive provisorium").
+- Extra code to maintain with no clear removal timeline.
+- Pre-1.0 status makes a clean break acceptable and simpler.
+
 ## References
 
-- [PEP 562 -- Module `__getattr__` and `__dir__`](https://peps.python.org/pep-0562/)
-- [PEP 387 -- Backwards Compatibility Policy](https://peps.python.org/pep-0387/)
 - [Hatchling Build Configuration -- packages](https://hatch.pypa.io/latest/config/build/#packages)
