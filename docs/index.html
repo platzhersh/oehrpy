@@ -125,6 +125,21 @@
     }
     #hero-logo {
       opacity: 0;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #hero-logo:focus {
+      outline: none;
+    }
+    #hero-logo:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 6px;
+      border-radius: 12px;
+    }
+    #hero-logo .blue-snake,
+    #hero-logo .orange-snake {
+      transform-origin: 100px 100px;
     }
     h1 {
       font-size: 4rem;
@@ -422,7 +437,7 @@
   <!-- Hero Section -->
   <section class="hero">
     <div class="logo-container">
-      <svg id="hero-logo" viewBox="0 0 200 220" width="200" xmlns="http://www.w3.org/2000/svg">
+      <svg id="hero-logo" viewBox="0 0 200 220" width="200" xmlns="http://www.w3.org/2000/svg" role="button" tabindex="0" aria-label="oehrpy logo — click to replay animation">
         <defs>
           <linearGradient id="hero-blue" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#60a5fa"/>
@@ -523,59 +538,165 @@ flat_data = builder.<span class="code-function">build</span>()
   </footer>
 
   <script>
-    // Smooth hero logo animation on page load
+    // Motion.dev-inspired easing curves
     const smoothOut = 'cubic-bezier(0.16, 1, 0.3, 1)';
     const gentleEase = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
-    function animateHeroLogo() {
+    // Helper: grab the hero logo parts and reset any in-flight animations.
+    function resetHeroLogo() {
       const svg = document.getElementById('hero-logo');
       const blueSnake = svg.querySelector('.blue-snake');
       const orangeSnake = svg.querySelector('.orange-snake');
       const text = svg.querySelector('.logo-text');
 
-      // Fade & Scale animation
+      [blueSnake, orangeSnake, text].forEach(el => {
+        el.getAnimations().forEach(a => a.cancel());
+        el.style.opacity = '0';
+        el.style.transform = '';
+      });
+
+      // Ensure the svg itself is visible (first load fades it in via CSS opacity: 0).
+      svg.animate([{ opacity: 1 }, { opacity: 1 }], {
+        duration: 1,
+        fill: 'forwards'
+      });
+
+      return { svg, blueSnake, orangeSnake, text };
+    }
+
+    // --- Animation variants (mirror brand-kit.html motion logos) ---
+
+    function playDrop() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([
+        { transform: 'translateY(-60px)', opacity: 0 },
+        { transform: 'translateY(8px)', opacity: 1, offset: 0.6 },
+        { transform: 'translateY(-3px)', opacity: 1, offset: 0.8 },
+        { transform: 'translateY(0)', opacity: 1 }
+      ], { duration: 1400, easing: smoothOut, fill: 'forwards' });
+
+      orangeSnake.animate([
+        { transform: 'translateY(60px)', opacity: 0 },
+        { transform: 'translateY(-8px)', opacity: 1, offset: 0.6 },
+        { transform: 'translateY(3px)', opacity: 1, offset: 0.8 },
+        { transform: 'translateY(0)', opacity: 1 }
+      ], { duration: 1400, easing: smoothOut, fill: 'forwards', delay: 200 });
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(8px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 800, easing: gentleEase, fill: 'forwards', delay: 1000 });
+    }
+
+    function playSlide() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([
+        { transform: 'translateX(-80px)', opacity: 0 },
+        { transform: 'translateX(0)', opacity: 1 }
+      ], { duration: 1200, easing: smoothOut, fill: 'forwards' });
+
+      orangeSnake.animate([
+        { transform: 'translateX(80px)', opacity: 0 },
+        { transform: 'translateX(0)', opacity: 1 }
+      ], { duration: 1200, easing: smoothOut, fill: 'forwards', delay: 150 });
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(8px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 800, easing: gentleEase, fill: 'forwards', delay: 900 });
+    }
+
+    function playFadeScale() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
       blueSnake.animate([
         { transform: 'scale(0.85)', opacity: 0 },
         { transform: 'scale(1)', opacity: 1 }
-      ], {
-        duration: 1000,
-        easing: smoothOut,
-        fill: 'forwards'
-      });
+      ], { duration: 1000, easing: smoothOut, fill: 'forwards' });
 
       orangeSnake.animate([
         { transform: 'scale(0.85)', opacity: 0 },
         { transform: 'scale(1)', opacity: 1 }
-      ], {
-        duration: 1000,
-        easing: smoothOut,
-        fill: 'forwards',
-        delay: 250
-      });
+      ], { duration: 1000, easing: smoothOut, fill: 'forwards', delay: 250 });
 
       text.animate([
         { opacity: 0, transform: 'translateY(5px)' },
         { opacity: 1, transform: 'translateY(0)' }
-      ], {
-        duration: 700,
-        easing: gentleEase,
-        fill: 'forwards',
-        delay: 800
-      });
-
-      svg.animate([
-        { opacity: 0 },
-        { opacity: 1 }
-      ], {
-        duration: 100,
-        fill: 'forwards'
-      });
+      ], { duration: 700, easing: gentleEase, fill: 'forwards', delay: 800 });
     }
 
-    // Run animation when page loads
+    function playSpiral() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([
+        { transform: 'rotate(-270deg) scale(0)', opacity: 0 },
+        { transform: 'rotate(0deg) scale(1)', opacity: 1 }
+      ], { duration: 1600, easing: smoothOut, fill: 'forwards' });
+
+      orangeSnake.animate([
+        { transform: 'rotate(270deg) scale(0)', opacity: 0 },
+        { transform: 'rotate(0deg) scale(1)', opacity: 1 }
+      ], { duration: 1600, easing: smoothOut, fill: 'forwards', delay: 200 });
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(5px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 700, easing: gentleEase, fill: 'forwards', delay: 1400 });
+    }
+
+    function playSpin() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 400, easing: gentleEase, fill: 'forwards'
+      });
+      orangeSnake.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 400, easing: gentleEase, fill: 'forwards'
+      });
+
+      setTimeout(() => {
+        blueSnake.animate([
+          { transform: 'rotate(0deg)' },
+          { transform: 'rotate(360deg)' }
+        ], { duration: 1800, easing: gentleEase, fill: 'forwards' });
+
+        orangeSnake.animate([
+          { transform: 'rotate(0deg)' },
+          { transform: 'rotate(360deg)' }
+        ], { duration: 1800, easing: gentleEase, fill: 'forwards' });
+      }, 400);
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(5px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 700, easing: gentleEase, fill: 'forwards', delay: 1800 });
+    }
+
+    const heroAnimations = [playDrop, playSlide, playFadeScale, playSpiral, playSpin];
+
+    function playRandomHeroAnimation() {
+      const pick = heroAnimations[Math.floor(Math.random() * heroAnimations.length)];
+      pick();
+    }
+
+    // Run a random animation when the page loads
     window.addEventListener('load', () => {
-      setTimeout(animateHeroLogo, 200);
+      setTimeout(playRandomHeroAnimation, 200);
     });
+
+    // Replay a random animation on click / keyboard activation
+    const heroLogoEl = document.getElementById('hero-logo');
+    if (heroLogoEl) {
+      heroLogoEl.addEventListener('click', playRandomHeroAnimation);
+      heroLogoEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          playRandomHeroAnimation();
+        }
+      });
+    }
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
