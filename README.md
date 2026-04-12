@@ -381,7 +381,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ## License
 
-MIT
+Apache-2.0
 
 ## Documentation
 
