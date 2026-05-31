@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { FlatPathCompletionProvider } from "./autocomplete";
 import { getConfig } from "./config";
 import { classifyDocument } from "./detector";
 import {
@@ -80,6 +81,16 @@ export function activate(context: vscode.ExtensionContext): void {
       {
         providedCodeActionKinds: FlatPathQuickFixProvider.providedCodeActionKinds,
       },
+    ),
+  );
+
+  // Register completion provider for FLAT path autocomplete
+  context.subscriptions.push(
+    vscode.languages.registerCompletionItemProvider(
+      { language: "json", scheme: "file" },
+      new FlatPathCompletionProvider(),
+      "/",
+      "|",
     ),
   );
 

@@ -12,6 +12,7 @@ export interface OehrpyConfig {
   validationTimeout: number;
   enableHover: boolean;
   enableQuickFix: boolean;
+  enableAutocomplete: boolean;
 }
 
 export function getConfig(): OehrpyConfig {
@@ -31,5 +32,6 @@ export function getConfig(): OehrpyConfig {
     validationTimeout: config.get<number>("validationTimeout", 5000),
     enableHover: config.get<boolean>("enableHover", true),
     enableQuickFix: config.get<boolean>("enableQuickFix", true),
+    enableAutocomplete: config.get<boolean>("enableAutocomplete", true),
   };
 }
