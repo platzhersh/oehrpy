@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.11.0 (2026-05-31)
+
+### Features
+
+- **docs**: Improve GitHub Pages SEO (#44) ([#44](https://github.com/platzhersh/oehrpy/pull/44),
+  [`e8b8aec`](https://github.com/platzhersh/oehrpy/commit/e8b8aec0493949abdc78dfd543102d7753076d86))
+
+
 ## v0.10.0 (2026-05-31)
 
 ### Features
