@@ -3,10 +3,26 @@ import * as path from "path";
 import * as fs from "fs";
 import { getConfig } from "./config";
 
+const ASSOCIATIONS_KEY = "oehrpy.templateAssociations";
+
+let workspaceState: vscode.Memento | undefined;
+
 /**
- * File-to-template mapping stored in workspace state.
+ * Initialize the template resolver with workspace state for persistence.
  */
-const templateAssociations = new Map<string, string>();
+export function initTemplateResolver(state: vscode.Memento): void {
+  workspaceState = state;
+}
+
+function getPersistedAssociations(): Record<string, string> {
+  return workspaceState?.get<Record<string, string>>(ASSOCIATIONS_KEY) ?? {};
+}
+
+function persistAssociation(compositionPath: string, templatePath: string): void {
+  const associations = getPersistedAssociations();
+  associations[compositionPath] = templatePath;
+  workspaceState?.update(ASSOCIATIONS_KEY, associations);
+}
 
 /**
  * Resolve the Web Template file path for a given FLAT composition file.
@@ -15,31 +31,28 @@ const templateAssociations = new Map<string, string>();
  * 1. Explicit config (oehrpy.webTemplatePaths)
  * 2. Same directory (web_template.json or *.wt.json)
  * 3. Project root (web_templates/ or templates/ directory)
- * 4. Stored association from previous user selection
+ * 4. Stored association from previous user selection (persisted across reloads)
  */
 export async function resolveWebTemplate(
   compositionUri: vscode.Uri,
 ): Promise<string | undefined> {
-  // 1. Check explicit config
   const configResult = resolveFromConfig();
   if (configResult) {
     return configResult;
   }
 
-  // 2. Check same directory
   const dirResult = await resolveFromSameDirectory(compositionUri);
   if (dirResult) {
     return dirResult;
   }
 
-  // 3. Check project root directories (all workspace folders in multi-root)
   const rootResult = await resolveFromProjectRoot(compositionUri);
   if (rootResult) {
     return rootResult;
   }
 
-  // 4. Check stored associations
-  const stored = templateAssociations.get(compositionUri.fsPath);
+  const associations = getPersistedAssociations();
+  const stored = associations[compositionUri.fsPath];
   if (stored && fs.existsSync(stored)) {
     return stored;
   }
@@ -77,7 +90,7 @@ export async function promptForWebTemplate(
   }
 
   const templatePath = files[0].fsPath;
-  templateAssociations.set(compositionUri.fsPath, templatePath);
+  persistAssociation(compositionUri.fsPath, templatePath);
   return templatePath;
 }
 
@@ -88,14 +101,13 @@ export function setTemplateAssociation(
   compositionPath: string,
   templatePath: string,
 ): void {
-  templateAssociations.set(compositionPath, templatePath);
+  persistAssociation(compositionPath, templatePath);
 }
 
 function resolveFromConfig(): string | undefined {
   const config = getConfig();
   const paths = config.webTemplatePaths;
 
-  // Return the first configured path that exists
   for (const templateId of Object.keys(paths)) {
     const templatePath = paths[templateId];
     const resolved = resolveWorkspacePath(templatePath);
@@ -112,13 +124,11 @@ async function resolveFromSameDirectory(
 ): Promise<string | undefined> {
   const dir = path.dirname(compositionUri.fsPath);
 
-  // Check for web_template.json
   const webTemplatePath = path.join(dir, "web_template.json");
   if (fs.existsSync(webTemplatePath)) {
     return webTemplatePath;
   }
 
-  // Check for *.wt.json files
   try {
     const files = fs.readdirSync(dir);
     for (const file of files) {
@@ -141,7 +151,6 @@ async function resolveFromProjectRoot(
     return undefined;
   }
 
-  // In multi-root workspaces, prioritize the folder containing the composition
   const compositionFolder = vscode.workspace.getWorkspaceFolder(compositionUri);
   const orderedFolders = compositionFolder
     ? [compositionFolder, ...workspaceFolders.filter((f) => f !== compositionFolder)]

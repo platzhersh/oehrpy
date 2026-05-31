@@ -70,12 +70,13 @@ export class FlatPathHoverProvider implements vscode.HoverProvider {
     const requiredStr = inspectResult.min > 0 ? "Yes" : "No";
 
     const md = new vscode.MarkdownString();
-    md.isTrusted = true;
+    md.isTrusted = false;
+    md.supportHtml = false;
     md.appendCodeblock(text, "text");
     md.appendMarkdown("\n\n");
-    md.appendMarkdown(`**Node:** \`${inspectResult.id}\`\n\n`);
-    md.appendMarkdown(`**Name:** ${inspectResult.name}\n\n`);
-    md.appendMarkdown(`**RM Type:** \`${inspectResult.rm_type}\`\n\n`);
+    md.appendMarkdown(`**Node:** \`${escapeMarkdown(inspectResult.id)}\`\n\n`);
+    md.appendMarkdown(`**Name:** ${escapeMarkdown(inspectResult.name)}\n\n`);
+    md.appendMarkdown(`**RM Type:** \`${escapeMarkdown(inspectResult.rm_type)}\`\n\n`);
     md.appendMarkdown(
       `**Required:** ${requiredStr} (min: ${inspectResult.min}, max: ${maxStr})\n\n`,
     );
@@ -107,7 +108,7 @@ function getFlatPathRangeAtPosition(
   let stringStart = -1;
 
   for (let i = 0; i < line.length; i++) {
-    if (line[i] === '"' && (i === 0 || line[i - 1] !== "\\")) {
+    if (line[i] === '"' && !isPrecededByOddBackslashes(line, i)) {
       if (inString) {
         // End of string
         if (position.character > stringStart && position.character <= i) {
@@ -126,4 +127,16 @@ function getFlatPathRangeAtPosition(
   }
 
   return undefined;
+}
+
+function isPrecededByOddBackslashes(str: string, index: number): boolean {
+  let count = 0;
+  for (let i = index - 1; i >= 0 && str[i] === "\\"; i--) {
+    count++;
+  }
+  return count % 2 === 1;
+}
+
+function escapeMarkdown(text: string): string {
+  return text.replace(/[\\`*_{}[\]()#+\-.!|]/g, "\\$&");
 }

@@ -9,6 +9,7 @@ import { FlatPathHoverProvider } from "./hover";
 import { FlatPathQuickFixProvider } from "./quickfix";
 import { OehrpyStatusBar } from "./statusBar";
 import {
+  initTemplateResolver,
   resolveWebTemplate,
   promptForWebTemplate,
   setTemplateAssociation,
@@ -27,6 +28,9 @@ let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 let currentValidationAbort: AbortController | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
+  // Initialize template resolver with persistent workspace state
+  initTemplateResolver(context.workspaceState);
+
   // Create diagnostic collection
   diagnosticCollection = vscode.languages.createDiagnosticCollection(
     "oehrpy-flat-validator",

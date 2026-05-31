@@ -78,10 +78,7 @@ export function publishDiagnostics(
     diagnostic.source = "oehrpy";
     diagnostic.code = error.error_type;
 
-    // Store suggestion and error data for quick fix provider
     if (error.suggestion) {
-      diagnostic.relatedInformation = [];
-      // Store the suggestion in the diagnostic data for quick fix access
       (diagnostic as DiagnosticWithData).data = {
         suggestion: error.suggestion,
         originalPath: error.path,
