@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.13.0 (2026-05-31)
+
+### Features
+
+- **vscode**: Add FLAT path autocomplete from Web Template (#52)
+  ([#52](https://github.com/platzhersh/oehrpy/pull/52),
+  [`10b2ee7`](https://github.com/platzhersh/oehrpy/commit/10b2ee7a2d2e2415bcf8150866bddbe9074f9e03))
+
+
 ## v0.12.0 (2026-05-31)
 
 ### Features
