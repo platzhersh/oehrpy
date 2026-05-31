@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Development Setup
 ```bash
 # Install in editable mode with dev dependencies
-pip install -e ".[dev,generator]"
+pip install -e ".[dev]"
 ```
 
 ### Testing
@@ -213,15 +213,16 @@ Requires Python 3.10+ (uses modern type hints like `X | None`, `list[str]`)
 ## Key Dependencies
 
 **Runtime:**
-- `pydantic>=2.0`: Data validation and RM classes
-- `httpx>=0.25`: Async HTTP client for EHRBase
-- `defusedxml>=0.7`: Safe XML parsing for OPT files
+- `pydantic==2.13.4`: Data validation and RM classes
+- `httpx==0.28.1`: Async HTTP client for EHRBase
+- `defusedxml==0.7.1`: Safe XML parsing for OPT files
 
 **Development:**
 - `pytest`, `pytest-asyncio`: Testing
 - `mypy`: Type checking (strict mode enabled)
 - `ruff`: Linting and formatting
 
-**Generator:**
-- `jinja2>=3.0`: Template rendering for code generation
-- `lxml>=4.9`: XML processing for OPT parsing
+> All dependencies are pinned to exact versions in `pyproject.toml` for
+> reproducible builds and to control CVE exposure. The code generator
+> (`generator/`) relies only on the Python standard library and the core
+> runtime dependencies, so there is no separate `generator` extra.

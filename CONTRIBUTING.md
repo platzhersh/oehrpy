@@ -37,13 +37,15 @@ Thank you for your interest in contributing to oehrpy! This document provides gu
 Install the package in editable mode with development dependencies:
 
 ```bash
-pip install -e ".[dev,generator]"
+pip install -e ".[dev]"
 ```
 
 This installs:
 - **Runtime dependencies**: pydantic, httpx, defusedxml
 - **Dev dependencies**: pytest, pytest-asyncio, mypy, ruff
-- **Generator dependencies**: jinja2, lxml (for code generation)
+
+The code generator (`generator/`) uses only the Python standard library and
+the core runtime dependencies, so it needs no extra packages.
 
 ## Development Workflow
 
