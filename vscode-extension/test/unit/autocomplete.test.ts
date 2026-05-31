@@ -2,8 +2,14 @@
  * Unit tests for the FLAT path autocomplete module.
  *
  * Tests the Web Template path enumeration and JSON key context detection
- * without VS Code API dependencies.
+ * by importing the production functions from src/flatPaths.ts.
  */
+
+import {
+  enumeratePathsFromTree,
+  findJsonKeyBounds,
+  type WebTemplateTreeNode,
+} from "../../src/flatPaths";
 
 export {};
 
@@ -30,168 +36,6 @@ function assertEqual<T>(actual: T, expected: T, message: string): void {
       `  FAIL: ${message} (expected ${String(expected)}, got ${String(actual)})`,
     );
   }
-}
-
-// --- Re-implement enumeratePathsFromTree logic for testing ---
-
-interface WebTemplateTreeNode {
-  id: string;
-  name?: string;
-  rmType?: string;
-  rm_type?: string;
-  min?: number;
-  max?: number;
-  children?: WebTemplateTreeNode[];
-}
-
-interface FlatPathEntry {
-  fullPath: string;
-  nodeName: string;
-  rmType: string;
-  min: number;
-  max: number;
-  suffix: string | null;
-}
-
-const STRUCTURAL_RM_TYPES = new Set([
-  "COMPOSITION",
-  "SECTION",
-  "OBSERVATION",
-  "EVALUATION",
-  "INSTRUCTION",
-  "ACTION",
-  "ADMIN_ENTRY",
-  "CLUSTER",
-  "HISTORY",
-  "EVENT",
-  "POINT_EVENT",
-  "INTERVAL_EVENT",
-  "ITEM_TREE",
-  "ITEM_LIST",
-  "ITEM_SINGLE",
-  "ITEM_TABLE",
-  "ELEMENT",
-  "EVENT_CONTEXT",
-  "ACTIVITY",
-  "ISM_TRANSITION",
-  "INSTRUCTION_DETAILS",
-]);
-
-const VALID_SUFFIXES: Record<string, string[]> = {
-  DV_QUANTITY: [
-    "|magnitude",
-    "|unit",
-    "|precision",
-    "|normal_range",
-    "|normal_status",
-  ],
-  DV_CODED_TEXT: ["|value", "|code", "|terminology", "|preferred_term"],
-  DV_TEXT: ["|value"],
-  DV_DATE_TIME: [],
-  DV_BOOLEAN: [],
-  CODE_PHRASE: ["|code", "|terminology"],
-  PARTY_IDENTIFIED: ["|name", "|id"],
-};
-
-function enumeratePathsFromTree(tree: WebTemplateTreeNode): FlatPathEntry[] {
-  const entries: FlatPathEntry[] = [];
-
-  function traverse(node: WebTemplateTreeNode, prefix: string): void {
-    const nodeId = node.id || "";
-    const currentPath = prefix ? `${prefix}/${nodeId}` : nodeId;
-    const rmType = node.rmType || node.rm_type || "";
-    const nodeName = node.name || nodeId;
-    const min = node.min ?? 0;
-    const max = node.max ?? 1;
-
-    if (!STRUCTURAL_RM_TYPES.has(rmType)) {
-      entries.push({
-        fullPath: currentPath,
-        nodeName,
-        rmType,
-        min,
-        max,
-        suffix: null,
-      });
-
-      const suffixes = VALID_SUFFIXES[rmType];
-      if (suffixes) {
-        for (const suffix of suffixes) {
-          entries.push({
-            fullPath: currentPath + suffix,
-            nodeName,
-            rmType,
-            min,
-            max,
-            suffix,
-          });
-        }
-      }
-    }
-
-    if (node.children) {
-      for (const child of node.children) {
-        traverse(child, currentPath);
-      }
-    }
-  }
-
-  traverse(tree, "");
-  entries.sort((a, b) => a.fullPath.localeCompare(b.fullPath));
-  return entries;
-}
-
-// --- Re-implement getJsonKeyRange logic for testing ---
-
-function isPrecededByOddBackslashes(str: string, index: number): boolean {
-  let count = 0;
-  for (let i = index - 1; i >= 0 && str[i] === "\\"; i--) {
-    count++;
-  }
-  return count % 2 === 1;
-}
-
-interface SimpleRange {
-  startChar: number;
-  endChar: number;
-}
-
-function getJsonKeyRange(
-  lineText: string,
-  charIndex: number,
-): SimpleRange | undefined {
-  let openQuote = -1;
-  for (let i = charIndex - 1; i >= 0; i--) {
-    if (lineText[i] === '"' && !isPrecededByOddBackslashes(lineText, i)) {
-      openQuote = i;
-      break;
-    }
-    if (lineText[i] === ":" || lineText[i] === "}" || lineText[i] === "]") {
-      return undefined;
-    }
-  }
-
-  if (openQuote === -1) {
-    return undefined;
-  }
-
-  const beforeQuote = lineText.slice(0, openQuote).trimEnd();
-  if (beforeQuote.endsWith(":")) {
-    return undefined;
-  }
-
-  let closeQuote = -1;
-  for (let i = charIndex; i < lineText.length; i++) {
-    if (lineText[i] === '"' && !isPrecededByOddBackslashes(lineText, i)) {
-      closeQuote = i;
-      break;
-    }
-  }
-
-  const startChar = openQuote + 1;
-  const endChar = closeQuote !== -1 ? closeQuote : charIndex;
-
-  return { startChar, endChar };
 }
 
 // === Web Template Path Enumeration Tests ===
@@ -422,48 +266,48 @@ console.log("\n--- JSON Key Context Detection Tests ---");
 
 // Cursor inside a key (before colon)
 const keyLine1 = '  "vital_signs/blood_pressure/systolic|magnitude": 120,';
-const range1 = getJsonKeyRange(keyLine1, 20);
+const range1 = findJsonKeyBounds(keyLine1, 20);
 assert(range1 !== undefined, "detects cursor inside a JSON key");
 assertEqual(range1!.startChar, 3, "key range starts after opening quote");
 assertEqual(range1!.endChar, 48, "key range ends at closing quote");
 
 // Cursor inside a value (after colon) — should return undefined
 const valueLine = '  "key": "some_value"';
-const range2 = getJsonKeyRange(valueLine, 15);
+const range2 = findJsonKeyBounds(valueLine, 15);
 assert(range2 === undefined, "rejects cursor inside a JSON value");
 
 // Cursor at start of key (just after opening quote)
 const freshKey = '  "';
-const range3 = getJsonKeyRange(freshKey, 3);
+const range3 = findJsonKeyBounds(freshKey, 3);
 assert(range3 !== undefined, "detects cursor at fresh key start");
 assertEqual(range3!.startChar, 3, "fresh key range starts after quote");
 assertEqual(range3!.endChar, 3, "fresh key range ends at cursor (no close quote)");
 
 // Cursor outside any string
 const outsideLine = "  { }";
-const range4 = getJsonKeyRange(outsideLine, 3);
+const range4 = findJsonKeyBounds(outsideLine, 3);
 assert(range4 === undefined, "rejects cursor outside any string");
 
 // Cursor inside a key with partial text typed
 const partialKey = '  "vital_signs/blo';
-const range5 = getJsonKeyRange(partialKey, 18);
+const range5 = findJsonKeyBounds(partialKey, 18);
 assert(range5 !== undefined, "detects cursor in partial key");
 assertEqual(range5!.startChar, 3, "partial key range starts after quote");
 assertEqual(range5!.endChar, 18, "partial key range ends at cursor");
 
 // Cursor at value position after colon and space
 const afterColon = '  "key": "val';
-const range6 = getJsonKeyRange(afterColon, 12);
+const range6 = findJsonKeyBounds(afterColon, 12);
 assert(range6 === undefined, "rejects cursor in value after colon+space+quote");
 
 // Key on line with only opening brace before
 const firstKey = '{"first_key": 1}';
-const range7 = getJsonKeyRange(firstKey, 5);
+const range7 = findJsonKeyBounds(firstKey, 5);
 assert(range7 !== undefined, "detects key after opening brace");
 
 // Cursor after colon (not in string)
 const afterColonNoStr = '  "key": ';
-const range8 = getJsonKeyRange(afterColonNoStr, 9);
+const range8 = findJsonKeyBounds(afterColonNoStr, 9);
 assert(range8 === undefined, "rejects cursor after colon outside string");
 
 // --- Summary ---
