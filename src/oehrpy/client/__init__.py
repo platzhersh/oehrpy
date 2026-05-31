@@ -5,12 +5,14 @@ This module provides async HTTP clients for interacting with
 openEHR Clinical Data Repositories.
 """
 
+from .contribution import ContributionBuilder
 from .ehrbase import (
     AuthenticationError,
     CDRType,
     CompositionFormat,
     CompositionResponse,
     CompositionVersionResponse,
+    ContributionResponse,
     EHRBaseClient,
     EHRBaseConfig,
     EHRBaseError,
@@ -31,6 +33,8 @@ __all__ = [
     "CompositionResponse",
     "CompositionFormat",
     "CompositionVersionResponse",
+    "ContributionBuilder",
+    "ContributionResponse",
     "QueryResponse",
     "TemplateResponse",
     "VersionedCompositionResponse",
