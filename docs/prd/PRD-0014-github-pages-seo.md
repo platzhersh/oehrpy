@@ -67,7 +67,7 @@ applied directly to the existing static HTML without introducing a build step.
 |----|-------------|
 | FR-1 | Each HTML page includes `<meta name="description">` (≤160 chars, page-specific). |
 | FR-2 | Each page includes `og:type`, `og:site_name`, `og:title`, `og:description`, `og:url`, `og:image`. |
-| FR-3 | Each page includes `twitter:card` (`summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`. |
+| FR-3 | Each page includes `twitter:card` (`summary`, until a 1200×630 image exists — see Implementation Notes), `twitter:title`, `twitter:description`, `twitter:image`. |
 | FR-4 | Each page includes `<link rel="canonical">` with its absolute URL. |
 | FR-5 | Each page links a favicon (`assets/logo.svg`) and sets `theme-color`. |
 | FR-6 | `docs/sitemap.xml` lists all public pages with absolute URLs. |
@@ -99,4 +99,6 @@ A shared `<head>` SEO block is inserted into each page immediately after the
 block is templated per page with the correct title, description, and canonical
 URL. The preview image reuses the existing `assets/logo.svg`. A future
 follow-up may add a dedicated rasterized (PNG, 1200×630) social image, since
-some platforms do not render SVG `og:image`.
+some platforms do not render SVG `og:image`. Until that image exists, the
+`twitter:card` type is `summary` (square/logo-friendly) rather than
+`summary_large_image`, which expects a large 1200×630 preview.
