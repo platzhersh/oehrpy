@@ -367,7 +367,7 @@ git clone https://github.com/platzhersh/oehrpy.git
 cd oehrpy
 
 # Install development dependencies
-pip install -e ".[dev,generator]"
+pip install -e ".[dev]"
 ```
 
 ### Running Tests

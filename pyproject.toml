@@ -27,22 +27,18 @@ classifiers = [
 ]
 keywords = ["openehr", "healthcare", "ehr", "clinical", "sdk", "pydantic", "ehrbase", "aql"]
 dependencies = [
-    "pydantic>=2.0",
-    "httpx>=0.25",
-    "defusedxml>=0.7",
+    "pydantic==2.13.4",
+    "httpx==0.28.1",
+    "defusedxml==0.7.1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0",
-    "pytest-asyncio>=0.21",
-    "mypy>=1.0",
-    "ruff>=0.1",
-    "types-defusedxml>=0.7",
-]
-generator = [
-    "jinja2>=3.0",
-    "lxml>=4.9",
+    "pytest==9.0.3",
+    "pytest-asyncio==1.4.0",
+    "mypy==2.1.0",
+    "ruff==0.15.15",
+    "types-defusedxml==0.7.0.20260504",
 ]
 
 [project.scripts]
