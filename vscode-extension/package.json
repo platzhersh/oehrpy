@@ -105,6 +105,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show Quick Fix suggestions for invalid FLAT paths."
+        },
+        "oehrpy.enableAutocomplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable FLAT path autocomplete suggestions from Web Template."
         }
       }
     },
@@ -121,8 +126,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src/ test/ --ext .ts",
-    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js",
-    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js",
+    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js",
+    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js",
     "package": "vsce package",
     "build": "tsc -p ./"
   },
