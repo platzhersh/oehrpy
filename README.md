@@ -272,7 +272,9 @@ from oehrpy.client import ContributionBuilder, EHRBaseClient
 
 async with EHRBaseClient(base_url="http://localhost:8080/ehrbase") as client:
     contribution = (
-        ContributionBuilder()
+        # `system_id` is optional — EHRBase fills it (and time_committed)
+        # server-side when omitted; pass it for an RM-complete audit.
+        ContributionBuilder(system_id="oehrpy.example.org")
         # `composition` is a CANONICAL composition dict
         # (e.g. from oehrpy.serialization.to_canonical)
         .add_creation(composition=vitals_canonical)

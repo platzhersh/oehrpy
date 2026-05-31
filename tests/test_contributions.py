@@ -127,6 +127,30 @@ class TestContributionBuilder:
         body = ContributionBuilder().add_creation(composition=_COMP).build()
         assert "audit" not in body
 
+    def test_unknown_lifecycle_state_raises(self) -> None:
+        with pytest.raises(ValueError, match="lifecycle_state"):
+            ContributionBuilder().add_creation(composition=_COMP, lifecycle_state="incompete")
+
+    def test_system_id_omitted_by_default(self) -> None:
+        body = ContributionBuilder().add_creation(composition=_COMP).build()
+        commit_audit = body["versions"][0]["commit_audit"]
+        assert "system_id" not in commit_audit
+        assert "time_committed" not in commit_audit
+
+    def test_system_id_populates_audit_and_time(self) -> None:
+        body = (
+            ContributionBuilder(system_id="oehrpy.example.org")
+            .add_creation(composition=_COMP)
+            .set_audit(committer="Dr. Smith")
+            .build()
+        )
+        commit_audit = body["versions"][0]["commit_audit"]
+        assert commit_audit["system_id"] == "oehrpy.example.org"
+        assert commit_audit["time_committed"]["_type"] == "DV_DATE_TIME"
+        assert commit_audit["time_committed"]["value"]
+        # The contribution-level audit also carries the system_id.
+        assert body["audit"]["system_id"] == "oehrpy.example.org"
+
 
 # ── FR-1: create_contribution ────────────────────────────────────────────────
 

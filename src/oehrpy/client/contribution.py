@@ -29,6 +29,7 @@ See PRD-0003 (Audit & Contributions) for the full specification.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 # openEHR change-type terminology codes (terminology id "openehr").
@@ -56,18 +57,28 @@ def _coded_text(value: str, code_string: str) -> dict[str, Any]:
 def _audit_details(
     change_type: str,
     *,
+    system_id: str | None = None,
     committer: str | None = None,
     description: str | None = None,
 ) -> dict[str, Any]:
     """Build an AUDIT_DETAILS block.
 
-    ``committer`` and ``time_committed`` may be omitted so the server can fill
-    them in from the authenticated principal.
+    ``system_id`` is a required RM field, but EHRBase populates it (and
+    ``time_committed``) server-side when omitted. When ``system_id`` is provided,
+    ``time_committed`` is auto-filled with the current UTC time so the audit is
+    RM-complete. ``committer`` is likewise optional (server-derived from the
+    authenticated principal when omitted).
     """
     audit: dict[str, Any] = {
         "_type": "AUDIT_DETAILS",
         "change_type": _coded_text(change_type, _CHANGE_TYPE_CODES[change_type]),
     }
+    if system_id is not None:
+        audit["system_id"] = system_id
+        audit["time_committed"] = {
+            "_type": "DV_DATE_TIME",
+            "value": datetime.now(timezone.utc).isoformat(),
+        }
     if committer is not None:
         audit["committer"] = {"_type": "PARTY_IDENTIFIED", "name": committer}
     if description is not None:
@@ -82,7 +93,9 @@ def _lifecycle_state(state: str) -> dict[str, Any]:
     ``532`` complete, ``531`` incomplete, ``533`` deleted.
     """
     codes = {"complete": "532", "incomplete": "531", "deleted": "533"}
-    return _coded_text(state, codes.get(state, "532"))
+    if state not in codes:
+        raise ValueError(f"Unknown lifecycle_state {state!r}; expected one of {sorted(codes)}.")
+    return _coded_text(state, codes[state])
 
 
 class ContributionBuilder:
@@ -92,9 +105,15 @@ class ContributionBuilder:
     ``oehrpy.serialization.canonical`` layer can produce these from RM objects).
     Call ``add_*`` for each change, optionally ``set_audit`` for contribution-
     level audit, then ``build()`` to obtain the request body.
+
+    Args:
+        system_id: Identifier of the originating system. ``AUDIT_DETAILS``
+            requires it, but EHRBase fills it (and ``time_committed``)
+            server-side when omitted; pass it to emit an RM-complete audit.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, system_id: str | None = None) -> None:
+        self._system_id = system_id
         self._versions: list[dict[str, Any]] = []
         self._audit: dict[str, Any] | None = None
 
@@ -109,7 +128,9 @@ class ContributionBuilder:
     ) -> ContributionBuilder:
         version: dict[str, Any] = {
             "_type": "ORIGINAL_VERSION",
-            "commit_audit": _audit_details(change_type, description=description),
+            "commit_audit": _audit_details(
+                change_type, system_id=self._system_id, description=description
+            ),
             "lifecycle_state": _lifecycle_state(lifecycle_state),
         }
         if preceding_version_uid is not None:
@@ -199,7 +220,12 @@ class ContributionBuilder:
         Both ``committer`` and ``description`` are optional; when omitted the
         server fills in the committer from the authenticated principal.
         """
-        self._audit = _audit_details(change_type, committer=committer, description=description)
+        self._audit = _audit_details(
+            change_type,
+            system_id=self._system_id,
+            committer=committer,
+            description=description,
+        )
         return self
 
     def build(self) -> dict[str, Any]:

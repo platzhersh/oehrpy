@@ -143,7 +143,7 @@ class TestContributionLifecycle:
     ) -> None:
         composition = _build_canonical_pulse(vital_signs_template)
         body = (
-            ContributionBuilder()
+            ContributionBuilder(system_id="oehrpy.integration.test")
             .add_creation(composition=composition)
             .set_audit(committer="Dr. Smith", description="Routine vitals")
             .build()
@@ -166,7 +166,7 @@ class TestContributionLifecycle:
         vital_signs_template: str,
     ) -> None:
         body = (
-            ContributionBuilder()
+            ContributionBuilder(system_id="oehrpy.integration.test")
             .add_creation(composition=_build_canonical_pulse(vital_signs_template, 70.0))
             .add_creation(composition=_build_canonical_pulse(vital_signs_template, 80.0))
             .set_audit(committer="Dr. Smith", description="Two readings")
