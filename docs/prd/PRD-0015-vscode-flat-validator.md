@@ -49,14 +49,18 @@ This is a developer tooling extension. Target users are clinical system develope
 | Auto-detect Web Template from project context | P1 |
 | Path autocomplete for FLAT keys based on Web Template | P2 |
 | Quick Fix: replace invalid path with suggestion | P2 |
+| OPT 1.4 XML validation (inline diagnostics via existing `OPTValidator`) | P2 |
+| Web Template JSON schema validation | P2 |
 | Tree view showing the Web Template structure | P3 |
 | AQL language support (syntax highlighting, validation, autocomplete) | P3 |
+| OPT 2.0 JSON validation | P3 |
+| ADL 1.4/2 syntax highlighting and basic validation | P3 |
 
 ### Non-Goals
 
 - Support for editors other than VS Code (JetBrains, Neovim, etc.) in v0.1.0
 - Validating canonical JSON compositions
-- Archetype/OPT authoring support
+- Full archetype authoring IDE (CKM-level tooling)
 - Language Server Protocol (LSP) implementation (use VS Code extension API directly)
 
 ---
@@ -411,7 +415,29 @@ For in-memory validation (unsaved files), write the current document text to a t
 | VS Code Marketplace publication | 0.5 day |
 | **Subtotal** | **~8 days** |
 
-### Phase 3E — AQL Language Support (v0.3.0)
+### Phase 3E — Template Format Validation (v0.3.0)
+
+Extends the extension from FLAT-only validation to full template format awareness. oehrpy already ships a comprehensive `OPTValidator` (4 categories, 25 issue codes) and a Web Template parser — this phase surfaces them as VS Code diagnostics.
+
+| Task | Effort | Notes |
+|------|--------|-------|
+| OPT 1.4 XML validation via `validate-opt` CLI | 1 day | Reuses existing `OPTValidator` (well-formedness, semantic, structural, FLAT impact) |
+| OPT diagnostic mapping (XPath → line/column positions) | 1.5 days | Map `OPTValidationIssue.xpath` to document ranges |
+| Web Template JSON schema validation | 1 day | Validate `tree` structure, required fields, node types |
+| `.opt` / `.xml` file detection heuristic | 0.5 day | Root element `<template>` with openEHR namespace |
+| OPT hover provider (archetype metadata, node constraints) | 1 day | Show RM type, cardinality, term definitions on hover |
+| FLAT path impact preview for OPT files | 1 day | Show Category D warnings: renamed nodes, path collisions |
+| **Subtotal** | **~6 days** | |
+
+Future (post v0.3.0):
+
+| Task | Effort | Notes |
+|------|--------|-------|
+| OPT 2.0 JSON validation | 2 days | Requires new parser (PRD-0008 Phase 2) |
+| ADL 1.4/2 TextMate grammar for syntax highlighting | 2 days | Keywords, constraints, ontology sections |
+| ADL basic validation (well-formedness) | 3 days | Depends on ODIN parser (PRD-0001) |
+
+### Phase 3F — AQL Language Support (v0.4.0)
 
 Adds AQL (Archetype Query Language) editing support, inspired by the [DIPSAS vscode-aql](https://github.com/DIPSAS/vscode-aql) extension. Since oehrpy already includes an AQL query builder (`openehr_sdk.aql.builder`), the extension can leverage it for validation and autocomplete.
 
