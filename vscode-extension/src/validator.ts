@@ -144,7 +144,11 @@ export async function validateWithCli(
       { timeout: timeoutMs },
     );
 
-    return JSON.parse(stdout) as CliValidationResult;
+    try {
+      return JSON.parse(stdout) as CliValidationResult;
+    } catch {
+      throw new Error(`oehrpy CLI returned invalid JSON: ${stdout.slice(0, 200)}`);
+    }
   } finally {
     // Clean up temp file
     try {

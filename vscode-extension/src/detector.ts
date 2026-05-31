@@ -1,13 +1,8 @@
 import * as vscode from "vscode";
 import { getConfig } from "./config";
+import { FLAT_PATH_PATTERN } from "./patterns";
 
 export type FileClassification = "flat_composition" | "web_template" | "unknown";
-
-/**
- * FLAT path pattern: segments separated by `/`, optional `:N` indices,
- * optional `|suffix` at the end.
- */
-const FLAT_PATH_PATTERN = /^[a-z][a-z0-9_]*(?::\d+)?(?:\/[a-z][a-z0-9_]*(?::\d+)?)+(?:\|[a-z_]+)?$/;
 
 /**
  * Classify a JSON document as a FLAT composition, Web Template, or unknown.

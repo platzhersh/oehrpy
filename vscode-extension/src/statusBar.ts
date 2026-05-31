@@ -14,7 +14,7 @@ export class OehrpyStatusBar {
       vscode.StatusBarAlignment.Left,
       100,
     );
-    this.statusBarItem.command = "workbench.actions.view.problems";
+    this.statusBarItem.command = "workbench.action.problems.focus";
     this.hide();
   }
 

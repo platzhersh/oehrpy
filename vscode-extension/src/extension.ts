@@ -22,6 +22,7 @@ import {
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 let statusBar: OehrpyStatusBar;
+let outputChannel: vscode.OutputChannel;
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 let currentValidationAbort: AbortController | undefined;
 
@@ -35,6 +36,10 @@ export function activate(context: vscode.ExtensionContext): void {
   // Create status bar
   statusBar = new OehrpyStatusBar();
   context.subscriptions.push(statusBar);
+
+  // Create reusable output channel
+  outputChannel = vscode.window.createOutputChannel("oehrpy");
+  context.subscriptions.push(outputChannel);
 
   // Register commands
   context.subscriptions.push(
@@ -310,12 +315,10 @@ async function showValidPathsCommand(): Promise<void> {
       { timeout: config.validationTimeout },
     );
 
-    // Show in output channel
-    const channel = vscode.window.createOutputChannel("oehrpy Valid Paths");
-    channel.clear();
-    channel.appendLine(`Valid FLAT paths for template:\n`);
-    channel.appendLine(stdout);
-    channel.show();
+    outputChannel.clear();
+    outputChannel.appendLine(`Valid FLAT paths for template:\n`);
+    outputChannel.appendLine(stdout);
+    outputChannel.show();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     vscode.window.showErrorMessage(

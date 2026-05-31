@@ -32,8 +32,8 @@ export async function resolveWebTemplate(
     return dirResult;
   }
 
-  // 3. Check project root directories
-  const rootResult = await resolveFromProjectRoot();
+  // 3. Check project root directories (all workspace folders in multi-root)
+  const rootResult = await resolveFromProjectRoot(compositionUri);
   if (rootResult) {
     return rootResult;
   }
@@ -133,51 +133,59 @@ async function resolveFromSameDirectory(
   return undefined;
 }
 
-async function resolveFromProjectRoot(): Promise<string | undefined> {
+async function resolveFromProjectRoot(
+  compositionUri: vscode.Uri,
+): Promise<string | undefined> {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) {
     return undefined;
   }
 
-  const rootPath = workspaceFolders[0].uri.fsPath;
+  // In multi-root workspaces, prioritize the folder containing the composition
+  const compositionFolder = vscode.workspace.getWorkspaceFolder(compositionUri);
+  const orderedFolders = compositionFolder
+    ? [compositionFolder, ...workspaceFolders.filter((f) => f !== compositionFolder)]
+    : workspaceFolders;
 
-  // Check web_templates/ directory
-  for (const dirName of ["web_templates", "templates"]) {
-    const templatesDir = path.join(rootPath, dirName);
-    if (!fs.existsSync(templatesDir)) {
-      continue;
-    }
+  for (const folder of orderedFolders) {
+    const rootPath = folder.uri.fsPath;
 
-    try {
-      const files = fs.readdirSync(templatesDir);
-      for (const file of files) {
-        if (file.endsWith(".wt.json") || file === "web_template.json") {
-          return path.join(templatesDir, file);
-        }
+    for (const dirName of ["web_templates", "templates"]) {
+      const templatesDir = path.join(rootPath, dirName);
+      if (!fs.existsSync(templatesDir)) {
+        continue;
       }
-      // Also check for any .json file in the templates directory
-      for (const file of files) {
-        if (file.endsWith(".json")) {
-          const fullPath = path.join(templatesDir, file);
-          try {
-            const content = fs.readFileSync(fullPath, "utf-8");
-            const parsed = JSON.parse(content);
-            if (
-              parsed &&
-              typeof parsed === "object" &&
-              parsed.tree &&
-              typeof parsed.tree === "object" &&
-              "id" in parsed.tree
-            ) {
-              return fullPath;
-            }
-          } catch {
-            // Not valid JSON or not a web template
+
+      try {
+        const files = fs.readdirSync(templatesDir);
+        for (const file of files) {
+          if (file.endsWith(".wt.json") || file === "web_template.json") {
+            return path.join(templatesDir, file);
           }
         }
+        for (const file of files) {
+          if (file.endsWith(".json")) {
+            const fullPath = path.join(templatesDir, file);
+            try {
+              const content = fs.readFileSync(fullPath, "utf-8");
+              const parsed = JSON.parse(content);
+              if (
+                parsed &&
+                typeof parsed === "object" &&
+                parsed.tree &&
+                typeof parsed.tree === "object" &&
+                "id" in parsed.tree
+              ) {
+                return fullPath;
+              }
+            } catch {
+              // Not valid JSON or not a web template
+            }
+          }
+        }
+      } catch {
+        // Directory not readable
       }
-    } catch {
-      // Directory not readable
     }
   }
 

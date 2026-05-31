@@ -27,7 +27,7 @@
   "activationEvents": [
     "onLanguage:json"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
       {
@@ -111,8 +111,8 @@
     "keybindings": [
       {
         "command": "oehrpy.validateFlat",
-        "key": "ctrl+shift+v",
-        "mac": "cmd+shift+v",
+        "key": "ctrl+shift+f10",
+        "mac": "cmd+shift+f10",
         "when": "editorLangId == json"
       }
     ]
@@ -121,7 +121,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src/ test/ --ext .ts",
-    "test": "node ./out/test/runTests.js",
+    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js",
+    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js",
     "package": "vsce package",
     "build": "tsc -p ./"
   },
