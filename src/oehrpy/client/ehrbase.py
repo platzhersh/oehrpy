@@ -245,6 +245,45 @@ class CompositionVersionResponse:
 
 
 @dataclass
+class ContributionResponse:
+    """Response from contribution operations.
+
+    A contribution groups one or more versioned-object changes committed
+    atomically with shared audit metadata (see PRD-0003).
+    """
+
+    contribution_uid: str
+    versions: list[str] = field(default_factory=list)
+    audit: dict[str, Any] | None = None
+    ehr_id: str | None = None
+
+    @classmethod
+    def from_response(cls, data: dict[str, Any], ehr_id: str | None = None) -> ContributionResponse:
+        """Create from API response."""
+        uid_data = data.get("uid", {})
+        contribution_uid = (
+            uid_data.get("value", "") if isinstance(uid_data, dict) else uid_data or ""
+        )
+
+        # ``versions`` is a list of OBJECT_REF; extract the referenced ids.
+        versions: list[str] = []
+        for ref in data.get("versions", []) or []:
+            if isinstance(ref, dict):
+                ref_id = ref.get("id", {})
+                value = ref_id.get("value") if isinstance(ref_id, dict) else None
+                versions.append(value if value is not None else str(ref_id))
+            elif ref is not None:
+                versions.append(str(ref))
+
+        return cls(
+            contribution_uid=contribution_uid,
+            versions=versions,
+            audit=data.get("audit"),
+            ehr_id=ehr_id,
+        )
+
+
+@dataclass
 class EHRBaseConfig:
     """Configuration for EHRBase client."""
 
@@ -752,6 +791,72 @@ class EHRBaseClient:
         if isinstance(versions, list):
             return [CompositionVersionResponse.from_response(v) for v in versions]
         return []
+
+    # Contribution Operations
+
+    async def create_contribution(
+        self,
+        ehr_id: str,
+        contribution: dict[str, Any],
+    ) -> ContributionResponse:
+        """Commit a contribution (atomic changeset of one or more versions).
+
+        A contribution groups one or more versioned-object changes
+        (compositions) into a single atomic commit with shared audit metadata.
+        Build the request body with :class:`~oehrpy.client.ContributionBuilder`.
+
+        Args:
+            ehr_id: The EHR ID.
+            contribution: CANONICAL contribution body (e.g. from
+                ``ContributionBuilder.build()``).
+
+        Returns:
+            ContributionResponse with the contribution UID and referenced
+            version UIDs.
+
+        Raises:
+            ValidationError: If the contribution is rejected by the server (422).
+            NotFoundError: If the EHR does not exist (404).
+            PreconditionFailedError: If an amendment's preceding version UID does
+                not match the latest version (412).
+        """
+        headers = {
+            "Prefer": "return=representation",
+            "Content-Type": "application/json",
+        }
+
+        response = await self.client.post(
+            f"/rest/openehr/v1/ehr/{ehr_id}/contribution",
+            json=contribution,
+            headers=headers,
+        )
+
+        data = self._handle_response(response)
+        return ContributionResponse.from_response(data, ehr_id)
+
+    async def get_contribution(
+        self,
+        ehr_id: str,
+        contribution_uid: str,
+    ) -> ContributionResponse:
+        """Retrieve a contribution by UID.
+
+        Args:
+            ehr_id: The EHR ID.
+            contribution_uid: The contribution UID.
+
+        Returns:
+            ContributionResponse with audit metadata and referenced version UIDs.
+
+        Raises:
+            NotFoundError: If the contribution does not exist (404).
+        """
+        response = await self.client.get(
+            f"/rest/openehr/v1/ehr/{ehr_id}/contribution/{contribution_uid}",
+        )
+
+        data = self._handle_response(response)
+        return ContributionResponse.from_response(data, ehr_id)
 
     # Query Operations
 

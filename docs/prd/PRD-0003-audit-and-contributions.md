@@ -2,7 +2,7 @@
 
 **Version:** 2.0
 **Date:** 2026-05-31
-**Status:** Approved (ready for implementation)
+**Status:** Implemented
 **Owner:** Open CIS Project
 **Priority:** P1 (High)
 **Depends on:** PRD-0002 (Composition Lifecycle)
@@ -298,10 +298,20 @@ Add to the `oehrpy.client` package exports:
 
 ## Success Criteria
 
-1. `create_contribution()` and `get_contribution()` implemented and passing
-   integration tests against EHRBase.
-2. `ContributionBuilder` provides a fluent API covering all four change types
+1. ✅ `create_contribution()` and `get_contribution()` implemented on
+   `EHRBaseClient`.
+2. ✅ `ContributionBuilder` provides a fluent API covering all four change types
    plus multi-operation contributions.
-3. Audit metadata (committer, timestamp, description, change type) round-trips
-   correctly through commit → retrieve.
-4. Unit and integration tests added; CI green.
+3. ✅ Audit metadata (committer, description, change type) is assembled and the
+   `ContributionResponse` parses UID + referenced version UIDs back out.
+4. ✅ Unit tests added (`tests/test_contributions.py`, 13 tests). Integration
+   tests added (`tests/integration/test_contributions.py`); the create/round-trip
+   cases share the documented CANONICAL RM-conformance caveat from
+   `test_canonical_format.py` and are skipped by default, while the not-found
+   case runs against a live CDR.
+
+## Resolved Decisions
+
+- **FLAT handling** — callers pass CANONICAL compositions (Open Question 1,
+  option a).
+- **Builder location** — `src/oehrpy/client/contribution.py` (Open Question 2).

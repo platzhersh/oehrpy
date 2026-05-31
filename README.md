@@ -51,6 +51,7 @@ pip install -e .
 - **FLAT Format**: Full support for EHRBase 2.26.0+ FLAT format serialization
 - **Canonical JSON**: Convert RM objects to/from openEHR canonical JSON format
 - **EHRBase Client**: Async REST client for EHRBase CDR operations
+- **Contributions & Audit**: Commit multiple changes atomically with audit metadata via a fluent builder
 - **AQL Builder**: Fluent API for building type-safe AQL queries
 - **OPT Validator**: Validate OPT 1.4 XML files before CDR upload (well-formedness, semantics, FLAT path impact)
 - **IDE Support**: Full autocomplete and type checking support
@@ -257,6 +258,38 @@ async with EHRBaseClient(
         "SELECT c FROM EHR e CONTAINS COMPOSITION c WHERE e/ehr_id/value = :ehr_id",
         query_parameters={"ehr_id": ehr.ehr_id},
     )
+```
+
+### Contributions & Audit
+
+Group one or more versioned-object changes into a single atomic changeset with
+shared audit metadata. `ContributionBuilder` assembles the CANONICAL request
+body so you don't hand-write `ORIGINAL_VERSION` wrappers. It supports all four
+openEHR change types: `creation`, `amendment`, `modification`, and `deleted`.
+
+```python
+from oehrpy.client import ContributionBuilder, EHRBaseClient
+
+async with EHRBaseClient(base_url="http://localhost:8080/ehrbase") as client:
+    contribution = (
+        ContributionBuilder()
+        # `composition` is a CANONICAL composition dict
+        # (e.g. from oehrpy.serialization.to_canonical)
+        .add_creation(composition=vitals_canonical)
+        .add_amendment(
+            preceding_version_uid="abc::ehrbase::1",
+            composition=updated_canonical,
+            description="Corrected systolic value",
+        )
+        .set_audit(committer="Dr. Smith", description="Routine vitals and correction")
+        .build()
+    )
+
+    result = await client.create_contribution(ehr.ehr_id, contribution)
+    print(result.contribution_uid, result.versions)
+
+    # Retrieve a contribution (audit metadata + referenced version UIDs)
+    fetched = await client.get_contribution(ehr.ehr_id, result.contribution_uid)
 ```
 
 ### AQL Query Builder
