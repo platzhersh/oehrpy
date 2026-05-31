@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.12.0 (2026-05-31)
+
+### Features
+
+- Add VS Code extension for FLAT format validation (#25)
+  ([#25](https://github.com/platzhersh/oehrpy/pull/25),
+  [`c71deb9`](https://github.com/platzhersh/oehrpy/commit/c71deb9c82f4c7378a38dea64ab982bf24377d2d))
+
+
 ## v0.11.0 (2026-05-31)
 
 ### Features
