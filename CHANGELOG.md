@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.10.0 (2026-05-31)
+
+### Features
+
+- **client**: Add contribution support (PRD-0003) (#43)
+  ([#43](https://github.com/platzhersh/oehrpy/pull/43),
+  [`15be69b`](https://github.com/platzhersh/oehrpy/commit/15be69bfa7a7da8d72a4acb3b7bf0042e3dbc922))
+
+
 ## v0.9.0 (2026-04-11)
 
 ### Features
