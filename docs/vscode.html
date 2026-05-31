@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VS Code Extension - oehrpy</title>
+  <meta name="description" content="VS Code extension for validating openEHR FLAT format compositions against Web Templates — inline diagnostics, hover documentation, and quick fixes.">
+  <meta name="author" content="Open CIS Project">
+  <meta name="theme-color" content="#1a1a2e">
+  <link rel="canonical" href="https://platzhersh.github.io/oehrpy/vscode.html">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="oehrpy">
+  <meta property="og:title" content="VS Code Extension - oehrpy">
+  <meta property="og:description" content="VS Code extension for validating openEHR FLAT format compositions — inline diagnostics, hover docs, and quick fixes without leaving the editor.">
+  <meta property="og:url" content="https://platzhersh.github.io/oehrpy/vscode.html">
+  <meta property="og:image" content="https://platzhersh.github.io/oehrpy/assets/logo.svg">
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="VS Code Extension - oehrpy">
+  <meta name="twitter:description" content="Validate openEHR FLAT compositions in VS Code — red squiggles on invalid paths, hover documentation, quick fixes.">
+  <meta name="twitter:image" content="https://platzhersh.github.io/oehrpy/assets/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #1a1a2e;
+      --bg-card: #252540;
+      --bg-deep: #0a0a14;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --border: #2d2d4d;
+      --border-light: #3b3b5c;
+      --border-hover: #4b4b6c;
+      --blue: #3b82f6;
+      --blue-light: #60a5fa;
+      --blue-dark: #1d4ed8;
+      --orange: #f97316;
+      --orange-light: #fdba74;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #fbbf24;
+      --code-bg: #252540;
+      --code-text: #fbbf24;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #F8FAFB;
+        --bg-card: #FFFFFF;
+        --bg-deep: #F0F2F5;
+        --text: #1A202C;
+        --text-muted: #4A5568;
+        --text-dim: #718096;
+        --border: #E2E8F0;
+        --border-light: #CBD5E0;
+        --border-hover: #A0AEC0;
+        --code-bg: #EDF2F7;
+        --code-text: #C05621;
+      }
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .logo-header span {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    nav {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--text);
+    }
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--sans);
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .nav-dropdown-btn:hover { color: var(--text); }
+    .dropdown-arrow { font-size: 10px; }
+    .nav-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hover);
+      border-radius: 8px;
+      padding: 6px 0;
+      min-width: 160px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 200;
+    }
+    .nav-dropdown.is-open .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a {
+      display: block;
+      padding: 8px 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+    .nav-dropdown-menu a:hover { background: var(--border); color: var(--text); }
+    .nav-dropdown-menu a:focus { background: var(--border); color: var(--text); outline: none; }
+    .github-link {
+      background: var(--bg-card);
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: var(--text) !important;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .github-link:hover {
+      background: var(--border);
+    }
+
+    /* Page Content */
+    .page-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 60px 40px 80px;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--blue-light) 0%, var(--blue) 50%, var(--orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .page-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 48px;
+      max-width: 680px;
+    }
+
+    /* Feature Cards */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 48px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+      display: block;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 10px;
+    }
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 48px;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .section-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    /* Commands Table */
+    .commands-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+    .commands-table th,
+    .commands-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .commands-table th {
+      color: var(--text-dim);
+      font-weight: 500;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .commands-table td {
+      color: var(--text-muted);
+    }
+    .commands-table code {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--code-text);
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .commands-table kbd {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
+      padding: 2px 6px;
+      color: var(--text-muted);
+    }
+
+    /* Code Block */
+    .code-block {
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+    .code-block .comment {
+      color: var(--text-dim);
+    }
+    .code-block .key {
+      color: var(--blue-light);
+    }
+    .code-block .value {
+      color: var(--green);
+    }
+    .code-block .string {
+      color: var(--orange-light);
+    }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .step-number {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-content {
+      padding-top: 4px;
+    }
+    .step-content p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .step-content code {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--code-text);
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Resolution List */
+    .resolution-list {
+      list-style: none;
+      padding: 0;
+    }
+    .resolution-list li {
+      position: relative;
+      padding: 12px 0 12px 28px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .resolution-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 18px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+    .resolution-list li strong {
+      color: var(--text);
+    }
+
+    /* Roadmap */
+    .roadmap {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .roadmap-phase {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+    .roadmap-phase h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .roadmap-badge {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-done {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+    }
+    .badge-next {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--blue);
+    }
+    .badge-planned {
+      background: rgba(107, 114, 128, 0.15);
+      color: var(--text-dim);
+    }
+    .roadmap-phase ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .roadmap-phase li {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    /* Install button */
+    .install-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-bottom: 12px;
+    }
+    .install-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    }
+    .install-alt {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+    .install-alt code {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--code-text);
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 32px 40px;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    footer a:hover {
+      color: var(--text);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 12px;
+      }
+      nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+      }
+      .page-container {
+        padding: 40px 20px 60px;
+      }
+      .page-title {
+        font-size: 2rem;
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      .commands-table {
+        font-size: 0.8rem;
+      }
+      .commands-table th,
+      .commands-table td {
+        padding: 8px 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      nav {
+        gap: 12px;
+      }
+      .logo-header span {
+        font-size: 20px;
+      }
+      .page-container {
+        padding: 30px 16px 40px;
+      }
+      .page-title {
+        font-size: 1.75rem;
+      }
+      .page-subtitle {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <a href="index.html" class="logo-header">
+      <svg viewBox="0 0 80 80" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logo-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#60a5fa"/>
+            <stop offset="100%" style="stop-color:#3b82f6"/>
+          </linearGradient>
+          <linearGradient id="logo-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fdba74"/>
+            <stop offset="100%" style="stop-color:#f97316"/>
+          </linearGradient>
+        </defs>
+        <path d="M40 10 C20 10 15 25 15 35 C15 46 28 52 40 52 C52 52 65 46 65 35 C65 25 60 10 40 10"
+              fill="url(#logo-blue)"/>
+        <circle cx="28" cy="24" r="4" fill="#fff"/>
+        <path d="M40 70 C60 70 65 55 65 45 C65 34 52 28 40 28 C28 28 15 34 15 45 C15 55 20 70 40 70"
+              fill="url(#logo-orange)"/>
+        <circle cx="52" cy="56" r="4" fill="#fff"/>
+      </svg>
+      <span>oehrpy</span>
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="docs.html">Docs</a>
+      <a href="workflow.html">Workflow</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn" aria-haspopup="true" aria-expanded="false">Tools <span class="dropdown-arrow">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="validator.html">Validator</a>
+          <a href="converter.html">Converter</a>
+          <a href="explorer.html">Explorer</a>
+        </div>
+      </div>
+      <a href="vscode.html" class="active">VS Code</a>
+      <a href="brand-kit.html">Brand Kit</a>
+      <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
+    </nav>
+  </header>
+
+  <!-- Page Content -->
+  <main class="page-container">
+    <h1 class="page-title">VS Code Extension</h1>
+    <p class="page-subtitle">
+      Validate openEHR FLAT format compositions against Web Templates directly in VS Code. Catch invalid paths, wrong suffixes, and missing required fields before they reach EHRBase.
+    </p>
+
+    <!-- Install -->
+    <div class="section">
+      <a class="install-btn" href="https://github.com/platzhersh/oehrpy/tree/main/vscode-extension" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Get the Extension
+      </a>
+      <p class="install-alt">Or install manually: <code>code --install-extension oehrpy-validator-0.1.0.vsix</code></p>
+    </div>
+
+    <!-- Features -->
+    <div class="section">
+      <h2 class="section-title">Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--red);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </span>
+          <h3>Inline Diagnostics</h3>
+          <p>Red squiggles on invalid FLAT paths with detailed error messages. Yellow warnings for missing required fields.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--blue);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+          <h3>Hover Documentation</h3>
+          <p>Hover over any FLAT path to see the RM type, cardinality, whether it&rsquo;s required, and valid suffixes.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--green);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </span>
+          <h3>Validate on Save</h3>
+          <p>Automatic validation when you save a FLAT composition JSON file. Configurable and debounced at 500ms.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--yellow);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </span>
+          <h3>Quick Fix</h3>
+          <p>&ldquo;Did you mean?&rdquo; suggestions via the lightbulb menu. One click to replace an invalid path with the correct one.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--orange);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </span>
+          <h3>Template Auto-Detection</h3>
+          <p>Finds Web Templates from workspace settings, same directory, or <code>templates/</code> folder automatically.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--blue-light);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          </span>
+          <h3>Status Bar</h3>
+          <p>See validation state at a glance &mdash; valid, error count, or &ldquo;no template&rdquo; &mdash; in the bottom bar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Getting Started -->
+    <div class="section">
+      <h2 class="section-title">Getting Started</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="step-number">1</span>
+          <div class="step-content">
+            <p>Install <strong>Python 3.10+</strong> with oehrpy: <code>pip install oehrpy</code></p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">2</span>
+          <div class="step-content">
+            <p>Install the extension in VS Code</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">3</span>
+          <div class="step-content">
+            <p>Open a FLAT composition JSON file &mdash; keys like <code>vital_signs/blood_pressure/systolic|magnitude</code></p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">4</span>
+          <div class="step-content">
+            <p>Place a Web Template (<code>web_template.json</code> or <code>*.wt.json</code>) in the same directory, or configure paths in settings</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">5</span>
+          <div class="step-content">
+            <p>Save the file &mdash; diagnostics appear automatically</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commands -->
+    <div class="section">
+      <h2 class="section-title">Commands</h2>
+      <table class="commands-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>Keybinding</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>oehrpy: Validate FLAT Composition</code></td>
+            <td><kbd>Ctrl+Shift+F10</kbd></td>
+            <td>Validate the active JSON file</td>
+          </tr>
+          <tr>
+            <td><code>oehrpy: Select Web Template</code></td>
+            <td>&mdash;</td>
+            <td>Pick a Web Template for the current file</td>
+          </tr>
+          <tr>
+            <td><code>oehrpy: Show Valid Paths</code></td>
+            <td>&mdash;</td>
+            <td>List all valid FLAT paths in the output panel</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Web Template Resolution -->
+    <div class="section">
+      <h2 class="section-title">Web Template Resolution</h2>
+      <p class="section-desc">The extension finds the Web Template for a composition by checking these locations in order:</p>
+      <ol class="resolution-list">
+        <li><strong>Explicit config</strong> &mdash; <code>oehrpy.webTemplatePaths</code> in workspace settings</li>
+        <li><strong>Same directory</strong> &mdash; <code>web_template.json</code> or <code>*.wt.json</code> next to the composition</li>
+        <li><strong>Project root</strong> &mdash; <code>web_templates/</code> or <code>templates/</code> directory in the workspace</li>
+        <li><strong>User prompt</strong> &mdash; asks you to pick a file and remembers the choice</li>
+      </ol>
+    </div>
+
+    <!-- Configuration -->
+    <div class="section">
+      <h2 class="section-title">Configuration</h2>
+      <p class="section-desc">Add to <code>.vscode/settings.json</code>:</p>
+      <div class="code-block"><span class="comment">// CDR platform dialect</span>
+<span class="key">"oehrpy.platform"</span>: <span class="string">"ehrbase"</span>,
+
+<span class="comment">// Validate automatically on save</span>
+<span class="key">"oehrpy.validateOnSave"</span>: <span class="value">true</span>,
+
+<span class="comment">// Map template IDs to file paths</span>
+<span class="key">"oehrpy.webTemplatePaths"</span>: {
+  <span class="string">"IDCR - Adverse Reaction List.v1"</span>: <span class="string">"./templates/adverse_reaction_wt.json"</span>
+},
+
+<span class="comment">// Python interpreter (leave empty to auto-detect)</span>
+<span class="key">"oehrpy.pythonPath"</span>: <span class="string">""</span>,
+
+<span class="comment">// CLI timeout in milliseconds</span>
+<span class="key">"oehrpy.validationTimeout"</span>: <span class="value">5000</span></div>
+    </div>
+
+    <!-- Roadmap -->
+    <div class="section">
+      <h2 class="section-title">Roadmap</h2>
+      <div class="roadmap">
+        <div class="roadmap-phase">
+          <h4>v0.1.0 &mdash; Core Extension <span class="roadmap-badge badge-done">Done</span></h4>
+          <ul>
+            <li>Inline diagnostics</li>
+            <li>Validate on save</li>
+            <li>Hover documentation</li>
+            <li>Quick Fix</li>
+            <li>Status bar</li>
+            <li>Template auto-detection</li>
+          </ul>
+        </div>
+        <div class="roadmap-phase">
+          <h4>v0.2.0 &mdash; Enhanced UX <span class="roadmap-badge badge-next">Next</span></h4>
+          <ul>
+            <li>Path autocomplete</li>
+            <li>Web Template tree view</li>
+            <li>Marketplace publication</li>
+          </ul>
+        </div>
+        <div class="roadmap-phase">
+          <h4>v0.3.0 &mdash; Template Validation <span class="roadmap-badge badge-planned">Planned</span></h4>
+          <ul>
+            <li>OPT 1.4 XML validation</li>
+            <li>Web Template schema validation</li>
+            <li>OPT hover &amp; FLAT path impact</li>
+          </ul>
+        </div>
+        <div class="roadmap-phase">
+          <h4>v0.4.0 &mdash; AQL Language Support <span class="roadmap-badge badge-planned">Planned</span></h4>
+          <ul>
+            <li>AQL syntax highlighting</li>
+            <li>AQL validation</li>
+            <li>AQL path autocomplete</li>
+            <li>AQL snippet library</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="docs.html">Docs</a> &middot; Apache 2.0 License</p>
+  </footer>
+
+  <script>
+    // Dropdown toggle (consistent with other pages)
+    document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var dropdown = this.closest('.nav-dropdown');
+        var isOpen = dropdown.classList.contains('is-open');
+        document.querySelectorAll('.nav-dropdown').forEach(function(d) { d.classList.remove('is-open'); });
+        if (!isOpen) dropdown.classList.add('is-open');
+        this.setAttribute('aria-expanded', !isOpen);
+      });
+    });
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.nav-dropdown').forEach(function(d) { d.classList.remove('is-open'); });
+    });
+  </script>
+</body>
+</html>
