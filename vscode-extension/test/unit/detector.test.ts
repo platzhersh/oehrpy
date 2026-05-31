@@ -5,9 +5,8 @@
  * the VS Code API — we mock vscode.TextDocument with a minimal interface.
  */
 
-// Tests validate detection logic without VS Code API dependencies.
+export {};
 
-// Simple test runner (no external test framework dependency)
 let passed = 0;
 let failed = 0;
 

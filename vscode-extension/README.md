@@ -6,6 +6,7 @@ Validate openEHR FLAT format compositions against Web Templates, directly in VS 
 
 - **Inline diagnostics** — red/yellow squiggles on invalid FLAT paths with detailed error messages
 - **Validate on save** — automatic validation when you save a `.json` file detected as a FLAT composition
+- **FLAT path autocomplete** — IntelliSense completions for all valid FLAT paths derived from the Web Template
 - **Hover documentation** — hover over a FLAT key to see RM type, cardinality, and valid suffixes
 - **Quick Fix** — lightbulb suggestions to replace invalid paths with "did you mean?" corrections
 - **Status bar** — shows validation state (valid, errors, no template) in the bottom bar
@@ -77,7 +78,10 @@ All settings are under the `oehrpy` namespace. Add them to `.vscode/settings.jso
   "oehrpy.enableHover": true,
 
   // Enable Quick Fix suggestions
-  "oehrpy.enableQuickFix": true
+  "oehrpy.enableQuickFix": true,
+
+  // Enable FLAT path autocomplete
+  "oehrpy.enableAutocomplete": true
 }
 ```
 
