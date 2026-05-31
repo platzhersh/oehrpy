@@ -50,6 +50,7 @@ This is a developer tooling extension. Target users are clinical system develope
 | Path autocomplete for FLAT keys based on Web Template | P2 |
 | Quick Fix: replace invalid path with suggestion | P2 |
 | Tree view showing the Web Template structure | P3 |
+| AQL language support (syntax highlighting, validation, autocomplete) | P3 |
 
 ### Non-Goals
 
@@ -409,6 +410,19 @@ For in-memory validation (unsaved files), write the current document text to a t
 | Path autocomplete (CompletionItemProvider) | 3 days |
 | VS Code Marketplace publication | 0.5 day |
 | **Subtotal** | **~8 days** |
+
+### Phase 3E — AQL Language Support (v0.3.0)
+
+Adds AQL (Archetype Query Language) editing support, inspired by the [DIPSAS vscode-aql](https://github.com/DIPSAS/vscode-aql) extension. Since oehrpy already includes an AQL query builder (`openehr_sdk.aql.builder`), the extension can leverage it for validation and autocomplete.
+
+| Task | Effort | Notes |
+|------|--------|-------|
+| AQL TextMate grammar for syntax highlighting | 2 days | Keywords, paths, operators, predicates |
+| AQL file detection (`.aql` files, `SELECT`/`FROM` heuristic) | 0.5 day | |
+| AQL validation via oehrpy CLI | 1.5 days | Parse errors, unknown archetypes |
+| AQL path autocomplete from loaded templates | 3 days | Archetype paths, RM attributes |
+| AQL snippet library (common query patterns) | 1 day | SELECT/FROM/WHERE, aggregations |
+| **Subtotal** | **~8 days** | |
 
 ---
 
