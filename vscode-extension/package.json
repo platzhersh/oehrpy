@@ -3,7 +3,7 @@
   "displayName": "oehrpy FLAT Validator",
   "description": "Validate openEHR FLAT format compositions against Web Templates",
   "publisher": "platzhersh",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -25,14 +25,33 @@
     "oehrpy"
   ],
   "activationEvents": [
-    "onLanguage:json"
+    "onLanguage:json",
+    "onLanguage:xml",
+    "onLanguage:opt"
   ],
   "main": "./out/src/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "opt",
+        "aliases": [
+          "openEHR Operational Template",
+          "opt"
+        ],
+        "extensions": [
+          ".opt"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
     "commands": [
       {
         "command": "oehrpy.validateFlat",
         "title": "oehrpy: Validate FLAT Composition"
+      },
+      {
+        "command": "oehrpy.validateOpt",
+        "title": "oehrpy: Validate OPT Template"
       },
       {
         "command": "oehrpy.selectWebTemplate",
@@ -140,6 +159,21 @@
           "type": "boolean",
           "default": true,
           "description": "Show the Web Template structure as a tree view in the Explorer sidebar."
+        },
+        "oehrpy.enableOptValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Validate OPT 1.4 templates (.opt / openEHR <template> XML) via the Python oehrpy CLI. FLAT validation runs in-process and is unaffected by this setting."
+        },
+        "oehrpy.pythonPath": {
+          "type": "string",
+          "default": "",
+          "description": "Python interpreter used for OPT (.opt/.xml) validation. Leave empty to auto-detect via the Python extension or python3 on PATH. Not used for FLAT validation, which runs in-process."
+        },
+        "oehrpy.optValidationTimeout": {
+          "type": "number",
+          "default": 15000,
+          "description": "Maximum time (ms) to wait for the OPT validation CLI before timing out."
         }
       }
     },
@@ -156,8 +190,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src/ test/ --ext .ts",
-    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js && node ./out/test/unit/validation.test.js",
-    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js && node ./out/test/unit/validation.test.js",
+    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js && node ./out/test/unit/validation.test.js && node ./out/test/unit/opt.test.js",
+    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js && node ./out/test/unit/validation.test.js && node ./out/test/unit/opt.test.js",
     "package": "vsce package",
     "build": "tsc -p ./"
   },

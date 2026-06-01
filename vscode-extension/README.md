@@ -10,6 +10,7 @@ Validate openEHR FLAT format compositions against Web Templates, directly in VS 
 - **Hover documentation** — hover over a FLAT key to see RM type, cardinality, and valid suffixes
 - **Quick Fix** — lightbulb suggestions to replace invalid paths with "did you mean?" corrections
 - **Web Template tree view** — browse the template structure in the Explorer sidebar; click a node to copy its FLAT path
+- **OPT template validation** — inline diagnostics for `.opt` / openEHR `<template>` XML files (well-formedness, semantic, structural, and FLAT-path-impact checks)
 - **Status bar** — shows validation state (valid, errors, no template) in the bottom bar
 - **Web Template auto-detection** — finds templates from workspace config, same directory, or `templates/` folder
 - **Manual command** — `oehrpy: Validate FLAT Composition` (Ctrl+Shift+F10 / Cmd+Shift+F10)
@@ -19,7 +20,9 @@ Validate openEHR FLAT format compositions against Web Templates, directly in VS 
 - **VS Code 1.85+**
 - A Web Template JSON file for the template you're validating against
 
-Validation runs entirely in-process — **no Python interpreter is required**. (The same validation logic is also available as a Python CLI, `python -m oehrpy.validation`, for CI and scripting.)
+FLAT validation runs entirely in-process — **no Python interpreter is required**. (The same logic is also available as a Python CLI, `python -m oehrpy.validation`, for CI and scripting.)
+
+**OPT validation is optional and Python-backed:** validating `.opt` / `<template>` XML files reuses the Python `oehrpy` package (`pip install oehrpy`), which exposes the full `OPTValidator`. If Python or `oehrpy` isn't available, OPT validation simply stays off (with a one-time hint) — FLAT validation is unaffected. See [ADR-0008](../docs/adr/0008-opt-validation-via-python-cli-in-vscode.md).
 
 ## Getting Started
 
@@ -42,6 +45,7 @@ The extension finds the Web Template for a composition in this order:
 | Command | Keybinding | Description |
 |---------|------------|-------------|
 | `oehrpy: Validate FLAT Composition` | Ctrl+Shift+F10 | Validate the active JSON file |
+| `oehrpy: Validate OPT Template` | — | Validate the active `.opt` / `<template>` XML file |
 | `oehrpy: Select Web Template for This File` | — | Pick a Web Template for the current file |
 | `oehrpy: Show Valid Paths for Template` | — | List all valid FLAT paths in the output panel |
 | `oehrpy: Refresh Web Template Tree` | — | Reload the Web Template tree view from disk |
@@ -92,7 +96,17 @@ All settings are under the `oehrpy` namespace. Add them to `.vscode/settings.jso
   "oehrpy.enableAutocomplete": true,
 
   // Show the Web Template structure as a tree view in the Explorer sidebar
-  "oehrpy.enableTemplateExplorer": true
+  "oehrpy.enableTemplateExplorer": true,
+
+  // Validate OPT templates (.opt / <template> XML) via the Python oehrpy CLI
+  "oehrpy.enableOptValidation": true,
+
+  // Python interpreter for OPT validation (empty = auto-detect). Not used for
+  // FLAT validation, which runs in-process.
+  "oehrpy.pythonPath": "",
+
+  // Max time (ms) to wait for the OPT validation CLI
+  "oehrpy.optValidationTimeout": 15000
 }
 ```
 

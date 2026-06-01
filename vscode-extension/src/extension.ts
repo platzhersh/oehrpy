@@ -21,12 +21,17 @@ import {
   enumerateValidPathStrings,
   validateFlatComposition,
 } from "./validator";
+import { classifyOptDocument, publishOptDiagnostics } from "./optDiagnostics";
+import { discoverPythonPath, validateOptFile } from "./optValidator";
 
 let diagnosticCollection: vscode.DiagnosticCollection;
+let optDiagnosticCollection: vscode.DiagnosticCollection;
 let statusBar: OehrpyStatusBar;
 let templateTreeProvider: WebTemplateTreeProvider;
 let outputChannel: vscode.OutputChannel;
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+let optDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+let optUnavailableHintShown = false;
 
 export function activate(context: vscode.ExtensionContext): void {
   // Initialize template resolver with persistent workspace state
@@ -37,6 +42,12 @@ export function activate(context: vscode.ExtensionContext): void {
     "oehrpy-flat-validator",
   );
   context.subscriptions.push(diagnosticCollection);
+
+  // Separate collection for OPT (.opt/.xml) template diagnostics
+  optDiagnosticCollection = vscode.languages.createDiagnosticCollection(
+    "oehrpy-opt-validator",
+  );
+  context.subscriptions.push(optDiagnosticCollection);
 
   // Create status bar
   statusBar = new OehrpyStatusBar();
@@ -62,6 +73,12 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand("oehrpy.showValidPaths", () =>
       showValidPathsCommand(),
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("oehrpy.validateOpt", () =>
+      runOptValidation(true),
     ),
   );
 
@@ -129,6 +146,15 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
+      // OPT (.opt/.xml) templates validate via the Python CLI.
+      if (classifyOptDocument(document.fileName, document.getText())) {
+        if (optDebounceTimer) {
+          clearTimeout(optDebounceTimer);
+        }
+        optDebounceTimer = setTimeout(() => runOptValidation(false), 500);
+        return;
+      }
+
       if (document.languageId !== "json") {
         return;
       }
@@ -143,6 +169,18 @@ export function activate(context: vscode.ExtensionContext): void {
         clearTimeout(debounceTimer);
       }
       debounceTimer = setTimeout(() => runValidation(false), 500);
+    }),
+  );
+
+  // Validate OPT templates when opened
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((document) => {
+      if (document.uri.scheme !== "file") {
+        return;
+      }
+      if (classifyOptDocument(document.fileName, document.getText())) {
+        void runOptValidationFor(document, false);
+      }
     }),
   );
 
@@ -184,18 +222,24 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       clearDiagnostics(document, diagnosticCollection);
+      optDiagnosticCollection.delete(document.uri);
     }),
   );
 
   // Populate the Web Template tree for the current file
   void templateTreeProvider.syncWithActiveEditor();
 
-  // Validate current file if it's a FLAT composition
+  // Validate the current file on activation
   const activeEditor = vscode.window.activeTextEditor;
-  if (activeEditor && activeEditor.document.languageId === "json") {
-    const classification = classifyDocument(activeEditor.document);
-    if (classification === "flat_composition") {
+  if (activeEditor && activeEditor.document.uri.scheme === "file") {
+    const document = activeEditor.document;
+    if (
+      document.languageId === "json" &&
+      classifyDocument(document) === "flat_composition"
+    ) {
       runValidation(false);
+    } else if (classifyOptDocument(document.fileName, document.getText())) {
+      void runOptValidationFor(document, false);
     }
   }
 }
@@ -203,6 +247,9 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
   if (debounceTimer) {
     clearTimeout(debounceTimer);
+  }
+  if (optDebounceTimer) {
+    clearTimeout(optDebounceTimer);
   }
 }
 
@@ -348,4 +395,132 @@ async function showValidPathsCommand(): Promise<void> {
     outputChannel.appendLine(path);
   }
   outputChannel.show();
+}
+
+/**
+ * Run OPT validation on the currently active editor.
+ */
+async function runOptValidation(isManual: boolean): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    if (isManual) {
+      vscode.window.showWarningMessage("No active file to validate.");
+    }
+    return;
+  }
+  await runOptValidationFor(editor.document, isManual);
+}
+
+/**
+ * Validate a specific OPT document via the Python CLI and publish diagnostics.
+ *
+ * Degrades gracefully: no-ops when OPT validation is disabled, the file isn't
+ * an OPT template, it isn't saved to disk, or Python/oehrpy is unavailable
+ * (showing a one-time hint in the last case). FLAT validation is unaffected.
+ */
+async function runOptValidationFor(
+  document: vscode.TextDocument,
+  isManual: boolean,
+): Promise<void> {
+  const config = getConfig();
+  if (!config.enableOptValidation) {
+    if (isManual) {
+      vscode.window.showInformationMessage(
+        "OPT validation is disabled (oehrpy.enableOptValidation).",
+      );
+    }
+    return;
+  }
+
+  if (!classifyOptDocument(document.fileName, document.getText())) {
+    if (isManual) {
+      vscode.window.showWarningMessage(
+        "Active file is not an OPT template (.opt or openEHR <template> XML).",
+      );
+    }
+    return;
+  }
+
+  if (document.uri.scheme !== "file") {
+    if (isManual) {
+      vscode.window.showWarningMessage(
+        "OPT validation requires the file to be saved to disk.",
+      );
+    }
+    return;
+  }
+
+  // The CLI reads from disk; ensure manual runs validate current content.
+  if (isManual && document.isDirty) {
+    await document.save();
+  }
+
+  try {
+    const pythonPath = await discoverPythonPath();
+    const outcome = await validateOptFile(
+      pythonPath,
+      document.uri.fsPath,
+      config.optValidationTimeout,
+    );
+
+    if (outcome.kind === "ok") {
+      publishOptDiagnostics(document, outcome.result, optDiagnosticCollection);
+      if (isManual) {
+        const { error_count, warning_count, is_valid } = outcome.result;
+        vscode.window.showInformationMessage(
+          is_valid
+            ? `OPT valid (${warning_count} warning(s)).`
+            : `OPT invalid: ${error_count} error(s), ${warning_count} warning(s).`,
+        );
+      }
+      return;
+    }
+
+    optDiagnosticCollection.delete(document.uri);
+
+    if (outcome.kind === "unavailable") {
+      showOptUnavailableHint(isManual);
+      return;
+    }
+
+    if (isManual) {
+      vscode.window.showErrorMessage(`OPT validation failed: ${outcome.detail}`);
+    }
+  } catch (error) {
+    if (isManual) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      vscode.window.showErrorMessage(`OPT validation failed: ${message}`);
+    }
+  }
+}
+
+/**
+ * Show a one-time hint that OPT validation needs Python + oehrpy. Manual
+ * invocations always surface it; automatic ones show it at most once.
+ */
+function showOptUnavailableHint(isManual: boolean): void {
+  if (optUnavailableHintShown && !isManual) {
+    return;
+  }
+  optUnavailableHintShown = true;
+
+  void vscode.window
+    .showInformationMessage(
+      "OPT (.opt/.xml) validation needs Python with oehrpy installed. " +
+        "FLAT validation works without it.",
+      "Install oehrpy",
+      "Set Python Path",
+    )
+    .then((choice) => {
+      if (choice === "Install oehrpy") {
+        const terminal = vscode.window.createTerminal("oehrpy install");
+        terminal.sendText("pip install oehrpy");
+        terminal.show();
+      } else if (choice === "Set Python Path") {
+        void vscode.commands.executeCommand(
+          "workbench.action.openSettings",
+          "oehrpy.pythonPath",
+        );
+      }
+    });
 }
