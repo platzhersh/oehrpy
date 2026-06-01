@@ -8,6 +8,7 @@ import {
   formatCardinality,
   parseTemplateTree,
   type TemplateTreeNode,
+  type WebTemplateTreeNode,
 } from "./webTemplate";
 
 /** Context key toggled to control visibility of the tree view. */
@@ -25,16 +26,18 @@ interface LoadedTemplate {
  * Returns `undefined` if the file is missing, unparseable, or does not look
  * like a Web Template.
  */
-function loadTemplate(filePath: string): LoadedTemplate | undefined {
+async function loadTemplate(
+  filePath: string,
+): Promise<LoadedTemplate | undefined> {
   try {
-    const content = fs.readFileSync(filePath, "utf-8");
+    const content = await fs.promises.readFile(filePath, "utf-8");
     const parsed = JSON.parse(content) as Record<string, unknown>;
     const tree = parsed?.tree;
     if (!tree || typeof tree !== "object") {
       return undefined;
     }
 
-    const root = parseTemplateTree(tree as Parameters<typeof parseTemplateTree>[0]);
+    const root = parseTemplateTree(tree as WebTemplateTreeNode);
     const templateId =
       (typeof parsed.templateId === "string" && parsed.templateId) ||
       root.id ||
@@ -96,7 +99,7 @@ export class WebTemplateTreeProvider
       return;
     }
 
-    this.setTemplate(loadTemplate(templatePath));
+    this.setTemplate(await loadTemplate(templatePath));
   }
 
   private async resolveTemplatePath(
@@ -114,11 +117,11 @@ export class WebTemplateTreeProvider
   }
 
   /** Reload the currently displayed template from disk (e.g. after a save). */
-  reload(): void {
+  async reload(): Promise<void> {
     if (this.loaded) {
-      this.setTemplate(loadTemplate(this.loaded.sourcePath));
+      this.setTemplate(await loadTemplate(this.loaded.sourcePath));
     } else {
-      void this.syncWithActiveEditor();
+      await this.syncWithActiveEditor();
     }
   }
 

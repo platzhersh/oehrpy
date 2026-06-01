@@ -124,7 +124,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.workspace.onDidSaveTextDocument((document) => {
       // Refresh the tree if the displayed Web Template file was saved.
       if (document.uri.fsPath === templateTreeProvider.sourcePath) {
-        templateTreeProvider.reload();
+        void templateTreeProvider.reload();
       }
 
       const config = getConfig();

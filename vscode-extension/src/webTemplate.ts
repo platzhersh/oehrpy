@@ -118,7 +118,7 @@ export function enumeratePathsFromTree(tree: WebTemplateTreeNode): FlatPathEntry
     const nodeId = node.id || "";
     const currentPath = prefix ? `${prefix}/${nodeId}` : nodeId;
     const rmType = rmTypeOf(node);
-    const nodeName = node.name || nodeId;
+    const nodeName = node.name || node.localizedName || nodeId;
     const min = node.min ?? 0;
     const max = node.max ?? 1;
 
