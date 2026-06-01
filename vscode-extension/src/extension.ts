@@ -18,10 +18,8 @@ import {
   setTemplateAssociation,
 } from "./templateResolver";
 import {
-  discoverPythonPath,
-  checkOehrpyInstalled,
-  offerInstallOehrpy,
-  validateWithCli,
+  enumerateValidPathStrings,
+  validateFlatComposition,
 } from "./validator";
 
 let diagnosticCollection: vscode.DiagnosticCollection;
@@ -29,7 +27,6 @@ let statusBar: OehrpyStatusBar;
 let templateTreeProvider: WebTemplateTreeProvider;
 let outputChannel: vscode.OutputChannel;
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-let currentValidationAbort: AbortController | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   // Initialize template resolver with persistent workspace state
@@ -190,9 +187,6 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
   );
 
-  // Check oehrpy installation on activation
-  checkInstallation();
-
   // Populate the Web Template tree for the current file
   void templateTreeProvider.syncWithActiveEditor();
 
@@ -210,13 +204,12 @@ export function deactivate(): void {
   if (debounceTimer) {
     clearTimeout(debounceTimer);
   }
-  if (currentValidationAbort) {
-    currentValidationAbort.abort();
-  }
 }
 
 /**
  * Run validation on the currently active JSON file.
+ *
+ * Validation runs in-process (no Python required); see `validation.ts`.
  */
 async function runValidation(isManual: boolean): Promise<void> {
   const editor = vscode.window.activeTextEditor;
@@ -236,18 +229,9 @@ async function runValidation(isManual: boolean): Promise<void> {
     return;
   }
 
-  // Cancel any in-flight validation
-  if (currentValidationAbort) {
-    currentValidationAbort.abort();
-  }
-  currentValidationAbort = new AbortController();
-
   statusBar.setState("validating");
 
   try {
-    // Discover Python
-    const pythonPath = await discoverPythonPath();
-
     // Resolve Web Template
     let webTemplatePath = await resolveWebTemplate(document.uri);
     if (!webTemplatePath) {
@@ -267,18 +251,11 @@ async function runValidation(isManual: boolean): Promise<void> {
 
     // Run validation
     const config = getConfig();
-    const result = await validateWithCli(
-      pythonPath,
+    const result = validateFlatComposition(
       webTemplatePath,
       document.getText(),
       config.platform,
-      config.validationTimeout,
     );
-
-    // Check if validation was cancelled
-    if (currentValidationAbort.signal.aborted) {
-      return;
-    }
 
     // Publish diagnostics
     publishDiagnostics(document, result, diagnosticCollection);
@@ -291,10 +268,6 @@ async function runValidation(isManual: boolean): Promise<void> {
       statusBar.setState("valid");
     }
   } catch (error) {
-    if (currentValidationAbort.signal.aborted) {
-      return;
-    }
-
     statusBar.setState("error");
 
     if (isManual) {
@@ -358,51 +331,21 @@ async function showValidPathsCommand(): Promise<void> {
     return;
   }
 
-  try {
-    const pythonPath = await discoverPythonPath();
-    const config = getConfig();
-
-    const { execFile } = await import("child_process");
-    const { promisify } = await import("util");
-    const execFileAsync = promisify(execFile);
-
-    const { stdout } = await execFileAsync(
-      pythonPath,
-      [
-        "-m",
-        "openehr_sdk.validation",
-        "show-paths",
-        "--web-template",
-        webTemplatePath,
-        "--platform",
-        config.platform,
-      ],
-      { timeout: config.validationTimeout },
-    );
-
-    outputChannel.clear();
-    outputChannel.appendLine(`Valid FLAT paths for template:\n`);
-    outputChannel.appendLine(stdout);
-    outputChannel.show();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  const config = getConfig();
+  const paths = enumerateValidPathStrings(webTemplatePath, config.platform);
+  if (!paths) {
     vscode.window.showErrorMessage(
-      `Failed to retrieve valid paths: ${message}`,
+      "Failed to retrieve valid paths: could not parse the Web Template.",
     );
+    return;
   }
-}
 
-/**
- * Check if oehrpy is installed and offer to install if not.
- */
-async function checkInstallation(): Promise<void> {
-  try {
-    const pythonPath = await discoverPythonPath();
-    const installed = await checkOehrpyInstalled(pythonPath);
-    if (!installed) {
-      offerInstallOehrpy();
-    }
-  } catch {
-    // Silently ignore — will show error when user tries to validate
+  outputChannel.clear();
+  outputChannel.appendLine(
+    `Valid FLAT paths (${config.platform}, ${paths.length} total):\n`,
+  );
+  for (const path of paths) {
+    outputChannel.appendLine(path);
   }
+  outputChannel.show();
 }

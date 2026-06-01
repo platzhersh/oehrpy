@@ -16,11 +16,10 @@ Validate openEHR FLAT format compositions against Web Templates, directly in VS 
 
 ## Requirements
 
-- **Python 3.10+** with `oehrpy` installed (`pip install oehrpy`)
 - **VS Code 1.85+**
 - A Web Template JSON file for the template you're validating against
 
-The extension discovers your Python interpreter automatically via the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python), or you can set `oehrpy.pythonPath` manually.
+Validation runs entirely in-process — **no Python interpreter is required**. (The same validation logic is also available as a Python CLI, `python -m oehrpy.validation`, for CI and scripting.)
 
 ## Getting Started
 
@@ -66,9 +65,6 @@ All settings are under the `oehrpy` namespace. Add them to `.vscode/settings.jso
 
 ```jsonc
 {
-  // Path to Python interpreter (leave empty to auto-detect)
-  "oehrpy.pythonPath": "",
-
   // CDR platform dialect
   "oehrpy.platform": "ehrbase",  // "ehrbase" | "better"
 
@@ -85,9 +81,6 @@ All settings are under the `oehrpy` namespace. Add them to `.vscode/settings.jso
 
   // Glob patterns for Web Template files
   "oehrpy.webTemplatePatterns": ["**/*.wt.json", "**/web_template.json"],
-
-  // CLI timeout in milliseconds
-  "oehrpy.validationTimeout": 5000,
 
   // Enable hover documentation
   "oehrpy.enableHover": true,
@@ -134,7 +127,7 @@ npm test
 ```bash
 npm run compile
 npx vsce package
-code --install-extension oehrpy-validator-0.1.0.vsix
+code --install-extension oehrpy-validator-0.3.0.vsix
 ```
 
 ## License
