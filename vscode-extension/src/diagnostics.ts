@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import type { CliValidationError, CliValidationResult } from "./validator";
+import type { FlatValidationError, FlatValidationResult } from "./validator";
 
 /**
  * Find the exact range of a JSON key string in a document.
@@ -30,7 +30,7 @@ export function findKeyRange(
  * Map a CLI validation error to a VS Code Diagnostic severity.
  */
 function errorTypeToSeverity(
-  errorType: CliValidationError["error_type"],
+  errorType: FlatValidationError["error_type"],
 ): vscode.DiagnosticSeverity {
   switch (errorType) {
     case "unknown_path":
@@ -47,7 +47,7 @@ function errorTypeToSeverity(
 /**
  * Format the diagnostic message including suggestion if available.
  */
-function formatDiagnosticMessage(error: CliValidationError): string {
+function formatDiagnosticMessage(error: FlatValidationError): string {
   let message = error.message;
 
   if (error.suggestion) {
@@ -62,7 +62,7 @@ function formatDiagnosticMessage(error: CliValidationError): string {
  */
 export function publishDiagnostics(
   document: vscode.TextDocument,
-  result: CliValidationResult,
+  result: FlatValidationResult,
   diagnosticCollection: vscode.DiagnosticCollection,
 ): void {
   const diagnostics: vscode.Diagnostic[] = [];

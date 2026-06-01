@@ -3,7 +3,7 @@
   "displayName": "oehrpy FLAT Validator",
   "description": "Validate openEHR FLAT format compositions against Web Templates",
   "publisher": "platzhersh",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -81,11 +81,6 @@
     "configuration": {
       "title": "oehrpy FLAT Validator",
       "properties": {
-        "oehrpy.pythonPath": {
-          "type": "string",
-          "default": "",
-          "description": "Path to Python interpreter with oehrpy installed. Leave empty to auto-detect."
-        },
         "oehrpy.platform": {
           "type": "string",
           "enum": [
@@ -126,11 +121,6 @@
           ],
           "description": "Glob patterns of files to always treat as Web Templates."
         },
-        "oehrpy.validationTimeout": {
-          "type": "number",
-          "default": 5000,
-          "description": "Maximum time (ms) to wait for CLI validation before timeout."
-        },
         "oehrpy.enableHover": {
           "type": "boolean",
           "default": true,
@@ -166,8 +156,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src/ test/ --ext .ts",
-    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js",
-    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js",
+    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js && node ./out/test/unit/validation.test.js",
+    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js && node ./out/test/unit/validation.test.js",
     "package": "vsce package",
     "build": "tsc -p ./"
   },

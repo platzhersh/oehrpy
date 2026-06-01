@@ -1,190 +1,116 @@
-import * as vscode from "vscode";
-import { execFile } from "child_process";
-import { promisify } from "util";
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
-import { getConfig, type Platform } from "./config";
-
-const execFileAsync = promisify(execFile);
-
-export interface CliValidationError {
-  path: string;
-  error_type: "unknown_path" | "wrong_suffix" | "missing_required" | "index_mismatch";
-  message: string;
-  suggestion: string | null;
-  valid_alternatives: string[];
-}
-
-export interface CliValidationResult {
-  is_valid: boolean;
-  errors: CliValidationError[];
-  warnings: CliValidationError[];
-  platform: string;
-  template_id: string;
-  valid_path_count: number;
-  checked_path_count: number;
-}
-
-export interface CliInspectResult {
-  id: string;
-  name: string;
-  rm_type: string;
-  path: string;
-  min: number;
-  max: number;
-  valid_suffixes: string[];
-}
-
 /**
- * Discover the Python interpreter path.
+ * File-loading wrappers around the in-process FLAT validator.
  *
- * Resolution order:
- * 1. VS Code Python extension API
- * 2. oehrpy.pythonPath setting
- * 3. python3 on PATH
+ * Validation runs entirely in TypeScript (see `validation.ts`) — no Python
+ * interpreter is required. Parsed Web Templates are cached by path + mtime so
+ * repeated validations of the same template are cheap.
  */
-export async function discoverPythonPath(): Promise<string> {
-  // 1. Try VS Code Python extension
-  const pythonExt = vscode.extensions.getExtension("ms-python.python");
-  if (pythonExt) {
-    if (!pythonExt.isActive) {
-      try {
-        await pythonExt.activate();
-      } catch {
-        // Activation failed, try other methods
-      }
-    }
-    try {
-      const api = pythonExt.exports as {
-        settings?: { getExecutionDetails?: (resource?: vscode.Uri) => { execCommand?: string[] } };
-      };
-      const details = api?.settings?.getExecutionDetails?.();
-      if (details?.execCommand && details.execCommand.length > 0) {
-        return details.execCommand[0];
-      }
-    } catch {
-      // API not available, try other methods
-    }
+
+import * as fs from "fs";
+import {
+  enumerateValidPaths,
+  inspectPath,
+  parseWebTemplate,
+  validateComposition,
+  type FlatValidationResult,
+  type ParsedWebTemplate,
+  type PathInspection,
+  type Platform,
+} from "./validation";
+
+export type {
+  FlatValidationError,
+  FlatValidationResult,
+  PathInspection,
+  Platform,
+} from "./validation";
+
+const templateCache = new Map<string, { parsed: ParsedWebTemplate; mtime: number }>();
+
+/**
+ * Load and parse a Web Template from disk, caching by file mtime.
+ *
+ * @throws if the file cannot be read or is not a valid Web Template.
+ */
+function loadParsedTemplate(webTemplatePath: string): ParsedWebTemplate {
+  const stat = fs.statSync(webTemplatePath);
+  const cached = templateCache.get(webTemplatePath);
+  if (cached && cached.mtime === stat.mtimeMs) {
+    return cached.parsed;
   }
 
-  // 2. Check oehrpy.pythonPath setting
-  const config = getConfig();
-  if (config.pythonPath) {
-    return config.pythonPath;
-  }
-
-  // 3. Fall back to python3
-  return "python3";
+  const content = fs.readFileSync(webTemplatePath, "utf-8");
+  const json = JSON.parse(content) as Record<string, unknown>;
+  const parsed = parseWebTemplate(json);
+  templateCache.set(webTemplatePath, { parsed, mtime: stat.mtimeMs });
+  return parsed;
 }
 
 /**
- * Check if oehrpy is installed in the discovered Python environment.
+ * Validate a FLAT composition (as raw JSON text) against a Web Template.
+ *
+ * @throws if either the Web Template or the composition cannot be parsed, or
+ *   if the composition is not a JSON object of FLAT paths to values.
  */
-export async function checkOehrpyInstalled(pythonPath: string): Promise<boolean> {
-  try {
-    await execFileAsync(pythonPath, ["-m", "openehr_sdk.validation", "--version"], {
-      timeout: 10000,
-    });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Offer to install oehrpy via pip in the VS Code terminal.
- */
-export async function offerInstallOehrpy(): Promise<void> {
-  const result = await vscode.window.showWarningMessage(
-    "oehrpy is not installed in your Python environment. Install it?",
-    "Install via pip",
-    "Cancel",
-  );
-
-  if (result === "Install via pip") {
-    const terminal = vscode.window.createTerminal("oehrpy install");
-    terminal.sendText("pip install oehrpy");
-    terminal.show();
-  }
-}
-
-/**
- * Run FLAT composition validation via the oehrpy CLI.
- */
-export async function validateWithCli(
-  pythonPath: string,
+export function validateFlatComposition(
   webTemplatePath: string,
-  compositionContent: string,
+  compositionText: string,
   platform: Platform,
-  timeoutMs: number,
-): Promise<CliValidationResult> {
-  // Write composition content to a temp file
-  const tmpDir = os.tmpdir();
-  const tmpFile = path.join(tmpDir, `oehrpy-validate-${Date.now()}.json`);
+): FlatValidationResult {
+  const parsed = loadParsedTemplate(webTemplatePath);
 
+  let composition: unknown;
   try {
-    fs.writeFileSync(tmpFile, compositionContent, "utf-8");
-
-    const { stdout } = await execFileAsync(
-      pythonPath,
-      [
-        "-m",
-        "openehr_sdk.validation",
-        "validate-flat",
-        "--web-template",
-        webTemplatePath,
-        "--composition",
-        tmpFile,
-        "--platform",
-        platform,
-        "--output",
-        "json",
-      ],
-      { timeout: timeoutMs },
-    );
-
-    try {
-      return JSON.parse(stdout) as CliValidationResult;
-    } catch {
-      throw new Error(`oehrpy CLI returned invalid JSON: ${stdout.slice(0, 200)}`);
-    }
-  } finally {
-    // Clean up temp file
-    try {
-      fs.unlinkSync(tmpFile);
-    } catch {
-      // Ignore cleanup errors
-    }
+    composition = JSON.parse(compositionText);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "invalid JSON";
+    throw new Error(`Composition is not valid JSON: ${detail}`);
   }
+
+  if (
+    typeof composition !== "object" ||
+    composition === null ||
+    Array.isArray(composition)
+  ) {
+    throw new Error("Composition must be a JSON object of FLAT paths to values.");
+  }
+
+  return validateComposition(
+    composition as Record<string, unknown>,
+    parsed,
+    platform,
+  );
 }
 
 /**
- * Inspect a FLAT path to get node documentation via the oehrpy CLI.
+ * Inspect a single FLAT path's node metadata (for hover documentation).
+ *
+ * Returns `undefined` if the template cannot be loaded or the path is unknown.
  */
-export async function inspectPathWithCli(
-  pythonPath: string,
+export function inspectFlatPath(
   webTemplatePath: string,
   flatPath: string,
-  timeoutMs: number,
-): Promise<CliInspectResult | undefined> {
+): PathInspection | undefined {
   try {
-    const { stdout } = await execFileAsync(
-      pythonPath,
-      [
-        "-m",
-        "openehr_sdk.validation",
-        "web-template",
-        "inspect",
-        "--web-template",
-        webTemplatePath,
-        "--path",
-        flatPath,
-      ],
-      { timeout: timeoutMs },
-    );
+    const parsed = loadParsedTemplate(webTemplatePath);
+    return inspectPath(parsed, flatPath);
+  } catch {
+    return undefined;
+  }
+}
 
-    return JSON.parse(stdout) as CliInspectResult;
+/**
+ * Enumerate all valid FLAT paths for a Web Template and platform.
+ *
+ * Returns `undefined` if the template cannot be loaded.
+ */
+export function enumerateValidPathStrings(
+  webTemplatePath: string,
+  platform: Platform,
+): string[] | undefined {
+  try {
+    const parsed = loadParsedTemplate(webTemplatePath);
+    return enumerateValidPaths(parsed, platform);
   } catch {
     return undefined;
   }

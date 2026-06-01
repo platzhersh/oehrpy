@@ -2,10 +2,7 @@ import * as vscode from "vscode";
 import { getConfig } from "./config";
 import { FLAT_PATH_PATTERN } from "./patterns";
 import { resolveWebTemplate } from "./templateResolver";
-import { discoverPythonPath, inspectPathWithCli, type CliInspectResult } from "./validator";
-
-const hoverCache = new Map<string, { result: CliInspectResult; timestamp: number }>();
-const HOVER_CACHE_TTL_MS = 30_000;
+import { inspectFlatPath } from "./validator";
 
 /**
  * Hover provider that shows FLAT path documentation when hovering over
@@ -41,26 +38,8 @@ export class FlatPathHoverProvider implements vscode.HoverProvider {
       return undefined;
     }
 
-    // Check cache before spawning CLI
-    const cacheKey = `${webTemplatePath}::${basePath}`;
-    const cached = hoverCache.get(cacheKey);
-    let inspectResult: CliInspectResult | undefined;
-
-    if (cached && Date.now() - cached.timestamp < HOVER_CACHE_TTL_MS) {
-      inspectResult = cached.result;
-    } else {
-      const pythonPath = await discoverPythonPath();
-      inspectResult = await inspectPathWithCli(
-        pythonPath,
-        webTemplatePath,
-        basePath,
-        config.validationTimeout,
-      );
-      if (inspectResult) {
-        hoverCache.set(cacheKey, { result: inspectResult, timestamp: Date.now() });
-      }
-    }
-
+    // Inspect the path in-process (parsed templates are cached by mtime).
+    const inspectResult = inspectFlatPath(webTemplatePath, basePath);
     if (!inspectResult) {
       return undefined;
     }
