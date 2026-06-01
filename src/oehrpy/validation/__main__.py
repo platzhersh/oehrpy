@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -265,7 +266,14 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     try:
-        sys.exit(main())
+        code = main()
+        # Flush inside the try so a closed pipe is raised here, not during
+        # interpreter shutdown (which would print "Exception ignored in:").
+        sys.stdout.flush()
+        sys.exit(code)
     except BrokenPipeError:
         # Output was piped into a command that closed early (e.g. `head`).
+        # Redirect stdout to devnull so the shutdown flush has nowhere to fail.
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, sys.stdout.fileno())
         sys.exit(0)

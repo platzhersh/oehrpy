@@ -17,26 +17,21 @@ import {
 let passed = 0;
 let failed = 0;
 
-function assert(condition: boolean, message: string): void {
+function assert(condition: boolean, message: string): asserts condition {
   if (condition) {
     passed++;
     console.log(`  PASS: ${message}`);
   } else {
     failed++;
-    console.error(`  FAIL: ${message}`);
+    throw new Error(`FAIL: ${message}`);
   }
 }
 
 function assertEqual<T>(actual: T, expected: T, message: string): void {
-  if (actual === expected) {
-    passed++;
-    console.log(`  PASS: ${message}`);
-  } else {
-    failed++;
-    console.error(
-      `  FAIL: ${message} (expected ${String(expected)}, got ${String(actual)})`,
-    );
-  }
+  assert(
+    actual === expected,
+    `${message} (expected ${String(expected)}, got ${String(actual)})`,
+  );
 }
 
 function makeWebTemplate(): Record<string, unknown> {

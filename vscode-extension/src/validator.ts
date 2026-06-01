@@ -25,10 +25,12 @@ export type {
   Platform,
 } from "./validation";
 
+const MAX_CACHED_TEMPLATES = 50;
 const templateCache = new Map<string, { parsed: ParsedWebTemplate; mtime: number }>();
 
 /**
- * Load and parse a Web Template from disk, caching by file mtime.
+ * Load and parse a Web Template from disk, caching by file mtime with a
+ * bounded, least-recently-used eviction policy.
  *
  * @throws if the file cannot be read or is not a valid Web Template.
  */
@@ -36,12 +38,23 @@ function loadParsedTemplate(webTemplatePath: string): ParsedWebTemplate {
   const stat = fs.statSync(webTemplatePath);
   const cached = templateCache.get(webTemplatePath);
   if (cached && cached.mtime === stat.mtimeMs) {
+    // Refresh recency: re-insert so this key becomes most-recently-used.
+    templateCache.delete(webTemplatePath);
+    templateCache.set(webTemplatePath, cached);
     return cached.parsed;
   }
 
   const content = fs.readFileSync(webTemplatePath, "utf-8");
   const json = JSON.parse(content) as Record<string, unknown>;
   const parsed = parseWebTemplate(json);
+
+  // Evict the least-recently-used entry once the cache is full.
+  if (templateCache.size >= MAX_CACHED_TEMPLATES) {
+    const oldest = templateCache.keys().next().value;
+    if (oldest !== undefined) {
+      templateCache.delete(oldest);
+    }
+  }
   templateCache.set(webTemplatePath, { parsed, mtime: stat.mtimeMs });
   return parsed;
 }

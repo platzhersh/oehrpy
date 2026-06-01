@@ -143,6 +143,10 @@ class TestValidateFlat:
         assert result["template_id"] == "IDCR - Adverse Reaction List.v1"
         assert result["platform"] == "ehrbase"
         assert result["valid_path_count"] > 0
+        # A valid composition may still carry missing_required warnings (the
+        # required-field groups treat each suffix variant independently), but
+        # never path-level warnings such as unknown_path / wrong_suffix.
+        assert all(w["error_type"] == "missing_required" for w in result["warnings"])
 
     def test_unknown_path_reports_error_with_suggestion(
         self, tmp_path: Path, wt_file: str, capsys: pytest.CaptureFixture[str]
