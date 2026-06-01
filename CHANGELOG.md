@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.14.0 (2026-06-01)
+
+### Build System
+
+- **deps**: Pin dependencies to exact versions and drop unused extras (#53)
+  ([#53](https://github.com/platzhersh/oehrpy/pull/53),
+  [`0c941ee`](https://github.com/platzhersh/oehrpy/commit/0c941eefbbe369120994a2520f8df1b2c94b8aef))
+
+### Features
+
+- **vscode**: Add Web Template tree view to Explorer sidebar (#55)
+  ([#55](https://github.com/platzhersh/oehrpy/pull/55),
+  [`aef2e1e`](https://github.com/platzhersh/oehrpy/commit/aef2e1e1b3c2cf87c536a7a414b17215758af4ac))
+
+
 ## v0.13.0 (2026-05-31)
 
 ### Features
