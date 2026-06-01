@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.14.1 (2026-06-01)
+
+### Bug Fixes
+
+- **vscode**: Validate in-process + add oehrpy.validation CLI (#59)
+  ([#59](https://github.com/platzhersh/oehrpy/pull/59),
+  [`4491765`](https://github.com/platzhersh/oehrpy/commit/4491765072153e898e32fbf777f3bbccb5a4a9d4))
+
+### Testing
+
+- **vscode**: Expand Web Template tree parsing unit tests (#58)
+  ([#58](https://github.com/platzhersh/oehrpy/pull/58),
+  [`ea00256`](https://github.com/platzhersh/oehrpy/commit/ea00256a812599cee83e11e8c1279926a36a032a))
+
+
 ## v0.14.0 (2026-06-01)
 
 ### Build System
