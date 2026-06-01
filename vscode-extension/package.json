@@ -3,7 +3,7 @@
   "displayName": "oehrpy FLAT Validator",
   "description": "Validate openEHR FLAT format compositions against Web Templates",
   "publisher": "platzhersh",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -41,8 +41,43 @@
       {
         "command": "oehrpy.showValidPaths",
         "title": "oehrpy: Show Valid Paths for Template"
+      },
+      {
+        "command": "oehrpy.refreshTemplateTree",
+        "title": "oehrpy: Refresh Web Template Tree",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "oehrpy.copyFlatPath",
+        "title": "oehrpy: Copy FLAT Path",
+        "icon": "$(clippy)"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "oehrpy.templateExplorer",
+          "name": "openEHR Web Template",
+          "when": "oehrpy.hasWebTemplate"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "oehrpy.refreshTemplateTree",
+          "when": "view == oehrpy.templateExplorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "oehrpy.copyFlatPath",
+          "when": "view == oehrpy.templateExplorer",
+          "group": "inline"
+        }
+      ]
+    },
     "configuration": {
       "title": "oehrpy FLAT Validator",
       "properties": {
@@ -110,6 +145,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable FLAT path autocomplete suggestions from Web Template."
+        },
+        "oehrpy.enableTemplateExplorer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Web Template structure as a tree view in the Explorer sidebar."
         }
       }
     },
@@ -126,8 +166,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src/ test/ --ext .ts",
-    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js",
-    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js",
+    "test": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js",
+    "test:unit": "tsc -p ./ && node ./out/test/unit/detector.test.js && node ./out/test/unit/autocomplete.test.js && node ./out/test/unit/templateTree.test.js",
     "package": "vsce package",
     "build": "tsc -p ./"
   },

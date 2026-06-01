@@ -9,6 +9,8 @@ import {
 import { FlatPathHoverProvider } from "./hover";
 import { FlatPathQuickFixProvider } from "./quickfix";
 import { OehrpyStatusBar } from "./statusBar";
+import { WebTemplateTreeProvider } from "./templateTree";
+import type { TemplateTreeNode } from "./webTemplate";
 import {
   initTemplateResolver,
   resolveWebTemplate,
@@ -24,6 +26,7 @@ import {
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 let statusBar: OehrpyStatusBar;
+let templateTreeProvider: WebTemplateTreeProvider;
 let outputChannel: vscode.OutputChannel;
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 let currentValidationAbort: AbortController | undefined;
@@ -94,9 +97,36 @@ export function activate(context: vscode.ExtensionContext): void {
     ),
   );
 
+  // Register the Web Template tree view (explorer sidebar)
+  templateTreeProvider = new WebTemplateTreeProvider();
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider(
+      "oehrpy.templateExplorer",
+      templateTreeProvider,
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("oehrpy.refreshTemplateTree", () =>
+      templateTreeProvider.reload(),
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "oehrpy.copyFlatPath",
+      (node?: TemplateTreeNode) => copyFlatPathCommand(node),
+    ),
+  );
+
   // Validate on save
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((document) => {
+      // Refresh the tree if the displayed Web Template file was saved.
+      if (document.uri.fsPath === templateTreeProvider.sourcePath) {
+        templateTreeProvider.reload();
+      }
+
       const config = getConfig();
       if (!config.validateOnSave) {
         return;
@@ -122,6 +152,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // Update status bar when active editor changes
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((editor) => {
+      // Keep the Web Template tree in sync with the active file.
+      void templateTreeProvider.syncWithActiveEditor();
+
       if (!editor || editor.document.languageId !== "json") {
         statusBar.setState("idle");
         return;
@@ -159,6 +192,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Check oehrpy installation on activation
   checkInstallation();
+
+  // Populate the Web Template tree for the current file
+  void templateTreeProvider.syncWithActiveEditor();
 
   // Validate current file if it's a FLAT composition
   const activeEditor = vscode.window.activeTextEditor;
@@ -290,6 +326,20 @@ async function selectWebTemplateCommand(): Promise<void> {
     // Re-run validation
     runValidation(false);
   }
+}
+
+/**
+ * Command to copy a tree node's FLAT path to the clipboard.
+ */
+async function copyFlatPathCommand(node?: TemplateTreeNode): Promise<void> {
+  if (!node) {
+    return;
+  }
+  await vscode.env.clipboard.writeText(node.flatPath);
+  vscode.window.setStatusBarMessage(
+    `$(clippy) Copied: ${node.flatPath}`,
+    3000,
+  );
 }
 
 /**

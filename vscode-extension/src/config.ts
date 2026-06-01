@@ -13,6 +13,7 @@ export interface OehrpyConfig {
   enableHover: boolean;
   enableQuickFix: boolean;
   enableAutocomplete: boolean;
+  enableTemplateExplorer: boolean;
 }
 
 export function getConfig(): OehrpyConfig {
@@ -33,5 +34,6 @@ export function getConfig(): OehrpyConfig {
     enableHover: config.get<boolean>("enableHover", true),
     enableQuickFix: config.get<boolean>("enableQuickFix", true),
     enableAutocomplete: config.get<boolean>("enableAutocomplete", true),
+    enableTemplateExplorer: config.get<boolean>("enableTemplateExplorer", true),
   };
 }
