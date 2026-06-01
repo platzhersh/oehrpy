@@ -9,6 +9,7 @@ Validate openEHR FLAT format compositions against Web Templates, directly in VS 
 - **FLAT path autocomplete** — IntelliSense completions for all valid FLAT paths derived from the Web Template
 - **Hover documentation** — hover over a FLAT key to see RM type, cardinality, and valid suffixes
 - **Quick Fix** — lightbulb suggestions to replace invalid paths with "did you mean?" corrections
+- **Web Template tree view** — browse the template structure in the Explorer sidebar; click a node to copy its FLAT path
 - **Status bar** — shows validation state (valid, errors, no template) in the bottom bar
 - **Web Template auto-detection** — finds templates from workspace config, same directory, or `templates/` folder
 - **Manual command** — `oehrpy: Validate FLAT Composition` (Ctrl+Shift+F10 / Cmd+Shift+F10)
@@ -44,6 +45,20 @@ The extension finds the Web Template for a composition in this order:
 | `oehrpy: Validate FLAT Composition` | Ctrl+Shift+F10 | Validate the active JSON file |
 | `oehrpy: Select Web Template for This File` | — | Pick a Web Template for the current file |
 | `oehrpy: Show Valid Paths for Template` | — | List all valid FLAT paths in the output panel |
+| `oehrpy: Refresh Web Template Tree` | — | Reload the Web Template tree view from disk |
+| `oehrpy: Copy FLAT Path` | — | Copy the selected tree node's FLAT path to the clipboard |
+
+## Web Template Tree View
+
+When the active editor is a Web Template (or a FLAT composition with a resolvable template), an **openEHR Web Template** view appears in the Explorer sidebar. It mirrors the template `tree` as a collapsible structure:
+
+- Each node shows its **name**, **RM type**, and **cardinality** (`min..max`, with `*` for unbounded)
+- Container nodes (`COMPOSITION`, `SECTION`, `OBSERVATION`, …) use a namespace icon; addressable data nodes use a field icon
+- **Hover** a node for the full FLAT path, required flag, and valid `|suffix` attributes
+- **Click** a node (or use the inline copy button) to copy its FLAT path to the clipboard — handy for building compositions
+- The tree follows the active editor and reloads automatically when the template file is saved; use the title-bar refresh button to reload manually
+
+The view is parsed entirely from the Web Template JSON and needs no Python interpreter. Disable it with `oehrpy.enableTemplateExplorer: false`.
 
 ## Settings
 
@@ -81,7 +96,10 @@ All settings are under the `oehrpy` namespace. Add them to `.vscode/settings.jso
   "oehrpy.enableQuickFix": true,
 
   // Enable FLAT path autocomplete
-  "oehrpy.enableAutocomplete": true
+  "oehrpy.enableAutocomplete": true,
+
+  // Show the Web Template structure as a tree view in the Explorer sidebar
+  "oehrpy.enableTemplateExplorer": true
 }
 ```
 
