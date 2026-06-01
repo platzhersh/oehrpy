@@ -38,8 +38,6 @@ export type OptValidationOutcome =
   | { kind: "unavailable"; detail: string }
   | { kind: "error"; detail: string };
 
-const OPENEHR_NS = "schemas.openehr.org";
-
 /**
  * Classify a document as an OPT 1.4 template.
  *
@@ -55,11 +53,15 @@ export function classifyOptDocument(fileName: string, text: string): boolean {
   // Scan a bounded prefix for a <template> element declaring the openEHR
   // namespace, to stay cheap on large files.
   const head = text.slice(0, 4000);
-  const templateMatch = /<template\b[^>]*>/i.exec(head);
+  const templateMatch = /<(?:[\w.-]+:)?template\b[^>]*>/i.exec(head);
   if (!templateMatch) {
     return false;
   }
-  return templateMatch[0].includes(OPENEHR_NS) || head.includes(OPENEHR_NS);
+  // Require the openEHR namespace on an xmlns of the <template> tag itself, so
+  // the namespace string appearing elsewhere in the prefix can't false-positive.
+  return /\bxmlns(?::\w+)?=["'][^"']*schemas\.openehr\.org[^"']*["']/i.test(
+    templateMatch[0],
+  );
 }
 
 /**

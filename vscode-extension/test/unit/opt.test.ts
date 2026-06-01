@@ -64,6 +64,20 @@ assert(
   !classifyOptDocument("data.xml", "<template>missing namespace</template>"),
   "<template> without openEHR namespace is not OPT",
 );
+assert(
+  !classifyOptDocument(
+    "decoy.xml",
+    "<!-- see schemas.openehr.org/v1 -->\n<template>no xmlns here</template>",
+  ),
+  "openEHR namespace outside the <template> xmlns does not false-positive",
+);
+assert(
+  classifyOptDocument(
+    "prefixed.xml",
+    '<oe:template xmlns:oe="http://schemas.openehr.org/v1"></oe:template>',
+  ),
+  "prefixed xmlns on the template tag is OPT",
+);
 assert(!classifyOptDocument("notes.txt", "just text"), "plain text is not OPT");
 
 console.log("\nlocateOptIssue:");

@@ -151,7 +151,11 @@ export function activate(context: vscode.ExtensionContext): void {
         if (optDebounceTimer) {
           clearTimeout(optDebounceTimer);
         }
-        optDebounceTimer = setTimeout(() => runOptValidation(false), 500);
+        // Capture the saved document so a tab switch during the debounce
+        // window doesn't redirect validation to a different file.
+        optDebounceTimer = setTimeout(() => {
+          void runOptValidationFor(document, false);
+        }, 500);
         return;
       }
 
@@ -424,6 +428,7 @@ async function runOptValidationFor(
 ): Promise<void> {
   const config = getConfig();
   if (!config.enableOptValidation) {
+    optDiagnosticCollection.delete(document.uri);
     if (isManual) {
       vscode.window.showInformationMessage(
         "OPT validation is disabled (oehrpy.enableOptValidation).",
@@ -433,6 +438,7 @@ async function runOptValidationFor(
   }
 
   if (!classifyOptDocument(document.fileName, document.getText())) {
+    optDiagnosticCollection.delete(document.uri);
     if (isManual) {
       vscode.window.showWarningMessage(
         "Active file is not an OPT template (.opt or openEHR <template> XML).",
@@ -442,6 +448,7 @@ async function runOptValidationFor(
   }
 
   if (document.uri.scheme !== "file") {
+    optDiagnosticCollection.delete(document.uri);
     if (isManual) {
       vscode.window.showWarningMessage(
         "OPT validation requires the file to be saved to disk.",
@@ -452,7 +459,13 @@ async function runOptValidationFor(
 
   // The CLI reads from disk; ensure manual runs validate current content.
   if (isManual && document.isDirty) {
-    await document.save();
+    const saved = await document.save();
+    if (!saved) {
+      vscode.window.showWarningMessage(
+        "OPT validation was skipped because the file could not be saved.",
+      );
+      return;
+    }
   }
 
   try {
