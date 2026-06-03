@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.15.0 (2026-06-03)
+
+### Features
+
+- **vscode**: Add OPT template validation (Phase 3E) (#60)
+  ([#60](https://github.com/platzhersh/oehrpy/pull/60),
+  [`dc13532`](https://github.com/platzhersh/oehrpy/commit/dc13532f6398ec76c15fdbe7fe00b1de45214780))
+
+
 ## v0.14.1 (2026-06-01)
 
 ### Bug Fixes
