@@ -425,6 +425,7 @@ Apache-2.0
 - [ADR-0001: RM 1.1.0 Support](docs/adr/0001-odin-parsing-and-rm-1.1.0-support.md)
 - [ADR-0002: Integration Testing](docs/adr/0002-integration-testing-with-ehrbase.md)
 - [ADR-0007: Dual-Backend FLAT Validation](docs/adr/0007-dual-backend-flat-validation.md)
+- [ADR-0008: OPT Validation in VS Code via the Python CLI](docs/adr/0008-opt-validation-via-python-cli-in-vscode.md)
 - [PRD-0000: Python openEHR SDK](docs/prd/PRD-0000-python-openehr-sdk.md)
 - [PRD-0008: OPT Validator](docs/prd/PRD-0008-opt-validator.md)
 

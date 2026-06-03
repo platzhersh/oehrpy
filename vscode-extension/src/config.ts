@@ -12,6 +12,9 @@ export interface OehrpyConfig {
   enableQuickFix: boolean;
   enableAutocomplete: boolean;
   enableTemplateExplorer: boolean;
+  enableOptValidation: boolean;
+  pythonPath: string;
+  optValidationTimeout: number;
 }
 
 export function getConfig(): OehrpyConfig {
@@ -31,5 +34,8 @@ export function getConfig(): OehrpyConfig {
     enableQuickFix: config.get<boolean>("enableQuickFix", true),
     enableAutocomplete: config.get<boolean>("enableAutocomplete", true),
     enableTemplateExplorer: config.get<boolean>("enableTemplateExplorer", true),
+    enableOptValidation: config.get<boolean>("enableOptValidation", true),
+    pythonPath: config.get<string>("pythonPath", ""),
+    optValidationTimeout: config.get<number>("optValidationTimeout", 15000),
   };
 }
