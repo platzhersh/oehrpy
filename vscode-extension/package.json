@@ -24,6 +24,7 @@
     "clinical",
     "oehrpy"
   ],
+  "icon": "icon.png",
   "activationEvents": [
     "onLanguage:json",
     "onLanguage:xml",

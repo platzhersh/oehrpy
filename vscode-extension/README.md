@@ -141,8 +141,23 @@ npm test
 ```bash
 npm run compile
 npx vsce package
-code --install-extension oehrpy-validator-0.3.0.vsix
+code --install-extension oehrpy-validator-0.4.0.vsix
 ```
+
+### CI & Publishing
+
+- **CI** — every push/PR that touches `vscode-extension/**` runs the
+  [VS Code Extension CI](../.github/workflows/vscode-extension-ci.yml) workflow:
+  `npm ci`, lint, compile, unit tests, and a `vsce package` smoke test (the
+  built `.vsix` is uploaded as an artifact).
+- **Icon** — `icon.png` is generated from the project logo by
+  `python scripts/generate-icon.py` (pure stdlib, no image libraries).
+- **Publishing** — run the
+  [Publish VS Code Extension](../.github/workflows/vscode-extension-publish.yml)
+  workflow manually after bumping `version` in `package.json`. It publishes to
+  the VS Code Marketplace when the `VSCE_PAT` secret is set, and to Open VSX
+  when `OVSX_PAT` is set; use the **dry_run** input to package without
+  publishing. Publisher: `platzhersh`.
 
 ## License
 
