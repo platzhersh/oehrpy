@@ -200,10 +200,11 @@ from lsprotocol import types
 
 server = LanguageServer("oehrpy-lsp", "v0.1.0")
 
+
 @server.feature(types.TEXT_DOCUMENT_DID_SAVE)
 def on_save(ls: LanguageServer, params: types.DidSaveTextDocumentParams):
     doc = ls.workspace.get_text_document(params.text_document.uri)
-    kind = classify(doc.source)          # documents.py
+    kind = classify(doc.source)  # documents.py
     if kind is DocumentKind.FLAT:
         result = flat_validator.validate(doc.source, resolve_web_template(doc.uri))
     elif kind is DocumentKind.OPT:
