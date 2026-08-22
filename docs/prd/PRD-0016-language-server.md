@@ -224,6 +224,7 @@ def validate_and_publish(ls: LanguageServer, uri: str, source: str) -> None:
     elif kind is DocumentKind.OPT:
         result = opt_validator.validate(source)
     else:
+        ls.publish_diagnostics(uri, [])  # clear stale diagnostics from a prior classification
         return
     ls.publish_diagnostics(uri, to_lsp_diagnostics(result))
 
@@ -236,6 +237,9 @@ def on_open(ls: LanguageServer, params: types.DidOpenTextDocumentParams):
 
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
 def on_change(ls: LanguageServer, params: types.DidChangeTextDocumentParams):
+    # Debounced (~300ms) and cancelled on a newer change for the same uri —
+    # a large OPT document re-validated synchronously on every keystroke
+    # would block the server. Elided here; see Phase 1 (§7).
     doc = ls.workspace.get_text_document(params.text_document.uri)
     validate_and_publish(ls, doc.uri, doc.source)
 
@@ -323,6 +327,7 @@ the binary described in §6.1 rather than depending on the PyPI package.
 | `pygls` scaffold, `oehrpy.lsp.__main__` entry point | |
 | Document classification port (`documents.py`) | One-time port of `detector.ts`'s heuristics |
 | FLAT diagnostics via `FlatValidator` | Reuses `oehrpy.validation` directly — no logic port |
+| Debounce + cancellation for `didChange` validation (~300ms, per-uri) | Prevents blocking the server on rapid edits or large OPT documents |
 | Hover, completion, code actions for FLAT | |
 | Parity test suite vs. `vscode-extension/test/unit/validation.test.ts` fixtures | Extends ADR-0007's parity discipline |
 
