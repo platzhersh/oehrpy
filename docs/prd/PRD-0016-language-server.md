@@ -215,39 +215,51 @@ from pygls.server import LanguageServer
 from lsprotocol import types
 
 server = LanguageServer("oehrpy-lsp", "v0.1.0")
+_latest_version: dict[str, int] = {}  # uri -> highest document version seen so far
 
 
-def validate_and_publish(ls: LanguageServer, uri: str, source: str) -> None:
+def validate_and_publish(ls: LanguageServer, uri: str, source: str, version: int) -> None:
+    # Guards didOpen/didChange/didSave alike: a debounced didChange result
+    # computed against an older version must not overwrite diagnostics a
+    # later event already published for this uri. Also passed as the LSP
+    # `version` on publish_diagnostics so a client that tracks it can drop
+    # a late arrival on its own.
+    if version < _latest_version.get(uri, -1):
+        return
+    _latest_version[uri] = version
+
     kind = classify(uri, source)  # documents.py — uri carries the .opt extension
     if kind is DocumentKind.FLAT:
         result = flat_validator.validate(source, resolve_web_template(uri))
     elif kind is DocumentKind.OPT:
         result = opt_validator.validate(source)
     else:
-        ls.publish_diagnostics(uri, [])  # clear stale diagnostics from a prior classification
+        ls.publish_diagnostics(uri, [], version=version)  # clear stale diagnostics
         return
-    ls.publish_diagnostics(uri, to_lsp_diagnostics(result))
+    ls.publish_diagnostics(uri, to_lsp_diagnostics(result), version=version)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)
 def on_open(ls: LanguageServer, params: types.DidOpenTextDocumentParams):
     doc = ls.workspace.get_text_document(params.text_document.uri)
-    validate_and_publish(ls, doc.uri, doc.source)
+    validate_and_publish(ls, doc.uri, doc.source, doc.version)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
 def on_change(ls: LanguageServer, params: types.DidChangeTextDocumentParams):
     # Debounced (~300ms) and cancelled on a newer change for the same uri —
     # a large OPT document re-validated synchronously on every keystroke
-    # would block the server. Elided here; see Phase 1 (§7).
+    # would block the server. Elided here; see Phase 1 (§7). The version
+    # guard above, not the debounce alone, is what prevents a delayed
+    # result from overwriting a newer didOpen/didSave publish.
     doc = ls.workspace.get_text_document(params.text_document.uri)
-    validate_and_publish(ls, doc.uri, doc.source)
+    validate_and_publish(ls, doc.uri, doc.source, doc.version)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_SAVE)
 def on_save(ls: LanguageServer, params: types.DidSaveTextDocumentParams):
     doc = ls.workspace.get_text_document(params.text_document.uri)
-    validate_and_publish(ls, doc.uri, doc.source)
+    validate_and_publish(ls, doc.uri, doc.source, doc.version)
 ```
 
 ### 5.3 VS Code Client
@@ -328,6 +340,7 @@ the binary described in §6.1 rather than depending on the PyPI package.
 | Document classification port (`documents.py`) | One-time port of `detector.ts`'s heuristics |
 | FLAT diagnostics via `FlatValidator` | Reuses `oehrpy.validation` directly — no logic port |
 | Debounce + cancellation for `didChange` validation (~300ms, per-uri) | Prevents blocking the server on rapid edits or large OPT documents |
+| Per-uri version guard across didOpen/didChange/didSave | Discards a stale debounced result so it can't overwrite a newer publish for the same uri |
 | Hover, completion, code actions for FLAT | |
 | Parity test suite vs. `vscode-extension/test/unit/validation.test.ts` fixtures | Extends ADR-0007's parity discipline |
 
