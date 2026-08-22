@@ -99,11 +99,18 @@ support (tracked as future work, same as PRD-0015 Phase 3F/future).
 
 ### 4.1 Server Activation and Transport
 
-`oehrpy-lsp` speaks LSP over **stdio** (the default for editor-spawned
-servers) and, for debugging, optionally over TCP. It is a long-lived
-process started once per workspace by the client, not spawned per
-validation (this is the deliberate contrast with ADR-0008's per-save CLI
-subprocess).
+`oehrpy-lsp` speaks LSP over **stdio** (the default and only transport for
+editor-spawned clients). It is a long-lived process started once per
+workspace by the client, not spawned per validation (this is the deliberate
+contrast with ADR-0008's per-save CLI subprocess).
+
+An optional **TCP transport exists for debugging only**, is off unless
+explicitly enabled (`--tcp <port>`), binds to loopback (`127.0.0.1`) by
+default, and refuses to bind a non-loopback interface without an explicit
+`--allow-remote` flag plus a shared-secret handshake. Without that flag,
+attempting a non-loopback bind is a hard error — a reachable TCP listener
+would let any network peer send LSP requests against a process with
+workspace and Web Template file access.
 
 ### 4.2 Document Classification
 
@@ -127,10 +134,19 @@ per editor.
 | `workspace/didChangeConfiguration` | Platform (`ehrbase`/`better`), Web Template resolution paths | `config.ts` |
 | Custom: `oehrpy/webTemplateTree` | Serialized Web Template tree | `templateTree.ts` (client renders it; server just supplies data) |
 
-Diagnostic severity mapping is unchanged from PRD-0015 §4.5 / ADR-0007's
+FLAT diagnostic severity mapping is unchanged from PRD-0015 §4.5 / ADR-0007's
 JSON contract (`unknown_path`/`wrong_suffix`/`index_mismatch` → Error,
 `missing_required` → Warning) — the server emits LSP diagnostics built from
 the same `ValidationResult` shape, not a new schema.
+
+That covers only FLAT's four error types. `OPTValidator` exposes **25 issue
+codes** across four categories (well-formedness, semantic, structural,
+FLAT-path-impact — ADR-0008), each of which needs an explicit LSP severity
+before OPT diagnostics can be treated as part of the §4.6 parity contract.
+Phase 2 (§7) must produce the full code → severity table (a starting point:
+well-formedness and structural issues → Error, FLAT-path-impact → Warning,
+mirroring the CLI's existing `error_count` split) rather than leaving it
+implicit.
 
 ### 4.4 Web Template Resolution
 
@@ -201,17 +217,33 @@ from lsprotocol import types
 server = LanguageServer("oehrpy-lsp", "v0.1.0")
 
 
+def validate_and_publish(ls: LanguageServer, uri: str, source: str) -> None:
+    kind = classify(uri, source)  # documents.py — uri carries the .opt extension
+    if kind is DocumentKind.FLAT:
+        result = flat_validator.validate(source, resolve_web_template(uri))
+    elif kind is DocumentKind.OPT:
+        result = opt_validator.validate(source)
+    else:
+        return
+    ls.publish_diagnostics(uri, to_lsp_diagnostics(result))
+
+
+@server.feature(types.TEXT_DOCUMENT_DID_OPEN)
+def on_open(ls: LanguageServer, params: types.DidOpenTextDocumentParams):
+    doc = ls.workspace.get_text_document(params.text_document.uri)
+    validate_and_publish(ls, doc.uri, doc.source)
+
+
+@server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
+def on_change(ls: LanguageServer, params: types.DidChangeTextDocumentParams):
+    doc = ls.workspace.get_text_document(params.text_document.uri)
+    validate_and_publish(ls, doc.uri, doc.source)
+
+
 @server.feature(types.TEXT_DOCUMENT_DID_SAVE)
 def on_save(ls: LanguageServer, params: types.DidSaveTextDocumentParams):
     doc = ls.workspace.get_text_document(params.text_document.uri)
-    kind = classify(doc.source)  # documents.py
-    if kind is DocumentKind.FLAT:
-        result = flat_validator.validate(doc.source, resolve_web_template(doc.uri))
-    elif kind is DocumentKind.OPT:
-        result = opt_validator.validate(doc.source)
-    else:
-        return
-    ls.publish_diagnostics(doc.uri, to_lsp_diagnostics(result))
+    validate_and_publish(ls, doc.uri, doc.source)
 ```
 
 ### 5.3 VS Code Client
@@ -247,10 +279,27 @@ via [PyInstaller](https://pyinstaller.org/) or
 (win-x64, macos-x64/arm64, linux-x64). Only users on an unsupported platform
 fall back to the `python -m oehrpy.lsp` discovery chain.
 
+**Release integrity.** CI publishes a SHA-256 checksum manifest alongside
+each per-platform binary, signed with the same mechanism the repo's release
+pipeline already uses for PyPI artifacts (ADR-0004). `serverDiscovery.ts`
+verifies the bundled binary's checksum against the manifest embedded in the
+`.vsix` before executing it and **fails closed** (falls through to the
+`python -m oehrpy.lsp` discovery chain rather than running an unverified
+binary) on a mismatch or missing manifest. A green CI smoke test proves the
+binary runs; it does not prove the artifact a user's machine executes is the
+one CI built, which is what the checksum step establishes.
+
 ### 6.2 Standalone (other editors)
 
+The server ships as **one distribution model**: the `oehrpy[lsp]` extra —
+not a separate `oehrpy-lsp` PyPI package — so its version stays locked to
+the validation engine it wraps, avoiding the version-skew risk ADR-0009
+flags. `pyproject.toml` declares an `oehrpy-lsp` console-script entry point
+(`[project.scripts] oehrpy-lsp = "oehrpy.lsp.__main__:main"`) so the command
+below is on `PATH` after either install method:
+
 ```bash
-pip install "oehrpy[lsp]"      # or: pipx install oehrpy-lsp
+pip install "oehrpy[lsp]"      # or: pipx install "oehrpy[lsp]"
 oehrpy-lsp --stdio
 ```
 
@@ -259,11 +308,9 @@ oehrpy-lsp --stdio
 
 ### 6.3 PyPI / Marketplace
 
-The server ships as part of the `oehrpy` distribution (`oehrpy[lsp]` extra)
-so its version stays locked to the validation engine it wraps, avoiding the
-version-skew risk ADR-0009 flags. The VS Code extension continues to
-publish independently to the Marketplace, per its existing versioning
-(ADR-0007 §Neutral).
+The VS Code extension continues to publish independently to the
+Marketplace, per its existing versioning (ADR-0007 §Neutral), and bundles
+the binary described in §6.1 rather than depending on the PyPI package.
 
 ---
 
@@ -323,9 +370,13 @@ server, superseding PRD-0015 Phase 3F/future as VS Code-specific plans.
 
 ## 9. Success Metrics
 
-- `oehrpy-lsp` diagnostics are byte-for-byte equivalent (error/warning
-  counts, suggestions) to the current TS FLAT validator and OPT CLI on the
-  reference fixtures before either legacy path is removed
+- `oehrpy-lsp` diagnostics reach **semantic parity** with the current TS
+  FLAT validator and OPT CLI on the reference fixtures before either legacy
+  path is removed: for each finding, the normalized fields — validity,
+  issue code, severity, message text, suggestions, and ordering — match.
+  ("Byte-for-byte" isn't the right bar: LSP diagnostics carry wire fields
+  (URI, `Range`, source) the legacy JSON contract never had, so an exact
+  serialization match is neither possible nor meaningful.)
 - VS Code users see no change in validate-on-save latency or configuration
   burden after cutover
 - At least one non-VS-Code editor (Neovim) documented and confirmed working
@@ -345,10 +396,15 @@ server, superseding PRD-0015 Phase 3F/future as VS Code-specific plans.
 **Neovim** (new):
 ```lua
 -- ~/.config/nvim/lua/lsp/oehrpy.lua
+
+-- Neovim has no built-in filetype for .opt; without this the client below
+-- never attaches to OPT template files.
+vim.filetype.add({ extension = { opt = 'opt' } })
+
 require('lspconfig.configs').oehrpy = {
   default_config = {
     cmd = { 'oehrpy-lsp', '--stdio' },
-    filetypes = { 'json', 'xml' },
+    filetypes = { 'json', 'xml', 'opt' },
     root_dir = require('lspconfig.util').root_pattern('web_template.json', '.git'),
   },
 }
