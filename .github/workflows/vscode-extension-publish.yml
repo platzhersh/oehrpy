@@ -1,0 +1,61 @@
+name: Publish VS Code Extension
+
+# Manual publish: bump "version" in vscode-extension/package.json first, then
+# run this workflow. Publishing is gated on the VSCE_PAT (VS Code Marketplace)
+# and OVSX_PAT (Open VSX) repository secrets — the relevant step is skipped if
+# its secret is absent. Use the "dry_run" input to package without publishing.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Package only (do not publish)"
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    name: Package & Publish
+    runs-on: ubuntu-latest
+    if: github.repository == 'platzhersh/oehrpy'
+    defaults:
+      run:
+        working-directory: vscode-extension
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Package VSIX
+        run: npx vsce package --no-dependencies -o oehrpy-validator.vsix
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oehrpy-validator-vsix
+          path: vscode-extension/oehrpy-validator.vsix
+          if-no-files-found: error
+
+      - name: Publish to VS Code Marketplace
+        if: ${{ !inputs.dry_run && env.VSCE_PAT != '' }}
+        run: npx vsce publish --no-dependencies --packagePath oehrpy-validator.vsix
+
+      - name: Publish to Open VSX
+        if: ${{ !inputs.dry_run && env.OVSX_PAT != '' }}
+        run: npx ovsx publish oehrpy-validator.vsix -p "$OVSX_PAT"
