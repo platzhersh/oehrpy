@@ -1377,6 +1377,22 @@ function showToast(message, type, duration) {
   }
 }
 
+// Look up the pure-Python wheel of a PyPI project (latest release, or the
+// given version) via PyPI's JSON API, which allows cross-origin requests.
+async function findPureWheelUrl(project, version) {
+  var url = 'https://pypi.org/pypi/' + project + '/' + (version ? encodeURIComponent(version) + '/' : '') + 'json';
+  var resp = await fetch(url);
+  if (!resp.ok) {
+    throw new Error('PyPI lookup failed for ' + project + (version ? '==' + version : '') + ' (HTTP ' + resp.status + ')');
+  }
+  var data = await resp.json();
+  var wheel = (data.urls || []).find(function(f) {
+    return f.packagetype === 'bdist_wheel' && /-none-any\.whl$/.test(f.filename);
+  });
+  if (!wheel) throw new Error('No pure-Python wheel on PyPI for ' + project + ' ' + data.info.version);
+  return wheel.url;
+}
+
 async function initPyodide() {
   setLoadingStep('Loading Python runtime...');
   updateEngineStatus('loading', 'Loading Python...');
@@ -1397,22 +1413,26 @@ async function initPyodide() {
 
     setLoadingStep('Installing oehrpy...');
 
-    // Install oehrpy via micropip. oehrpy pins exact dependency versions
+    // Install oehrpy. oehrpy pins exact dependency versions
     // (pydantic==2.13.4 -> pydantic-core==2.46.4), but pydantic-core is a
     // compiled extension and Pyodide can only use the WebAssembly build it
-    // ships itself, so resolving the pins always fails in the browser. Use
-    // Pyodide's bundled pydantic instead, install oehrpy without its pinned
-    // dependencies, and add the one other dependency the validators import
-    // (defusedxml, pure Python). httpx is only needed by the EHRBase client.
-    await pyodideInstance.loadPackage(['micropip', 'pydantic']);
+    // ships itself, so resolving the pins always fails in the browser. So:
+    // load Pyodide's bundled pydantic, then load the oehrpy and defusedxml
+    // wheels straight from PyPI by URL. loadPackage() installs a wheel URL
+    // without resolving its dependencies. micropip is deliberately not used:
+    // the micropip bundled with Pyodide 0.27 (0.8.0) never awaits the wheel
+    // download when deps=False and fails with "attempted to install wheel
+    // before downloading it". httpx is only needed by the EHRBase client.
+    await pyodideInstance.loadPackage('pydantic');
     if (pyodideTimedOut) return;
 
-    var micropip = pyodideInstance.pyimport('micropip');
-
     var requestedVersion = getRequestedVersion();
-    var packageSpec = requestedVersion ? 'oehrpy==' + requestedVersion : 'oehrpy';
-    await micropip.install('defusedxml');
-    await micropip.install.callKwargs(packageSpec, { deps: false });
+    var wheelUrls = await Promise.all([
+      findPureWheelUrl('oehrpy', requestedVersion),
+      findPureWheelUrl('defusedxml', null)
+    ]);
+    if (pyodideTimedOut) return;
+    await pyodideInstance.loadPackage(wheelUrls);
     if (pyodideTimedOut) return;
 
     setLoadingStep('Importing validation module...');
