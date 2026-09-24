@@ -437,3 +437,18 @@ Apache-2.0
 - [EHRBase Documentation](https://docs.ehrbase.org/) *(Note: FLAT format docs may be outdated, see our [FLAT Format Versions](docs/FLAT_FORMAT_VERSIONS.md) guide)*
 - [Building Open CIS Part 4: The openEHR SDK Landscape](https://medium.com/@platzh1rsch/building-open-cis-part-4-the-openehr-sdk-landscape-1b93411ec279)
 - [Building Open CIS Part 5: oehrpy — A Python SDK for openEHR](https://medium.com/@platzh1rsch/building-open-cis-part-5-oehrpy-a-python-sdk-for-openehr-c9c90f46d075)
+
+## Related Projects
+
+- [openEHR Explorer](https://github.com/platzhersh/openehr-explorer) — cross-platform desktop app for browsing, querying, and inspecting openEHR CDRs ([openehr-explorer.dev](https://openehr-explorer.dev/))
+- [Open CIS](https://github.com/platzhersh/open-cis) — open-source clinical information system built on openEHR, and the project oehrpy grew out of
+
+## Star History
+
+<a href="https://www.star-history.com/#platzhersh/oehrpy&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=platzhersh/oehrpy&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=platzhersh/oehrpy&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=platzhersh/oehrpy&type=Date" />
+  </picture>
+</a>
