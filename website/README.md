@@ -24,7 +24,7 @@ website/
 ├── src/
 │   ├── components/        SiteHeader.astro (the one nav), Logo.astro, GithubIcon.astro
 │   ├── layouts/           Layout.astro — shared <head>: SEO / Open Graph / Twitter tags, fonts, favicon
-│   ├── lib/version.ts     package version, read from ../pyproject.toml at build time
+│   ├── utils/version.ts     package version, read from ../pyproject.toml at build time
 │   ├── pages/             one .astro file per page (index, docs, validator, converter, …)
 │   └── styles/pages/      each page's stylesheet
 └── astro.config.mjs

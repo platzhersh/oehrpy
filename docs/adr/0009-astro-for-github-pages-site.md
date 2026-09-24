@@ -82,7 +82,7 @@ built and deployed by a GitHub Actions workflow
 - **`SiteHeader.astro`** — the one nav, with an `active` prop instead of
   hand-placed `class="active"`, one nav order, one dropdown script (the
   accessible variant, now typed TypeScript), and the logo from `Logo.astro`.
-- **`src/lib/version.ts`** — imports the root `pyproject.toml` at build time,
+- **`src/utils/version.ts`** — imports the root `pyproject.toml` at build time,
   so the header badge always shows the released version.
 
 ### What deliberately did *not* change in this migration
