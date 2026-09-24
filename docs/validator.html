@@ -1397,15 +1397,22 @@ async function initPyodide() {
 
     setLoadingStep('Installing oehrpy...');
 
-    // Install oehrpy via micropip
-    await pyodideInstance.loadPackage('micropip');
+    // Install oehrpy via micropip. oehrpy pins exact dependency versions
+    // (pydantic==2.13.4 -> pydantic-core==2.46.4), but pydantic-core is a
+    // compiled extension and Pyodide can only use the WebAssembly build it
+    // ships itself, so resolving the pins always fails in the browser. Use
+    // Pyodide's bundled pydantic instead, install oehrpy without its pinned
+    // dependencies, and add the one other dependency the validators import
+    // (defusedxml, pure Python). httpx is only needed by the EHRBase client.
+    await pyodideInstance.loadPackage(['micropip', 'pydantic']);
     if (pyodideTimedOut) return;
 
     var micropip = pyodideInstance.pyimport('micropip');
 
     var requestedVersion = getRequestedVersion();
     var packageSpec = requestedVersion ? 'oehrpy==' + requestedVersion : 'oehrpy';
-    await micropip.install(packageSpec);
+    await micropip.install('defusedxml');
+    await micropip.install.callKwargs(packageSpec, { deps: false });
     if (pyodideTimedOut) return;
 
     setLoadingStep('Importing validation module...');
