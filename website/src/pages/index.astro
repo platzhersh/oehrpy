@@ -5,6 +5,8 @@ import "../styles/pages/index.css";
 import { packageVersion } from "../utils/version";
 import { AUTHOR, GITHUB_URL, PYPI_URL } from "../utils/site";
 
+const currentYear = new Date().getFullYear();
+
 const description =
   "A comprehensive, type-safe Python SDK for openEHR providing Reference Model classes, template composition builders, an EHRBase client, and an AQL query builder.";
 const jsonLd = [
@@ -80,6 +82,11 @@ const jsonLd = [
       <a href="#quickstart" class="btn btn-primary">Get Started</a>
       <a href="https://github.com/platzhersh/oehrpy" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
     </div>
+    <div class="hero-badges">
+      <a href={PYPI_URL} target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/pypi/v/oehrpy?label=pypi" alt="Latest version on PyPI" height="20" loading="lazy"></a>
+      <a href="https://pepy.tech/projects/oehrpy" target="_blank" rel="noopener noreferrer"><img src="https://static.pepy.tech/badge/oehrpy" alt="Total PyPI downloads" height="20" loading="lazy"></a>
+      <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/github/stars/platzhersh/oehrpy?style=social" alt="GitHub stars" height="20" loading="lazy"></a>
+    </div>
   </section>
 
   <!-- Features Section -->
@@ -148,9 +155,13 @@ flat_data = builder.<span class="code-function">build</span>()
   <footer>
     <p>Built with Python and openEHR | <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> | <a href="/docs.html">Docs</a> | <a href="/brand-kit.html">Brand Kit</a></p>
     <p style="margin-top: 10px; font-size: 14px;">oehrpy is open source software &middot; See also: <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a> &middot; <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a></p>
+    <p style="margin-top: 10px; font-size: 14px;">&copy; <span id="copyright-year">{currentYear}</span> <a href="https://www.platzh1rsch.ch/" target="_blank" rel="noopener noreferrer">platzh1rsch</a> &middot; Not affiliated with openEHR International</p>
   </footer>
 
   <script is:inline>
+    // Keep the copyright year current between site rebuilds.
+    document.getElementById('copyright-year').textContent = new Date().getFullYear();
+
     // Motion.dev-inspired easing curves
     const smoothOut = 'cubic-bezier(0.16, 1, 0.3, 1)';
     const gentleEase = 'cubic-bezier(0.4, 0, 0.2, 1)';
