@@ -159,6 +159,21 @@ h1 {
   justify-content: center;
   flex-wrap: wrap;
 }
+.hero-badges {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+.hero-badges a {
+  display: inline-flex;
+  line-height: 0;
+}
+.hero-badges img {
+  height: 20px;
+  width: auto;
+}
 .btn {
   padding: 14px 32px;
   border-radius: 10px;
