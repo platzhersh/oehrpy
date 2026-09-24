@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v0.16.0 (2026-09-24)
+
+### Build System
+
+- **deps**: Bump markdown-it and @vscode/vsce in /vscode-extension (#62)
+  ([#62](https://github.com/platzhersh/oehrpy/pull/62),
+  [`491ca0b`](https://github.com/platzhersh/oehrpy/commit/491ca0b58737f7242da6f3eb0450b6de64914068))
+
+- **deps-dev**: Bump qs from 6.15.0 to 6.15.2 in /vscode-extension (#50)
+  ([#50](https://github.com/platzhersh/oehrpy/pull/50),
+  [`780f54f`](https://github.com/platzhersh/oehrpy/commit/780f54f0961fc8eb47c4de723e93086d0795eacf))
+
+### Documentation
+
+- Add star history, downloads badge, related project links (#75)
+  ([#75](https://github.com/platzhersh/oehrpy/pull/75),
+  [`93a6866`](https://github.com/platzhersh/oehrpy/commit/93a68660d54a19f43e7f2eeef13c960f2cd1fc6b))
+
+### Features
+
+- **website**: Migrate github pages site to astro (#76)
+  ([#76](https://github.com/platzhersh/oehrpy/pull/76),
+  [`6f25429`](https://github.com/platzhersh/oehrpy/commit/6f25429eeb1ed7f9f6c3228106ffbf545fd1db8d))
+
+
 ## v0.15.0 (2026-06-03)
 
 ### Features
