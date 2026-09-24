@@ -279,7 +279,12 @@ flat_data = builder.<span class="code-function">build</span>()
 
     const heroAnimations = [playDrop, playSlide, playFadeScale, playSpiral, playSpin];
 
+    // Respect the visitor's reduced-motion preference: the logo is shown
+    // statically (see index.css) and never animated.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     function playRandomHeroAnimation() {
+      if (reduceMotion) return;
       const pick = heroAnimations[Math.floor(Math.random() * heroAnimations.length)];
       pick();
     }
@@ -311,6 +316,7 @@ flat_data = builder.<span class="code-function">build</span>()
             behavior: 'smooth',
             block: 'start'
           });
+          history.pushState(null, '', this.getAttribute('href'));
         }
       });
     });

@@ -343,6 +343,7 @@ function buildTreeNode(node, depth) {
     if (node.children.length === 0) return;
     node._expanded = !node._expanded;
     toggle.textContent = node._expanded ? '▼' : '▶';
+    row.setAttribute('aria-expanded', node._expanded ? 'true' : 'false');
     var childContainer = div.querySelector('.tree-children');
     if (childContainer) childContainer.style.display = node._expanded ? '' : 'none';
   };
@@ -378,6 +379,19 @@ function buildTreeNode(node, depth) {
   }
 
   row.onclick = function() { selectNode(node); };
+  // Keyboard: Enter/Space selects, ArrowRight/ArrowLeft expand/collapse.
+  row.tabIndex = 0;
+  row.setAttribute('role', 'button');
+  if (node.children.length > 0) row.setAttribute('aria-expanded', node._expanded ? 'true' : 'false');
+  row.onkeydown = function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      selectNode(node);
+    } else if ((e.key === 'ArrowRight' && !node._expanded) || (e.key === 'ArrowLeft' && node._expanded)) {
+      e.preventDefault();
+      toggle.onclick(e);
+    }
+  };
   div.appendChild(row);
 
   // Children container
@@ -440,9 +454,9 @@ function selectNode(node) {
   var activeStyle = 'font-weight:600;color:var(--text);';
   var dimStyle = 'color:var(--text-dim);';
   html += '<div style="font-size:11px;margin-bottom:4px;' + (ehrbaseActive ? activeStyle : dimStyle) + '">EHRBase 2.x' + (ehrbaseActive ? ' (active)' : '') + ':</div>';
-  html += '<div class="detail-path" style="' + (ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(ehrbasePath) + '</span><button class="copy-btn" onclick="copyText(\'' + escAttr(ehrbasePath) + '\',this)">copy</button></div>';
+  html += '<div class="detail-path" style="' + (ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(ehrbasePath) + '</span><button class="copy-btn" data-copy="' + esc(ehrbasePath) + '">copy</button></div>';
   html += '<div style="font-size:11px;margin-bottom:4px;margin-top:8px;' + (!ehrbaseActive ? activeStyle : dimStyle) + '">Better' + (!ehrbaseActive ? ' (active)' : '') + ':</div>';
-  html += '<div class="detail-path" style="' + (!ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(betterPath) + '</span><button class="copy-btn" onclick="copyText(\'' + escAttr(betterPath) + '\',this)">copy</button></div>';
+  html += '<div class="detail-path" style="' + (!ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(betterPath) + '</span><button class="copy-btn" data-copy="' + esc(betterPath) + '">copy</button></div>';
   html += '</div>';
 
   // Data type attributes
@@ -471,6 +485,10 @@ function selectNode(node) {
   }
 
   content.innerHTML = html;
+  // Path values are passed as data, never interpolated into inline handlers.
+  content.querySelectorAll('.copy-btn[data-copy]').forEach(function(btn) {
+    btn.addEventListener('click', function() { copyText(btn.getAttribute('data-copy'), btn); });
+  });
 }
 
 function updateDetailPaths() {
@@ -516,7 +534,7 @@ function renderPathList() {
   for (var j = 0; j < paths.length; j++) {
     var item = paths[j];
     var displayPath = formatPathForPlatform(item.path);
-    html += '<div class="path-row" data-path="' + esc(displayPath) + '" data-uid="' + item.nodeUid + '" onclick="highlightNodeFromPath(this)">' +
+    html += '<div class="path-row" data-path="' + esc(displayPath) + '" data-uid="' + item.nodeUid + '" onclick="highlightNodeFromPath(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();highlightNodeFromPath(this);}" tabindex="0" role="button">' +
       '<span class="path-req">' + (item.required ? '&#10004;' : '') + '</span>' +
       '<span class="path-text">' + esc(displayPath) + '</span>' +
       '<span class="path-rm">' + esc(item.rmType.replace('DV_','')) + '</span>' +
@@ -561,7 +579,26 @@ function filterTree() {
   for (var j = 0; j < rows.length; j++) {
     var name = rows[j].querySelector('.tree-name');
     var text = name ? name.textContent.toLowerCase() : '';
-    rows[j].classList.toggle('hidden', text.indexOf(q) === -1);
+    var match = text.indexOf(q) !== -1;
+    rows[j].classList.toggle('hidden', !match);
+    if (match) expandAncestors(rows[j]);
+  }
+}
+
+// Open every collapsed branch above a matching row so it is visible.
+function expandAncestors(row) {
+  var nodeDiv = row.parentElement;
+  while (nodeDiv && nodeDiv.parentElement && nodeDiv.parentElement.classList.contains('tree-children')) {
+    var container = nodeDiv.parentElement;
+    container.style.display = '';
+    var parentDiv = container.parentElement;
+    var parentRow = parentDiv.querySelector(':scope > .tree-node-row');
+    var parentToggle = parentRow && parentRow.querySelector('.tree-toggle');
+    if (parentToggle) parentToggle.textContent = '▼';
+    if (parentRow) parentRow.setAttribute('aria-expanded', 'true');
+    var parentNode = parsedTree ? findNodeByUid(parsedTree, parseInt(parentDiv.getAttribute('data-uid'))) : null;
+    if (parentNode) parentNode._expanded = true;
+    nodeDiv = parentDiv;
   }
 }
 
@@ -640,7 +677,6 @@ function copyText(text, btn) {
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function escAttr(s) { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function detailRow(label, value) { return '<div class="detail-row"><span class="detail-label">' + esc(label) + '</span><span class="detail-value">' + esc(value) + '</span></div>'; }
 
 // === KEYBOARD SHORTCUT ===

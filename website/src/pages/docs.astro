@@ -339,10 +339,11 @@ restored = from_canonical(canonical, expected_type=DV_QUANTITY)</code></pre>
       <p>FLAT format is EHRBase's simplified format using paths:</p>
       <pre><code><span class="keyword">from</span> oehrpy.serialization <span class="keyword">import</span> FlatBuilder
 
-builder = FlatBuilder()
+<span class="comment"># For EHRBase 2.x, use the template's composition tree ID as the prefix</span>
+builder = FlatBuilder(composition_prefix=<span class="string">"vital_signs_observations"</span>)
 builder.context(language=<span class="string">"en"</span>, territory=<span class="string">"US"</span>, composer_name=<span class="string">"Dr. Smith"</span>)
-builder.set_quantity(<span class="string">"vital_signs/bp/systolic"</span>, <span class="string">120.0</span>, <span class="string">"mm[Hg]"</span>)
-builder.set_text(<span class="string">"vital_signs/notes"</span>, <span class="string">"Patient stable"</span>)
+builder.set_quantity(<span class="string">"vital_signs_observations/vital_signs/blood_pressure/systolic"</span>, <span class="string">120.0</span>, <span class="string">"mm[Hg]"</span>)
+builder.set_text(<span class="string">"vital_signs_observations/vital_signs/notes"</span>, <span class="string">"Patient stable"</span>)
 
 flat_data = builder.build()</code></pre>
 
@@ -654,7 +655,8 @@ flat_issues = [i <span class="keyword">for</span> i <span class="keyword">in</sp
       <p>oehrpy uses Pydantic v2 for comprehensive validation.</p>
 
       <h3>Automatic Validation</h3>
-      <pre><code><span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_QUANTITY
+      <pre><code><span class="keyword">from</span> pydantic <span class="keyword">import</span> ValidationError
+<span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_QUANTITY
 
 <span class="keyword">try</span>:
     <span class="comment"># This will raise a validation error</span>
@@ -759,6 +761,7 @@ pytest tests/test_rm.py -v</code></pre>
             behavior: 'smooth',
             block: 'start'
           });
+          history.pushState(null, '', this.getAttribute('href'));
 
           // Update active link
           document.querySelectorAll('.sidebar-link').forEach(link => {

@@ -858,6 +858,20 @@ import "../styles/pages/brand-kit.css";
       });
     }
 
+    // Respect the visitor's reduced-motion preference: show every preview in
+    // its final state and turn the Replay buttons into no-ops.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      ['anim1', 'anim2', 'anim3', 'anim4', 'anim5'].forEach(function(id) {
+        const svg = document.getElementById(id);
+        if (!svg) return;
+        svg.querySelectorAll('.blue-snake, .orange-snake, .logo-text').forEach(function(el) {
+          el.style.opacity = '1';
+        });
+      });
+      const noop = function() {};
+      playDrop = playSlide = playFadeScale = playSpiral = playSpin = noop;
+    }
+
     // Auto-play animations on load with a nice delay
     window.addEventListener('load', () => {
       setTimeout(playDrop, 500);

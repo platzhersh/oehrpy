@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import "../styles/pages/vscode.css";
+import extensionPkg from "../../../vscode-extension/package.json";
 ---
 <Layout
   title={"VS Code Extension - oehrpy"}
@@ -26,7 +27,7 @@ import "../styles/pages/vscode.css";
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         Get the Extension
       </a>
-      <p class="install-alt">Or install manually: <code>code --install-extension oehrpy-validator-0.1.0.vsix</code></p>
+      <p class="install-alt">Or build and install manually from <code>vscode-extension/</code>: <code>npm ci &amp;&amp; npm run compile &amp;&amp; npx vsce package &amp;&amp; code --install-extension oehrpy-validator-{extensionPkg.version}.vsix</code></p>
     </div>
 
     <!-- Features -->

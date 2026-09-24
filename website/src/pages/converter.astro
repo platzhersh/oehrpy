@@ -69,7 +69,7 @@ import "../styles/pages/converter.css";
   </div>
 
   <!-- Error bar -->
-  <div class="error-bar" id="error-bar">
+  <div class="error-bar" id="error-bar" role="status">
     <span class="info-message" id="error-message">Ready</span>
     <span class="stats" id="stats"></span>
   </div>
@@ -637,12 +637,23 @@ function flatToTree(flat) {
 function highlightJSON(json) {
   const str = typeof json === 'string' ? json : JSON.stringify(json, null, 2);
   const escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return escaped.replace(/("(?:[^"\\]|\\.)*")\s*:/g, '<span class="json-key">$1</span>:')
-            .replace(/:\s*("(?:[^"\\]|\\.)*")/g, ': <span class="json-string">$1</span>')
-            .replace(/:\s*(-?\d+\.?\d*(?:[eE][+-]?\d+)?)/g, ': <span class="json-number">$1</span>')
-            .replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>')
-            .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>')
-            .replace(/([{}\[\]])/g, '<span class="json-brace">$1</span>');
+  // One pass over the text: whole string tokens are matched first, so
+  // numbers, braces and colons inside keys/values (e.g. "bp:0", "10:00:00Z",
+  // "mm[Hg]") are never re-highlighted or altered.
+  return escaped.replace(
+    /("(?:[^"\\]|\\.)*")(\s*:)?|\b(true|false)\b|\bnull\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[{}\[\]]/g,
+    function (match, strToken, colon, bool) {
+      if (strToken) {
+        return colon
+          ? '<span class="json-key">' + strToken + '</span>' + colon
+          : '<span class="json-string">' + strToken + '</span>';
+      }
+      if (bool) return '<span class="json-boolean">' + match + '</span>';
+      if (match === 'null') return '<span class="json-null">' + match + '</span>';
+      if ('{}[]'.indexOf(match) !== -1) return '<span class="json-brace">' + match + '</span>';
+      return '<span class="json-number">' + match + '</span>';
+    }
+  );
 }
 
 // ── Convert ──

@@ -51,8 +51,8 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
     )}
     <a href="docs.html" class={cls("docs")}>Docs</a>
     <div class="nav-dropdown">
-      <button class:list={["nav-dropdown-btn", { active: toolActive }]} aria-haspopup="true" aria-expanded="false">Tools <span class="dropdown-arrow">&#9662;</span></button>
-      <div class="nav-dropdown-menu">
+      <button class:list={["nav-dropdown-btn", { active: toolActive }]} aria-expanded="false" aria-controls="nav-tools-menu">Tools <span class="dropdown-arrow">&#9662;</span></button>
+      <div class="nav-dropdown-menu" id="nav-tools-menu">
         {tools.map((t) => <a href={t.href} class={cls(t.page)}>{t.label}</a>)}
       </div>
     </div>

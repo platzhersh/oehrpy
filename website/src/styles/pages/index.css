@@ -121,6 +121,11 @@ nav a:hover {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
+@media (prefers-reduced-motion: reduce) {
+  #hero-logo {
+    opacity: 1;
+  }
+}
 #hero-logo:focus {
   outline: none;
 }

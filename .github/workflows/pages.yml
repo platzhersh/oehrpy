@@ -11,10 +11,10 @@ name: Pages (website)
 on:
   push:
     branches: [main]
-    paths: ['website/**', 'pyproject.toml', '.github/workflows/pages.yml']
+    paths: ['website/**', 'pyproject.toml', 'vscode-extension/package.json', '.github/workflows/pages.yml']
   pull_request:
     branches: [main]
-    paths: ['website/**', 'pyproject.toml', '.github/workflows/pages.yml']
+    paths: ['website/**', 'pyproject.toml', 'vscode-extension/package.json', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 concurrency:
