@@ -4,7 +4,9 @@ Date: 2026-01-31
 
 ## Status
 
-Accepted
+Accepted. Release trigger amended by [ADR-0010](0010-on-demand-releases.md):
+releases now run on demand via `workflow_dispatch` instead of on every push to
+`main`.
 
 ## Context
 

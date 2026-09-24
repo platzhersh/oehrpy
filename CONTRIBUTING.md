@@ -186,6 +186,11 @@ Write clear, descriptive commit messages:
 - Address review feedback promptly
 - Keep PRs focused and reasonably sized
 
+### Releases
+
+Merging a PR does not publish a release. Maintainers cut releases on demand;
+see [RELEASING.md](RELEASING.md).
+
 ## Types of Contributions
 
 ### Bug Reports
