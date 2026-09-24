@@ -9,7 +9,13 @@ from pathlib import Path
 
 import pytest
 
-from oehrpy.client import EHRBaseClient, NotFoundError, ValidationError
+from oehrpy.client import (
+    CompositionFormat,
+    EHRBaseClient,
+    ExampleDetailLevel,
+    NotFoundError,
+    ValidationError,
+)
 
 
 @pytest.fixture
@@ -173,3 +179,58 @@ class TestUpdateTemplate:
 
         # Cache should be cleared (the delete step in fallback clears it)
         assert vital_signs_template not in ehrbase_client._web_template_cache
+
+
+@pytest.mark.integration
+class TestGetTemplateExample:
+    """Tests for get_template_example()."""
+
+    async def test_medium_flat_example(
+        self,
+        ehrbase_client: EHRBaseClient,
+        vital_signs_template: str,
+    ) -> None:
+        """A medium FLAT example contains the template's content, not just ctx."""
+        example = await ehrbase_client.get_template_example(vital_signs_template)
+
+        assert any(key.endswith("/category|code") for key in example)
+        assert any(not key.startswith("ctx/") and "/category" not in key for key in example)
+
+    async def test_medium_example_is_committable(
+        self,
+        ehrbase_client: EHRBaseClient,
+        vital_signs_template: str,
+        test_ehr: str,
+    ) -> None:
+        """The spec says a medium example is intended to be committable."""
+        example = await ehrbase_client.get_template_example(
+            vital_signs_template, detail_level=ExampleDetailLevel.MEDIUM
+        )
+
+        result = await ehrbase_client.create_composition(
+            ehr_id=test_ehr,
+            composition=example,
+            template_id=vital_signs_template,
+            format=CompositionFormat.FLAT,
+        )
+        assert result.uid
+
+    async def test_canonical_example(
+        self,
+        ehrbase_client: EHRBaseClient,
+        vital_signs_template: str,
+    ) -> None:
+        """A canonical example is a COMPOSITION."""
+        example = await ehrbase_client.get_template_example(
+            vital_signs_template, format=CompositionFormat.CANONICAL
+        )
+
+        assert example.get("_type") == "COMPOSITION"
+
+    async def test_example_not_found(
+        self,
+        ehrbase_client: EHRBaseClient,
+    ) -> None:
+        """An unknown template raises NotFoundError."""
+        with pytest.raises(NotFoundError):
+            await ehrbase_client.get_template_example("nonexistent-template-id")

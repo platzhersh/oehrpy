@@ -87,6 +87,21 @@ generate_builder_from_opt(
     <span class="comment"># Clear cache</span>
     client.clear_web_template_cache()</code></pre>
 
+  <h3 id="template-example">Generating Example Compositions</h3>
+  <p><code>get_template_example()</code> calls the ITS-REST <code>/example</code> endpoint for an uploaded template. The <code>detail_level</code> sets how much the example contains: <code>required</code> (mandatory data points only, the spec default), <code>medium</code> (realistic and committable, the SDK default) or <code>complete</code> (every possible data point, not committable). Examples differ between CDRs, so use them to learn the data shape, not in production.</p>
+  <pre><code><span class="keyword">from</span> oehrpy.client <span class="keyword">import</span> ExampleDetailLevel
+
+<span class="keyword">async with</span> EHRBaseClient(...) <span class="keyword">as</span> client:
+    <span class="comment"># FLAT, type=input, detail_level=medium</span>
+    example = <span class="keyword">await</span> client.get_template_example(<span class="string">"IDCR - Vital Signs Encounter.v1"</span>)
+
+    <span class="comment"># Every possible data point, as reference material</span>
+    reference = <span class="keyword">await</span> client.get_template_example(
+        <span class="string">"IDCR - Vital Signs Encounter.v1"</span>,
+        detail_level=ExampleDetailLevel.COMPLETE,
+    )</code></pre>
+  <p>EHRBase 2.x ignores <code>detail_level</code> and uses its own <code>?format=FLAT</code> parameter instead of the spec's <code>Accept</code> media types. The client detects this and retries automatically.</p>
+
   <h3>Complete Workflow Example</h3>
   <p>Here's a complete example using the pre-built <code>VitalSignsBuilder</code> (which has FLAT paths sourced from the Web Template):</p>
   <pre><code><span class="keyword">from</span> oehrpy.templates <span class="keyword">import</span> VitalSignsBuilder

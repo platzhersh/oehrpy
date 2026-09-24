@@ -159,15 +159,40 @@ Use `|` separator for data type attributes:
 
 ### Method 2: Example Endpoint (Most Reliable)
 
-Request a FLAT example directly from EHRBase:
+Request a FLAT example from the CDR. ITS-REST 1.1.0 specifies the format via the
+`Accept` header and the scope via the `detail_level` (`required` | `medium` |
+`complete`, default `required`) and `type` (`input` | `output`, default `input`)
+query parameters:
 
 ```bash
+# Spec-conformant CDR (e.g. FerroEHR)
+curl -u user:pass \
+  -H "Accept: application/openehr.wt.flat+json" \
+  "{cdr_base_url}/rest/openehr/v1/definition/template/adl1.4/{template_id}/example?detail_level=medium&type=input" \
+  | python3 -m json.tool
+
+# EHRBase 2.x
 curl -u user:pass \
   "http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4/{template_id}/example?format=FLAT" \
   | python3 -m json.tool
 ```
 
-This returns a pre-populated FLAT composition with the exact path structure expected by EHRBase.
+Or with the SDK, which handles the differences between CDRs:
+
+```python
+example = await client.get_template_example(template_id)  # medium, input, FLAT
+```
+
+**Pick the detail level on purpose.** `required` returns only mandatory data points,
+so on a spec-conformant CDR (e.g. FerroEHR) the example can be little more than the
+`ctx/*` fields and `category`. `medium` is a realistic, committable example.
+`complete` lists every possible data point and is not expected to be committable.
+
+**EHRBase 2.x differs from the spec:** it ignores `detail_level` and `type` and
+always returns a full example. It also only accepts its own media types
+(`application/openehr.wt.flat.schema+json`) or `Accept: application/json` with
+`?format=FLAT`, and answers the spec `application/openehr.wt.flat+json` with 406.
+`get_template_example()` retries once with EHRBase's media type when that happens.
 
 ## Common Pitfalls
 
@@ -325,7 +350,7 @@ According to [EtherCIS documentation](https://github.com/ethercis/ethercis/blob/
 
 **Always verify FLAT format against your specific CDR version:**
 
-1. ✅ **Use `/example?format=FLAT` endpoint** - most reliable source (implementation trumps spec)
+1. ✅ **Use the `/example` endpoint** (`detail_level=medium`, FLAT) - most reliable source (implementation trumps spec)
 2. ✅ **Inspect WebTemplate `tree.id` values** - basis for path construction
 3. ✅ **Test against real CDR instance** - verify format acceptance
 4. ❌ **Don't assume spec/docs are current** - implementations may diverge
@@ -360,7 +385,7 @@ According to [openEHR Discourse](https://discourse.openehr.org/t/understanding-f
 
 ### Key Endpoints
 - Web Template: `GET /rest/openehr/v1/definition/template/adl1.4/{template_id}`
-- FLAT Example: `GET /rest/openehr/v1/definition/template/adl1.4/{template_id}/example?format=FLAT`
+- FLAT Example: `GET /rest/openehr/v1/definition/template/adl1.4/{template_id}/example?detail_level=medium` with `Accept: application/openehr.wt.flat+json` (EHRBase 2.x: `?format=FLAT` with `Accept: application/json`)
 - Submit FLAT: `POST /rest/openehr/v1/ehr/{ehr_id}/composition?format=FLAT&templateId={template_id}`
 
 ## Version Notes
@@ -371,7 +396,7 @@ According to [openEHR Discourse](https://discourse.openehr.org/t/understanding-f
 
 ## Lessons Learned
 
-1. **Always use the example endpoint** to verify FLAT format structure
+1. **Always use the example endpoint** to verify FLAT format structure, with an explicit `detail_level`
 2. **Web template tree IDs** are the source of truth for path construction
 3. **SDK test data may be outdated** - verify against running EHRBase instance
 4. **Format differences are breaking** - no backward compatibility

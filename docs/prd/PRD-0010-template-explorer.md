@@ -17,7 +17,7 @@ openEHR templates (OPT 1.4 XML files) define the clinical data structures used b
 Despite their importance, templates are opaque. OPT XML files are verbose (often 500–5,000+ lines), deeply nested, and difficult to read. The only current ways to inspect a template are:
 
 1. **Open the raw XML** in a text editor — overwhelming and not navigable
-2. **Upload to a CDR** and use `/template/{id}/example?format=FLAT` — requires a running server
+2. **Upload to a CDR** and generate an example composition via `/template/{id}/example` — requires a running server
 3. **Use Archetype Designer** — requires the original modeling project, not just the exported OPT
 4. **oehrpy's OPT Parser** — Python API only, no visual output
 

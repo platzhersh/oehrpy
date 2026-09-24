@@ -144,7 +144,8 @@ def analyze_concept_path(root: Element, ns: dict[str, str]) -> list[IssueData]:
                     xpath="/template/concept",
                     suggestion=(
                         "Verify the derived FLAT path prefix matches your expectations. "
-                        "Use /example?format=FLAT after upload to confirm."
+                        "After upload, confirm with the Web Template or a generated example "
+                        "(EHRBaseClient.get_template_example, detail_level=medium)."
                     ),
                 )
             )

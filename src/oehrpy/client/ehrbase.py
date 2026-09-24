@@ -45,6 +45,40 @@ class CompositionFormat(str, Enum):
     STRUCTURED = "STRUCTURED"
 
 
+class ExampleDetailLevel(str, Enum):
+    """Detail level of a generated template example (ITS-REST ``detail_level``).
+
+    The spec default is ``REQUIRED``. Only ``REQUIRED`` and ``MEDIUM`` are
+    intended to be committable; ``COMPLETE`` is reference material.
+    """
+
+    REQUIRED = "required"
+    MEDIUM = "medium"
+    COMPLETE = "complete"
+
+
+class ExampleType(str, Enum):
+    """Type of a generated template example (ITS-REST ``type``)."""
+
+    INPUT = "input"
+    OUTPUT = "output"
+
+
+# ITS-REST media types for the template example endpoint, per composition format
+_EXAMPLE_MEDIA_TYPES: dict[CompositionFormat, str] = {
+    CompositionFormat.CANONICAL: "application/json",
+    CompositionFormat.JSON: "application/json",
+    CompositionFormat.FLAT: "application/openehr.wt.flat+json",
+    CompositionFormat.STRUCTURED: "application/openehr.wt.structured+json",
+}
+
+# EHRBase 2.x media types, which predate the ITS-REST 1.1.0 ones
+_EHRBASE_EXAMPLE_MEDIA_TYPES: dict[CompositionFormat, str] = {
+    CompositionFormat.FLAT: "application/openehr.wt.flat.schema+json",
+    CompositionFormat.STRUCTURED: "application/openehr.wt.structured.schema+json",
+}
+
+
 # Custom Exceptions
 
 
@@ -352,6 +386,8 @@ class EHRBaseClient:
             )
         self._client: httpx.AsyncClient | None = None
         self._web_template_cache: dict[str, dict[str, Any]] = {}
+        # Formats for which the CDR only accepts EHRBase's example media types
+        self._example_ehrbase_formats: set[CompositionFormat] = set()
 
     async def __aenter__(self) -> EHRBaseClient:
         """Enter async context."""
@@ -998,6 +1034,78 @@ class EHRBaseClient:
             self._web_template_cache.pop(template_id, None)
         else:
             self._web_template_cache.clear()
+
+    async def get_template_example(
+        self,
+        template_id: str,
+        *,
+        detail_level: str | ExampleDetailLevel = ExampleDetailLevel.MEDIUM,
+        example_type: str | ExampleType = ExampleType.INPUT,
+        format: str | CompositionFormat = CompositionFormat.FLAT,
+    ) -> dict[str, Any]:
+        """Generate an example composition for a template.
+
+        Calls ``GET /definition/template/adl1.4/{template_id}/example`` as
+        specified by ITS-REST 1.1.0: ``detail_level`` and ``type`` are sent
+        as query parameters and the format is negotiated via ``Accept``.
+
+        Detail levels:
+
+        - ``required``: only mandatory data points; committable as-is.
+        - ``medium``: a realistic set including some optional elements;
+          intended to be committable.
+        - ``complete``: every possible data point; reference material only,
+          not expected to be committable.
+
+        The spec default is ``required``, which spec-conformant CDRs (e.g.
+        FerroEHR) honour with a very sparse example. This method defaults to
+        ``medium`` so results are useful and comparable across CDRs.
+
+        Vendors may produce different examples, and a server that does not
+        support the requested level may fall back to the closest one or
+        return 400 (raised as :class:`ValidationError`). EHRBase 2.x ignores
+        ``detail_level`` and ``type`` entirely and only accepts its own FLAT
+        and STRUCTURED media types (``application/openehr.wt.flat.schema+json``);
+        when the spec media type is rejected with 406, the request is retried
+        once with EHRBase's media type and ``format`` query parameter, and
+        that choice is remembered per format for the lifetime of the client.
+
+        Args:
+            template_id: The template ID.
+            detail_level: ``required``, ``medium`` (default) or ``complete``.
+            example_type: ``input`` (default, ready to commit) or ``output``
+                (as the CDR would return it).
+            format: Composition format of the example (default FLAT).
+
+        Returns:
+            The example composition as a dictionary.
+        """
+        level = ExampleDetailLevel(detail_level)
+        kind = ExampleType(example_type)
+        fmt = CompositionFormat(format.value if isinstance(format, CompositionFormat) else format)
+
+        path = f"/rest/openehr/v1/definition/template/adl1.4/{template_id}/example"
+        params = {"type": kind.value, "detail_level": level.value}
+
+        ehrbase_media_type = _EHRBASE_EXAMPLE_MEDIA_TYPES.get(fmt)
+
+        if ehrbase_media_type is None or fmt not in self._example_ehrbase_formats:
+            response = await self.client.get(
+                path,
+                params=params,
+                headers={"Accept": _EXAMPLE_MEDIA_TYPES[fmt]},
+            )
+            if response.status_code != 406 or ehrbase_media_type is None:
+                return self._handle_response(response)
+
+        response = await self.client.get(
+            path,
+            params={**params, "format": fmt.value},
+            headers={"Accept": ehrbase_media_type},
+        )
+        data = self._handle_response(response)
+        self._example_ehrbase_formats.add(fmt)
+        return data
 
     async def upload_template(self, template_xml: str) -> TemplateResponse:
         """Upload a new template.

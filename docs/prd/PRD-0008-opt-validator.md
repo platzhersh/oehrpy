@@ -205,8 +205,8 @@ These patterns are not necessarily errors but are worth flagging:
 > OPT XML. The CDR applies undocumented normalisation rules when converting
 > OPT to Web Template, so any OPT-based FLAT path preview is **illustrative
 > only**. The authoritative FLAT paths come from the Web Template JSON
-> (fetched via `EHRBaseClient.get_web_template()` or the CDR's
-> `/example?format=FLAT` endpoint after upload).
+> (fetched via `EHRBaseClient.get_web_template()`, or checked against a
+> generated example via `EHRBaseClient.get_template_example()` after upload).
 
 This category connects OPT validation to FLAT format usage. It provides
 **informational hints** about potential FLAT path implications, not
@@ -222,7 +222,7 @@ results:
 Template concept: "IDCR - Adverse Reaction List.v1"
   -> Possible composition tree ID: "idcr___adverse_reaction_list_v1" (illustrative)
   Note: The actual FLAT path prefix is determined by the CDR when the OPT
-    is uploaded. Verify against the Web Template or /example?format=FLAT.
+    is uploaded. Verify against the Web Template or a generated example.
 ```
 
 **D2. Renamed nodes (informational)**
