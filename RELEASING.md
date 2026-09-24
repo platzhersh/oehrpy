@@ -25,7 +25,9 @@ creates the GitHub Release, and the Release triggers the PyPI upload.
    types: `fix`/`perf` → patch, `feat` → minor. While on `0.x`
    (`major_on_zero = false`) breaking changes also bump minor.
    `docs`, `ci`, `chore`, `build`, `test`, `refactor`, `style` don't cause a
-   release on their own but are listed in the changelog.
+   release on their own but are listed in the changelog. The same goes for
+   anything scoped `website`, e.g. `feat(website)` (see
+   `.github/release/commit_parser.py`).
 3. Writes the new version to `pyproject.toml` and `src/oehrpy/__init__.py`, and
    adds a section to `CHANGELOG.md`.
 4. Commits `chore(release): X.Y.Z`, tags `vX.Y.Z` and pushes to `main`.
@@ -48,10 +50,10 @@ run succeeds without releasing and says so in the job summary.
 
 - Release when `main` has SDK changes users should get: new features, bug fixes,
   dependency or security updates that affect the installed package.
-- Don't release for website-only (`website/`, deployed by `pages.yml`), docs,
-  CI or VS Code extension changes on their own; they ride along with the next
-  SDK release. Note that `feat(website)`/`fix(website)` still count toward the
-  bump once you do release.
+- Website changes (`website/`, deployed by `pages.yml`) never need a release,
+  and `(website)`-scoped commits don't count toward the bump. Docs, CI or VS
+  Code extension changes don't need one either; they ride along with the next
+  SDK release.
 
 ## Commit messages still matter
 

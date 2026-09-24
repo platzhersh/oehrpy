@@ -49,6 +49,15 @@ The workflow takes two inputs:
 - **`dry_run`** — run with `--noop` to preview the next version without
   committing, tagging or publishing.
 
+Commits scoped to `website` (e.g. `fix(website): …`) never cause a version
+bump. A small custom parser, `.github/release/commit_parser.py`, wraps
+python-semantic-release's built-in `conventional` parser and downgrades those
+commits to "no release". It is configured through `commit_parser` in
+`pyproject.toml`. The commits are still parsed normally, so they are listed in
+the changelog of the next real release. More scopes can be added to
+`NON_RELEASING_SCOPES` if other unpackaged parts of the repo need the same
+treatment.
+
 Conventional commit messages remain required: they still drive the version
 number and the changelog, they just no longer trigger a release by themselves.
 
@@ -68,8 +77,8 @@ number and the changelog, they just no longer trigger a release by themselves.
 - Releasing is a manual step; fixes wait on `main` until someone runs the
   workflow.
   - *Mitigation*: the step is one click, documented in `RELEASING.md`.
-- `feat(website)`/`fix(website)` commits still count toward the next bump when
-  a release *is* cut, so a release containing only website changes would still
-  bump the version.
-  - *Mitigation*: don't run the workflow for website-only changes; `pages.yml`
-    deploys the site independently of releases.
+- The custom parser depends on python-semantic-release's internal parser
+  classes (`ConventionalCommitParser`, `ParsedCommit`), which may change in a
+  major version (v10).
+  - *Mitigation*: the workflow pins the action to `@v9`; revisit the parser
+    when upgrading.
