@@ -16,7 +16,8 @@ export type NavPage =
   | "converter"
   | "explorer"
   | "workflow"
-  | "vscode";
+  | "vscode"
+  | "brand-kit";
 
 interface Props {
   active: NavPage;
@@ -58,7 +59,7 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
     </div>
     <a href="workflow.html" class={cls("workflow")}>Workflow</a>
     <a href="vscode.html" class={cls("vscode")}>VS Code</a>
-    <a href="brand-kit.html">Brand Kit</a>
+    <a href="brand-kit.html" class={cls("brand-kit")}>Brand Kit</a>
     {showVersion && <span class="badge" id="version-badge">v{packageVersion}</span>}
     <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer">
       <GithubIcon />

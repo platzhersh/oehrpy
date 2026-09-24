@@ -1,0 +1,14 @@
+<svg viewBox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .top { fill: #3b82f6; }
+    .bottom { fill: #f97316; }
+    @media (prefers-color-scheme: dark) {
+      .top { fill: #60a5fa; }
+      .bottom { fill: #fdba74; }
+    }
+  </style>
+  <path class="top" d="M32 8 C18 8 14 20 14 27 C14 35 22 39 32 39 C42 39 50 35 50 27 C50 20 46 8 32 8"/>
+  <circle cx="23" cy="18" r="3" fill="#fff"/>
+  <path class="bottom" d="M32 56 C46 56 50 44 50 37 C50 29 42 25 32 25 C22 25 14 29 14 37 C14 44 18 56 32 56"/>
+  <circle cx="41" cy="46" r="3" fill="#fff"/>
+</svg>
