@@ -1,0 +1,71 @@
+---
+// Explanatory content below a full-screen tool (what it does, how to use
+// it, FAQ). Gives the otherwise app-only pages indexable, visible text.
+---
+<section class="tool-about" id="about">
+  <div class="inner">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .tool-about {
+    border-top: 1px solid var(--border, #2d2d4d);
+    background: var(--bg, #1a1a2e);
+    color: var(--text, #f3f4f6);
+    font-family: var(--sans, "Inter", sans-serif);
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 56px 40px 72px;
+  }
+  .inner {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+  .tool-about :global(h2) {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 40px 0 12px;
+  }
+  .tool-about :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .tool-about :global(h3) {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 24px 0 6px;
+  }
+  .tool-about :global(p),
+  .tool-about :global(ul),
+  .tool-about :global(ol) {
+    color: var(--text-muted, #9ca3af);
+    margin: 0 0 12px;
+  }
+  .tool-about :global(ul),
+  .tool-about :global(ol) {
+    padding-left: 22px;
+  }
+  .tool-about :global(li) {
+    margin-bottom: 4px;
+  }
+  .tool-about :global(strong) {
+    color: var(--text, #f3f4f6);
+  }
+  .tool-about :global(a) {
+    color: var(--accent, #3b82f6);
+  }
+  .tool-about :global(code) {
+    font-family: var(--mono, "JetBrains Mono", monospace);
+    font-size: 0.9em;
+    background: var(--surface, #252540);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text, #f3f4f6);
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 768px) {
+    .tool-about {
+      padding: 40px 16px 56px;
+    }
+  }
+</style>

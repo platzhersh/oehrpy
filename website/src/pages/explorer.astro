@@ -1,18 +1,25 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import ToolTitle from "../components/ToolTitle.astro";
+import ToolAbout from "../components/ToolAbout.astro";
+import { toolJsonLd } from "../utils/structured-data";
 import "../styles/pages/explorer.css";
 ---
 <Layout
-  title={"oehrpy · Explorer"}
-  description={"Explore openEHR templates and their FLAT paths interactively with the oehrpy template explorer."}
+  title={'openEHR Template Explorer: Browse Web Template FLAT Paths | oehrpy'}
+  description={'Explore openEHR Web Templates in your browser: browse the node tree, see every FLAT path with its RM type, occurrences and coded values, and export the paths to CSV.'}
   path="explorer.html"
-  twitterDescription={"Explore openEHR templates and their FLAT paths interactively in your browser."}
+  twitterDescription={'Browse openEHR Web Templates and every FLAT path in your browser.'}
+  image="og/explorer.png"
+  imageAlt={'oehrpy openEHR template explorer'}
+  breadcrumbs={[{ name: 'openEHR Template Explorer', path: "explorer.html" }]}
+  jsonLd={[toolJsonLd({ name: 'openEHR Template Explorer', path: "explorer.html", description: 'Explore openEHR Web Templates in your browser: browse the node tree, see every FLAT path with its RM type, occurrences and coded values, and export the paths to CSV.', features: ['Browse the node tree of an openEHR Web Template', 'List every FLAT path with RM type and occurrences', 'Export FLAT paths to CSV', 'EHRBase 2.x and Better path dialects'] })]}
 >
 <div class="app">
   <SiteHeader active="explorer" showVersion={true} logoSize={28} />
 
-  <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">oehrpy Template Explorer — browse openEHR templates and FLAT paths</h1>
+  <ToolTitle title={'openEHR Template Explorer'} summary={'Paste a Web Template to browse its node tree, inspect occurrences and coded values, and list or export every FLAT path. Runs entirely in your browser.'} />
 
   <!-- Mode bar -->
   <div class="mode-bar">
@@ -113,7 +120,7 @@ and constraints.' spellcheck="false"></textarea>
     <span class="sep">|</span>
     <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
     <span class="sep">|</span>
-    <a href="docs.html">Docs</a>
+    <a href="/docs.html">Docs</a>
     <span class="sep">|</span>
     <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a>
     <span class="sep">|</span>
@@ -125,6 +132,28 @@ and constraints.' spellcheck="false"></textarea>
     </span>
   </footer>
 </div>
+
+<ToolAbout>
+    <h2>Find the FLAT path for any field in your template</h2>
+    <p>Writing a FLAT composition means knowing the exact path of every field, and those paths come from the template. The explorer reads a <strong>Web Template</strong> (the JSON rendering of an operational template that CDRs like EHRBase serve) and shows its structure as a tree. Click any node to see its FLAT path, RM type, occurrences, and coded values such as unit and code lists.</p>
+
+    <h2>How to use it</h2>
+    <ol>
+      <li>Fetch your Web Template: in EHRBase, <code>GET /rest/openehr/v1/definition/template/adl1.4/&#123;template_id&#125;</code> with <code>Accept: application/openehr.wt+json</code>.</li>
+      <li>Paste it and click <strong>Explore</strong>, or load the example.</li>
+      <li>Expand the tree, select nodes for their details, and copy all FLAT paths or export them to CSV.</li>
+    </ol>
+
+    <h2>FAQ</h2>
+    <h3>Why a Web Template and not the OPT?</h3>
+    <p>FLAT paths can't be reliably derived from OPT XML: CDRs apply their own naming and indexing rules. The Web Template is the authoritative source, so the explorer uses it (see <a href="https://github.com/platzhersh/oehrpy/blob/main/docs/adr/0005-web-template-as-primary-source-of-truth-for-flat-paths.md">ADR-0005</a>).</p>
+    <h3>What does the platform switch change?</h3>
+    <p>The FLAT dialect: EHRBase 2.x omits <code>:0</code> on single-occurrence nodes, while Better keeps more indices. Paths are shown the way your CDR expects them.</p>
+    <h3>What do I do with the paths?</h3>
+    <p>Use them to build FLAT compositions, by hand or with oehrpy's <a href="/docs/templates.html">template builders</a>, and check the result with the <a href="/validator.html">validator</a>.</p>
+    <h3>Is my template uploaded anywhere?</h3>
+    <p>No. Parsing happens entirely in your browser.</p>
+</ToolAbout>
 
 <div class="toast" id="toast"></div>
 

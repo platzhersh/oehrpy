@@ -1,21 +1,72 @@
 ---
 // Shared <head> for every page: SEO/Open Graph/Twitter tags, canonical
-// URL, favicon and web fonts. Previously each of the eight pages carried
-// its own copy of this block.
+// URL, structured data (JSON-LD), favicon and the self-hosted web fonts.
+import "@fontsource/inter/latin-400.css";
+import "@fontsource/inter/latin-500.css";
+import "@fontsource/inter/latin-600.css";
+import "@fontsource/inter/latin-700.css";
+import "@fontsource/jetbrains-mono/latin-400.css";
+import "@fontsource/jetbrains-mono/latin-500.css";
+import "@fontsource/jetbrains-mono/latin-700.css";
+import { DEFAULT_OG_IMAGE, SITE_NAME, type Crumb } from "../utils/site";
+
 interface Props {
   title: string;
   description: string;
-  /** Page file name, e.g. "docs.html"; used for canonical/og:url. */
+  /**
+   * Page URL relative to the site root, e.g. "docs.html" or
+   * "docs/aql.html"; "" is the home page. Used for canonical/og:url.
+   */
   path: string;
   ogDescription?: string;
   twitterDescription?: string;
+  /** Open Graph image relative to the site root (1200×630 PNG). */
+  image?: string;
+  imageAlt?: string;
+  /** Keep the page out of search results (and the sitemap). */
+  noindex?: boolean;
+  /** Trail below Home for the BreadcrumbList, ending with this page. */
+  breadcrumbs?: Crumb[];
+  /** Extra schema.org objects emitted as JSON-LD. */
+  jsonLd?: Record<string, unknown>[];
 }
 
-const { title, description, path, ogDescription = description, twitterDescription = ogDescription } =
-  Astro.props;
-const siteRoot = new URL(import.meta.env.BASE_URL.replace(/\/?$/, "/"), Astro.site);
-const pageUrl = new URL(path, siteRoot).href;
-const imageUrl = new URL("assets/logo.svg", siteRoot).href;
+const {
+  title,
+  description,
+  path,
+  ogDescription = description,
+  twitterDescription = ogDescription,
+  image = DEFAULT_OG_IMAGE,
+  imageAlt = `${SITE_NAME} — the Python SDK for openEHR`,
+  noindex = false,
+  breadcrumbs = [],
+  jsonLd = [],
+} = Astro.props;
+const site = Astro.site!;
+const abs = (p: string) => new URL(p, site).href;
+const pageUrl = abs(path);
+const imageUrl = abs(image);
+
+const structuredData = [...jsonLd];
+if (breadcrumbs.length > 0) {
+  structuredData.push({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [{ name: "Home", path: "" }, ...breadcrumbs].map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.name,
+      item: abs(c.path),
+    })),
+  });
+}
+// `<` is escaped so a string can never close the <script> element early.
+const toJson = (o: unknown) => JSON.stringify(o).replace(/</g, "\\u003c");
+
+// Google Search Console HTML-tag verification token, set at build time
+// (GitHub repository variable GOOGLE_SITE_VERIFICATION, see pages.yml).
+const googleVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION as string | undefined;
 ---
 <!doctype html>
 <html lang="en">
@@ -26,27 +77,31 @@ const imageUrl = new URL("assets/logo.svg", siteRoot).href;
     <meta name="description" content={description} />
     <meta name="author" content="Open CIS Project" />
     <meta name="theme-color" content="#1a1a2e" />
-    <link rel="canonical" href={pageUrl} />
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    {googleVerification && <meta name="google-site-verification" content={googleVerification} />}
+    {!noindex && <link rel="canonical" href={pageUrl} />}
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="oehrpy" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={ogDescription} />
     <meta property="og:url" content={pageUrl} />
     <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={twitterDescription} />
     <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+    {structuredData.map((o) => <script is:inline type="application/ld+json" set:html={toJson(o)} />)}
     <slot name="head" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
   </head>
   <body>
     <slot />

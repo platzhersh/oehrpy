@@ -363,3 +363,86 @@ h3[id] {
 .string { color: #fbbf24; }
 .function { color: #60a5fa; }
 .comment { color: #6b7280; }
+
+/* Multi-page docs navigation (DocsLayout.astro) */
+.sidebar-link.current {
+  color: #f3f4f6;
+  font-weight: 600;
+}
+.sidebar-sublink {
+  margin-left: 12px;
+  padding: 5px 12px;
+  font-size: 13px;
+}
+.content .lead {
+  font-size: 1.05rem;
+  color: #d1d5db;
+}
+.docs-mobile-nav {
+  display: none;
+  margin-bottom: 24px;
+  border: 1px solid #2d2d4d;
+  border-radius: 8px;
+  background: #252540;
+}
+.docs-mobile-nav summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+.docs-mobile-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 10px;
+}
+.docs-mobile-nav li {
+  margin: 0;
+}
+.docs-mobile-nav a {
+  display: block;
+  padding: 6px 0;
+  color: #9ca3af;
+  text-decoration: none;
+}
+.docs-mobile-nav a[aria-current="page"] {
+  color: #f3f4f6;
+  font-weight: 600;
+}
+.docs-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid #2d2d4d;
+}
+.content .docs-pager a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 1px solid #2d2d4d;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #f3f4f6;
+  font-weight: 600;
+}
+.content .docs-pager a:hover {
+  border-color: #3b82f6;
+}
+.docs-pager a span {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9ca3af;
+}
+.docs-pager .next {
+  margin-left: auto;
+  text-align: right;
+}
+@media (max-width: 1024px) {
+  .docs-mobile-nav {
+    display: block;
+  }
+}

@@ -1,0 +1,138 @@
+---
+// Frame for every documentation page: header, sidebar (pages plus the
+// current page's sections), a page menu for narrow screens where the
+// sidebar is hidden, and previous/next links.
+import Layout from "./Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import { DOCS_PAGES } from "../utils/docs-nav";
+import { docsJsonLd } from "../utils/structured-data";
+import type { Crumb } from "../utils/site";
+import "../styles/pages/docs.css";
+
+interface Props {
+  /** <title>; lead with the search terms, end with "| oehrpy". */
+  title: string;
+  description: string;
+  /** Must match a DOCS_PAGES entry. */
+  path: string;
+  /** The page's visible <h1>. */
+  heading: string;
+}
+
+const { title, description, path, heading } = Astro.props;
+const index = DOCS_PAGES.findIndex((p) => p.path === path);
+if (index === -1) throw new Error(`${path} is missing from DOCS_PAGES`);
+const page = DOCS_PAGES[index];
+const prev = DOCS_PAGES[index - 1];
+const next = DOCS_PAGES[index + 1];
+const groups = [...new Set(DOCS_PAGES.map((p) => p.group))];
+
+const breadcrumbs: Crumb[] =
+  index === 0
+    ? [{ name: "Documentation", path }]
+    : [
+        { name: "Documentation", path: DOCS_PAGES[0].path },
+        { name: page.label, path },
+      ];
+---
+<Layout
+  title={title}
+  description={description}
+  path={path}
+  image="og/docs.png"
+  imageAlt={`${heading} — oehrpy documentation`}
+  breadcrumbs={breadcrumbs}
+  jsonLd={[docsJsonLd({ title: heading, path, description })]}
+>
+  <slot name="head" slot="head" />
+  <SiteHeader active="docs" />
+
+  <div class="docs-container">
+    <aside class="sidebar" aria-label="Documentation">
+      {groups.map((group) => (
+        <div class="sidebar-section">
+          <div class="sidebar-title">{group}</div>
+          {DOCS_PAGES.filter((p) => p.group === group).map((p) => (
+            <>
+              <a
+                href={`/${p.path}`}
+                class:list={["sidebar-link", { current: p.path === path }]}
+                aria-current={p.path === path ? "page" : undefined}
+              >
+                {p.label}
+              </a>
+              {p.path === path &&
+                p.sections.map((s) => (
+                  <a href={`#${s.id}`} class="sidebar-link sidebar-sublink">
+                    {s.label}
+                  </a>
+                ))}
+            </>
+          ))}
+        </div>
+      ))}
+    </aside>
+
+    <main class="content">
+      <details class="docs-mobile-nav">
+        <summary>Docs: {page.label}</summary>
+        <ul>
+          {DOCS_PAGES.map((p) => (
+            <li>
+              <a href={`/${p.path}`} aria-current={p.path === path ? "page" : undefined}>{p.label}</a>
+            </li>
+          ))}
+        </ul>
+      </details>
+
+      <h1>{heading}</h1>
+      <slot />
+
+      <nav class="docs-pager" aria-label="Previous and next page">
+        {prev ? (
+          <a href={`/${prev.path}`} class="prev">
+            <span>Previous</span>
+            {prev.label}
+          </a>
+        ) : <span />}
+        {next && (
+          <a href={`/${next.path}`} class="next">
+            <span>Next</span>
+            {next.label}
+          </a>
+        )}
+      </nav>
+    </main>
+  </div>
+
+  <script is:inline>
+    // Smooth scroll for in-page anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.pushState(null, '', this.getAttribute('href'));
+        }
+      });
+    });
+
+    // Highlight the section currently in view in the sidebar
+    const sublinks = document.querySelectorAll('.sidebar-sublink');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          sublinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -80% 0px' });
+
+    document.querySelectorAll('.content h2[id]').forEach(section => {
+      observer.observe(section);
+    });
+  </script>
+</Layout>

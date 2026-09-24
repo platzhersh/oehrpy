@@ -4,8 +4,9 @@ import { defineConfig } from "astro/config";
 // so the site is served from the domain root (no project-site base path).
 // `build.format: "file"` keeps the historical flat URLs (`docs.html`,
 // `validator.html`, …) instead of Astro's default `/docs/` directory
-// style, so existing links and the sitemap keep working. Pages link to
-// each other with relative hrefs. See
+// style, so existing links keep working. Pages link to each other with
+// root-absolute hrefs (`/docs.html`), since the docs topic pages live in
+// `docs/` and 404.html is served at arbitrary URLs. See
 // docs/adr/0009-astro-for-github-pages-site.md.
 export default defineConfig({
   site: "https://oehrpy.dev",

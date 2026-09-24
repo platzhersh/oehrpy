@@ -4,17 +4,19 @@ import SiteHeader from "../components/SiteHeader.astro";
 import "../styles/pages/brand-kit.css";
 ---
 <Layout
-  title={"oehrpy - Logo Suite"}
+  title={"Brand Kit: Logos, Colors & Favicons | oehrpy"}
   description={"Brand kit and logo assets for oehrpy, the Python openEHR SDK — logos, colors, and favicons in all sizes."}
   path="brand-kit.html"
+  noindex={true}
+  breadcrumbs={[{ name: "Brand Kit", path: "brand-kit.html" }]}
   twitterDescription={"Brand kit and logo assets for oehrpy, the Python openEHR SDK."}
 >
   <!-- Header -->
   <SiteHeader active="brand-kit" />
 
   <main class="brand-kit-container">
-  <h1>oehrpy</h1>
-  <p class="subtitle">Python openEHR SDK — Logo Suite</p>
+  <h1>oehrpy Brand Kit</h1>
+  <p class="subtitle">Logos, colors and favicons for the Python openEHR SDK</p>
 
   <!-- Tagline -->
   <div class="section">
@@ -591,7 +593,7 @@ import "../styles/pages/brand-kit.css";
   </main>
 
   <footer>
-    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="docs.html">Docs</a> &middot; Apache 2.0 License</p>
+    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="/docs.html">Docs</a> &middot; Apache 2.0 License</p>
     <p>See also: <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a> &middot; <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a></p>
   </footer>
 

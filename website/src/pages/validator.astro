@@ -1,20 +1,27 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import ToolTitle from "../components/ToolTitle.astro";
+import ToolAbout from "../components/ToolAbout.astro";
+import { toolJsonLd } from "../utils/structured-data";
 import "../styles/pages/validator.css";
 ---
 <Layout
-  title={"oehrpy · Validator"}
-  description={"Validate openEHR FLAT-format compositions and OPT templates in your browser with the oehrpy validator."}
+  title={'openEHR FLAT & OPT Validator (EHRBase, Better) | oehrpy'}
+  description={'Validate openEHR FLAT compositions against Web Templates and check OPT 1.4 templates in your browser. Catches unknown paths, wrong suffixes and missing required fields for EHRBase and Better.'}
   path="validator.html"
-  twitterDescription={"Validate openEHR FLAT-format compositions and OPT templates in your browser."}
+  twitterDescription={'Validate openEHR FLAT compositions and OPT 1.4 templates in your browser — for EHRBase and Better.'}
+  image="og/validator.png"
+  imageAlt={'oehrpy openEHR FLAT and OPT validator'}
+  breadcrumbs={[{ name: 'openEHR FLAT & OPT Validator', path: "validator.html" }]}
+  jsonLd={[toolJsonLd({ name: 'openEHR FLAT & OPT Validator', path: "validator.html", description: 'Validate openEHR FLAT compositions against Web Templates and check OPT 1.4 templates in your browser. Catches unknown paths, wrong suffixes and missing required fields for EHRBase and Better.', features: ['Validate FLAT compositions against a Web Template', 'Validate OPT 1.4 XML templates', 'Convert FLAT compositions between EHRBase and Better dialects', 'Did-you-mean suggestions for unknown paths'] })]}
 >
 <div class="app">
 
   <!-- Header -->
   <SiteHeader active="validator" showVersion={true} />
 
-  <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">oehrpy Validator — validate openEHR FLAT compositions and OPT templates</h1>
+  <ToolTitle title={'openEHR FLAT & OPT Validator'} summary={'Check FLAT compositions against a Web Template, lint OPT 1.4 XML, or migrate FLAT between EHRBase and Better. Runs 100% in your browser.'} />
 
   <!-- Mode bar -->
   <div class="mode-bar">
@@ -175,13 +182,13 @@ authoritative FLAT paths come from the Web Template (ADR-0005).' spellcheck="fal
     <span class="sep">|</span>
     <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
     <span class="sep">|</span>
-    <a href="docs.html">Docs</a>
+    <a href="/docs.html">Docs</a>
     <span class="sep">|</span>
     <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a>
     <span class="sep">|</span>
     <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a>
     <span class="sep">|</span>
-    <a href="brand-kit.html">Brand Kit</a>
+    <a href="/brand-kit.html">Brand Kit</a>
     <span class="sep">|</span>
     <span>100% client-side</span>
     <span class="sep">|</span>
@@ -193,6 +200,36 @@ authoritative FLAT paths come from the Web Template (ADR-0005).' spellcheck="fal
   </footer>
 
 </div>
+
+<ToolAbout>
+    <h2>Validate openEHR compositions before they reach your CDR</h2>
+    <p>A FLAT composition that doesn't match its template fails at the CDR with an error that rarely says which path is wrong. This validator checks the composition up front, against the same <strong>Web Template</strong> the CDR uses, and tells you exactly what to fix. It runs the <a href="/docs/validation.html">oehrpy validators</a> in your browser through Pyodide, so your templates and patient data never leave your machine.</p>
+
+    <h2>Three modes</h2>
+    <h3>FLAT Composition</h3>
+    <p>Paste a Web Template JSON and a FLAT composition. The validator lists every valid FLAT path in the template and reports:</p>
+    <ul>
+      <li><strong>Unknown paths</strong>, with fuzzy "did you mean?" suggestions</li>
+      <li><strong>Renamed nodes</strong>, e.g. <code>substance</code> → <code>causative_agent</code></li>
+      <li><strong>Wrong suffixes</strong>, e.g. <code>|value</code> on a <code>DV_QUANTITY</code> instead of <code>|magnitude</code></li>
+      <li><strong>Index mismatches</strong>: EHRBase 2.x drops <code>:0</code> on single-occurrence nodes</li>
+      <li><strong>Missing required fields</strong>: language, territory, composer, category, context start time and setting</li>
+    </ul>
+    <h3>OPT Template</h3>
+    <p>Paste an Operational Template (OPT 1.4 XML) to check well-formedness (XML, archetype IDs, RM type names, node IDs), semantic integrity (term definitions and bindings) and structural quality before you upload it or generate code from it.</p>
+    <h3>Platform Migration</h3>
+    <p>Moving between CDRs? Convert a FLAT composition from the EHRBase 2.x dialect to Better's (or back), and see which paths changed.</p>
+
+    <h2>FAQ</h2>
+    <h3>Where do I get the Web Template?</h3>
+    <p>From your CDR. In EHRBase, call <code>GET /rest/openehr/v1/definition/template/adl1.4/&#123;template_id&#125;</code> with <code>Accept: application/openehr.wt+json</code>. The Web Template, not the OPT, is the authoritative source for FLAT paths.</p>
+    <h3>What is the difference between EHRBase and Better FLAT?</h3>
+    <p>Both flatten a composition into <code>path|attribute</code> keys, but they differ in details: EHRBase 2.x omits the <code>:0</code> index on single-occurrence nodes and has no <code>/any_event/</code> segment, while Better keeps more indices. Pick the platform your CDR runs so the validator applies the right dialect.</p>
+    <h3>Can I run the same checks in Python?</h3>
+    <p>Yes. <code>pip install oehrpy</code>, then use <code>FlatValidator.from_web_template(...)</code> or <code>OPTValidator()</code>. See the <a href="/docs/validation.html">validation guide</a>.</p>
+    <h3>Is my data uploaded anywhere?</h3>
+    <p>No. Everything runs client-side. The only network requests fetch Pyodide and the oehrpy wheel from PyPI on the first load (about 10 MB, cached afterwards).</p>
+</ToolAbout>
 
 <!-- Loading overlay -->
 <div class="loading-overlay" id="loading-overlay">
