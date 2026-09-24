@@ -1,0 +1,53 @@
+---
+// Visible title strip for the full-screen tool pages (Validator, Converter,
+// Explorer): the page's <h1>, a one-line summary and a jump link to the
+// explanatory <ToolAbout> section below the app.
+interface Props {
+  title: string;
+  summary: string;
+}
+const { title, summary } = Astro.props;
+---
+<div class="tool-title">
+  <h1>{title}</h1>
+  <p>{summary}</p>
+  <a href="#about">How it works &darr;</a>
+</div>
+
+<style>
+  .tool-title {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 12px 40px;
+    border-bottom: 1px solid var(--border, #2d2d4d);
+  }
+  h1 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text, #f3f4f6);
+    margin: 0;
+  }
+  p {
+    font-size: 13px;
+    color: var(--text-muted, #9ca3af);
+    margin: 0;
+    flex: 1;
+    min-width: 200px;
+  }
+  a {
+    font-size: 13px;
+    color: var(--accent, #3b82f6);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  @media (max-width: 768px) {
+    .tool-title {
+      padding: 10px 16px;
+    }
+  }
+</style>

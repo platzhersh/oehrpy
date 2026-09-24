@@ -3,11 +3,32 @@ import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import "../styles/pages/vscode.css";
 import extensionPkg from "../../../vscode-extension/package.json";
+import { AUTHOR } from "../utils/site";
 ---
 <Layout
-  title={"VS Code Extension - oehrpy"}
+  title={"openEHR FLAT Validator for VS Code | oehrpy"}
   description={"VS Code extension for validating openEHR FLAT format compositions against Web Templates — inline diagnostics, hover documentation, and quick fixes."}
   path="vscode.html"
+  image="og/vscode.png"
+  imageAlt={"oehrpy FLAT Validator extension for VS Code"}
+  breadcrumbs={[{ name: "VS Code Extension", path: "vscode.html" }]}
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: extensionPkg.displayName,
+      description: extensionPkg.description,
+      softwareVersion: extensionPkg.version,
+      applicationCategory: "DeveloperApplication",
+      applicationSubCategory: "Visual Studio Code extension",
+      operatingSystem: "Windows, macOS, Linux",
+      url: "https://oehrpy.dev/vscode.html",
+      codeRepository: "https://github.com/platzhersh/oehrpy/tree/main/vscode-extension",
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      author: AUTHOR,
+    },
+  ]}
   ogDescription={"VS Code extension for validating openEHR FLAT format compositions — inline diagnostics, hover docs, and quick fixes without leaving the editor."}
   twitterDescription={"Validate openEHR FLAT compositions in VS Code — red squiggles on invalid paths, hover documentation, quick fixes."}
 >
@@ -16,7 +37,7 @@ import extensionPkg from "../../../vscode-extension/package.json";
 
   <!-- Page Content -->
   <main class="page-container">
-    <h1 class="page-title">VS Code Extension</h1>
+    <h1 class="page-title">openEHR FLAT Validator for VS Code</h1>
     <p class="page-subtitle">
       Validate openEHR FLAT format compositions against Web Templates directly in VS Code. Catch invalid paths, wrong suffixes, and missing required fields before they reach EHRBase.
     </p>
@@ -228,7 +249,7 @@ import extensionPkg from "../../../vscode-extension/package.json";
 
   <!-- Footer -->
   <footer>
-    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="docs.html">Docs</a> &middot; Apache 2.0 License</p>
+    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="/docs.html">Docs</a> &middot; Apache 2.0 License</p>
     <p>See also: <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a> &middot; <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a></p>
   </footer>
 </Layout>

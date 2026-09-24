@@ -1,0 +1,53 @@
+---
+// Served by GitHub Pages for any unknown URL, at that URL, so every link
+// here must be root-absolute. Reuses the docs stylesheet for header and
+// content styling.
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import { DOCS_PAGES } from "../utils/docs-nav";
+import "../styles/pages/docs.css";
+---
+<Layout
+  title="Page not found | oehrpy"
+  description="This page doesn't exist. Find the oehrpy Python openEHR SDK documentation, the in-browser openEHR tools, and the openEHR workflow guide."
+  path="404.html"
+  noindex={true}
+>
+  <SiteHeader active="none" />
+
+  <main class="content not-found">
+    <p class="code">404</p>
+    <h1>Page not found</h1>
+    <p class="lead">The page you were looking for doesn't exist or has moved. Try one of these instead:</p>
+
+    <h2>Documentation</h2>
+    <ul>
+      {DOCS_PAGES.map((p) => <li><a href={`/${p.path}`}>{p.label}</a></li>)}
+    </ul>
+
+    <h2>Tools</h2>
+    <ul>
+      <li><a href="/validator.html">openEHR FLAT &amp; OPT Validator</a></li>
+      <li><a href="/converter.html">Canonical JSON ⇄ FLAT Converter</a></li>
+      <li><a href="/explorer.html">Template Explorer</a></li>
+      <li><a href="/vscode.html">VS Code extension</a></li>
+    </ul>
+
+    <p>Or go to the <a href="/">home page</a>, read <a href="/workflow.html">how openEHR works</a>, or <a href="https://github.com/platzhersh/oehrpy/issues">report a broken link</a>.</p>
+  </main>
+</Layout>
+
+<style>
+  .not-found {
+    margin: 0 auto;
+    padding: 64px 20px 80px;
+  }
+  .code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 64px;
+    font-weight: 700;
+    color: #3b82f6;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+</style>

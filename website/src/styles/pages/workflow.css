@@ -467,3 +467,52 @@ footer a:hover {
     font-size: 1rem;
   }
 }
+
+/* Explainer below the diagram */
+.explainer {
+  margin-top: 64px;
+  max-width: 760px;
+  line-height: 1.75;
+  color: var(--text-muted);
+}
+.explainer h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 48px 0 14px;
+}
+.explainer h2:first-child {
+  margin-top: 0;
+}
+.explainer h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 24px 0 6px;
+}
+.explainer p {
+  margin-bottom: 14px;
+}
+.explainer strong,
+.explainer dt {
+  color: var(--text);
+}
+.explainer a {
+  color: var(--blue-light);
+}
+.explainer code {
+  font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+  font-size: 0.85em;
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--code-text);
+  overflow-wrap: anywhere;
+}
+.explainer .concepts dt {
+  font-weight: 600;
+  margin-top: 18px;
+}
+.explainer .concepts dd {
+  margin: 4px 0 0;
+}

@@ -1,0 +1,46 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+---
+<DocsLayout
+  title={'openEHR AQL Query Builder for Python | oehrpy'}
+  description={'Build openEHR Archetype Query Language (AQL) queries in Python with a fluent, type-safe builder instead of string concatenation, and run them against EHRBase.'}
+  path="docs/aql.html"
+  heading={'AQL Query Builder'}
+>
+  <p class="lead">The Archetype Query Language (AQL) is how you query openEHR data across EHRs. Writing it as concatenated strings is error-prone, so oehrpy provides a fluent builder that assembles <code>SELECT</code>, <code>FROM</code>, <code>CONTAINS</code>, <code>WHERE</code>, <code>ORDER BY</code> and paging clauses for you. Run the result with the <a href="/docs/ehrbase-client.html">EHRBase client</a>.</p>
+
+  <h2 id="basic-queries">Basic Queries</h2>
+  <pre><code><span class="keyword">from</span> oehrpy.aql <span class="keyword">import</span> AQLBuilder
+
+<span class="comment"># Simple query</span>
+query = (
+    AQLBuilder()
+    .select(<span class="string">"c/uid/value"</span>, alias=<span class="string">"composition_id"</span>)
+    .select(<span class="string">"c/name/value"</span>, alias=<span class="string">"name"</span>)
+    .from_ehr()
+    .contains_composition()
+    .where_ehr_id()
+    .build()
+)
+
+<span class="keyword">print</span>(query.to_string())
+<span class="comment"># SELECT c/uid/value AS composition_id, c/name/value AS name</span>
+<span class="comment"># FROM EHR e CONTAINS COMPOSITION c</span>
+<span class="comment"># WHERE e/ehr_id/value = :ehr_id</span></code></pre>
+
+  <h2 id="complex-queries">Complex Queries</h2>
+  <pre><code><span class="comment"># Query with observations and ordering</span>
+query = (
+    AQLBuilder()
+    .select(<span class="string">"c/context/start_time/value"</span>, alias=<span class="string">"time"</span>)
+    .select(<span class="string">"o/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value/magnitude"</span>,
+            alias=<span class="string">"systolic"</span>)
+    .from_ehr()
+    .contains_composition()
+    .contains_observation(archetype_id=<span class="string">"openEHR-EHR-OBSERVATION.blood_pressure.v1"</span>)
+    .where_ehr_id()
+    .order_by_time(descending=<span class="string">True</span>)
+    .limit(<span class="string">100</span>)
+    .build()
+)</code></pre>
+</DocsLayout>

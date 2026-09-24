@@ -2,38 +2,48 @@
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import "../styles/pages/index.css";
----
-<Layout
-  title={"oehrpy - Python openEHR SDK"}
-  description={"oehrpy is a comprehensive, type-safe Python SDK for openEHR — Reference Model classes, template composition builders, an EHRBase client, and an AQL query builder."}
-  path="index.html"
-  ogDescription={"A comprehensive, type-safe Python SDK for openEHR — Reference Model classes, composition builders, an EHRBase client, and an AQL query builder."}
-  twitterDescription={"A comprehensive, type-safe Python SDK for openEHR — RM classes, composition builders, EHRBase client, and AQL query builder."}
->
-  <script is:inline type="application/ld+json" slot="head">
+import { packageVersion } from "../utils/version";
+import { AUTHOR, GITHUB_URL, PYPI_URL } from "../utils/site";
+
+const description =
+  "A comprehensive, type-safe Python SDK for openEHR providing Reference Model classes, template composition builders, an EHRBase client, and an AQL query builder.";
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "oehrpy",
+    url: "https://oehrpy.dev/",
+  },
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "oehrpy",
-    "description": "A comprehensive, type-safe Python SDK for openEHR providing Reference Model classes, template composition builders, an EHRBase client, and an AQL query builder.",
-    "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "Cross-platform",
-    "url": "https://oehrpy.dev/",
-    "downloadUrl": "https://pypi.org/project/oehrpy/",
-    "codeRepository": "https://github.com/platzhersh/oehrpy",
-    "programmingLanguage": "Python",
-    "license": "https://github.com/platzhersh/oehrpy/blob/main/LICENSE",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "author": {
-      "@type": "Organization",
-      "name": "Open CIS Project"
-    }
-  }
-  </script>
+    name: "oehrpy",
+    description,
+    applicationCategory: "DeveloperApplication",
+    applicationSubCategory: "Python library",
+    operatingSystem: "Cross-platform",
+    softwareVersion: packageVersion,
+    url: "https://oehrpy.dev/",
+    downloadUrl: PYPI_URL,
+    installUrl: PYPI_URL,
+    codeRepository: GITHUB_URL,
+    programmingLanguage: "Python",
+    license: `${GITHUB_URL}/blob/main/LICENSE`,
+    keywords: "openEHR, Python, SDK, EHRBase, FLAT format, AQL, Reference Model, Pydantic, healthcare, EHR",
+    sameAs: [GITHUB_URL, PYPI_URL],
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    author: AUTHOR,
+  },
+];
+---
+<Layout
+  title={"Python SDK for openEHR & EHRBase | oehrpy"}
+  description={"oehrpy is a comprehensive, type-safe Python SDK for openEHR — Reference Model classes, template composition builders, an EHRBase client, and an AQL query builder."}
+  path=""
+  jsonLd={jsonLd}
+  ogDescription={"A comprehensive, type-safe Python SDK for openEHR — Reference Model classes, composition builders, an EHRBase client, and an AQL query builder."}
+  twitterDescription={"A comprehensive, type-safe Python SDK for openEHR — RM classes, composition builders, EHRBase client, and AQL query builder."}
+>
   <!-- Header -->
   <SiteHeader active="home" />
 
@@ -136,7 +146,7 @@ flat_data = builder.<span class="code-function">build</span>()
 
   <!-- Footer -->
   <footer>
-    <p>Built with Python and openEHR | <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> | <a href="docs.html">Docs</a> | <a href="brand-kit.html">Brand Kit</a></p>
+    <p>Built with Python and openEHR | <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> | <a href="/docs.html">Docs</a> | <a href="/brand-kit.html">Brand Kit</a></p>
     <p style="margin-top: 10px; font-size: 14px;">oehrpy is open source software &middot; See also: <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a> &middot; <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a></p>
   </footer>
 

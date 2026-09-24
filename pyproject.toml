@@ -45,8 +45,8 @@ dev = [
 oehrpy-validate-opt = "oehrpy.validate_opt_cli:main"
 
 [project.urls]
-Homepage = "https://github.com/platzhersh/oehrpy"
-Documentation = "https://github.com/platzhersh/oehrpy#readme"
+Homepage = "https://oehrpy.dev/"
+Documentation = "https://oehrpy.dev/docs.html"
 Repository = "https://github.com/platzhersh/oehrpy"
 Issues = "https://github.com/platzhersh/oehrpy/issues"
 

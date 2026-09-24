@@ -1,0 +1,60 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+---
+<DocsLayout
+  title={'Contributing to oehrpy: Setup, Tests & Code Generation | oehrpy'}
+  description={'Set up an oehrpy development environment, regenerate the openEHR RM classes from the specifications, find your way around the project structure, and run the tests.'}
+  path="docs/development.html"
+  heading={'Development'}
+>
+  <p class="lead">oehrpy is open source (Apache-2.0) and welcomes contributions. This page covers setting up a development environment, regenerating the Reference Model classes from the openEHR specifications, the layout of the repository, and running the test suite.</p>
+
+  <h2 id="setup">Setup Development Environment</h2>
+  <pre><code><span class="comment"># Clone repository</span>
+git clone https://github.com/platzhersh/oehrpy.git
+cd oehrpy
+
+<span class="comment"># Install with development dependencies</span>
+pip install -e <span class="string">".[dev,generator]"</span>
+
+<span class="comment"># Run tests</span>
+pytest tests/ -v
+
+<span class="comment"># Type checking</span>
+mypy src/oehrpy</code></pre>
+
+  <h2 id="regenerating-rm-classes">Regenerating RM Classes</h2>
+  <p>The RM classes are generated from openEHR JSON Schema specifications (RM 1.1.0):</p>
+  <pre><code>python -m generator.generate_rm_1_1_0</code></pre>
+
+  <h2 id="project-structure">Project Structure</h2>
+  <pre><code>oehrpy/
+├── src/oehrpy/       <span class="comment"># Main package</span>
+│   ├── rm/                <span class="comment"># Generated RM + BASE classes (134 types)</span>
+│   ├── serialization/     <span class="comment"># JSON serialization</span>
+│   ├── client/            <span class="comment"># EHRBase REST client</span>
+│   ├── templates/         <span class="comment"># Template builders</span>
+│   ├── validation/        <span class="comment"># FLAT &amp; OPT validators</span>
+│   └── aql/               <span class="comment"># AQL query builder</span>
+├── generator/             <span class="comment"># Code generation tools</span>
+├── tests/                 <span class="comment"># Test suite</span>
+└── docs/                  <span class="comment"># Documentation</span></code></pre>
+
+  <div class="note">
+    <p><strong>Contributing:</strong> We welcome contributions! Check out the <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub repository</a> for guidelines.</p>
+  </div>
+
+  <h2 id="running-tests">Running Tests</h2>
+  <pre><code><span class="comment"># Run all tests</span>
+pytest
+
+<span class="comment"># Run with coverage</span>
+pytest --cov=oehrpy --cov-report=html
+
+<span class="comment"># Run specific test file</span>
+pytest tests/test_rm_types.py -v</code></pre>
+
+  <div class="warning">
+    <p><strong>Note:</strong> Some tests require a running EHRBase instance. Use the provided Docker Compose setup for integration tests.</p>
+  </div>
+</DocsLayout>

@@ -1,0 +1,36 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+---
+<DocsLayout
+  title={'openEHR Canonical JSON & FLAT Format in Python | oehrpy'}
+  description={"Serialize openEHR RM objects to canonical JSON and back, and build EHRBase FLAT format compositions in Python with oehrpy's serialization layer."}
+  path="docs/serialization.html"
+  heading={'Canonical JSON & FLAT Serialization'}
+>
+  <p class="lead">openEHR compositions travel as JSON in two main shapes. <strong>Canonical JSON</strong> is the standard serialization of the Reference Model, a nested tree where every object carries a <code>_type</code>. <strong>FLAT</strong> is the simplified format used by EHRBase and Better: a single map of <code>path|attribute</code> keys. oehrpy converts RM objects to and from canonical JSON and helps you build FLAT compositions. To try the conversion without writing code, use the <a href="/converter.html">Canonical JSON ⇄ FLAT converter</a>.</p>
+
+  <h2 id="canonical-json">Canonical JSON</h2>
+  <p>Canonical JSON is the standard openEHR format with <code>_type</code> fields:</p>
+  <pre><code><span class="keyword">from</span> oehrpy.serialization <span class="keyword">import</span> to_canonical, from_canonical
+<span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_QUANTITY
+
+<span class="comment"># Serialize to canonical JSON</span>
+quantity = DV_QUANTITY(magnitude=<span class="string">120.0</span>, units=<span class="string">"mm[Hg]"</span>, ...)
+canonical = to_canonical(quantity)
+<span class="comment"># &#123;"_type": "DV_QUANTITY", "magnitude": 120.0, "units": "mm[Hg]", ...&#125;</span>
+
+<span class="comment"># Deserialize from canonical JSON</span>
+restored = from_canonical(canonical, expected_type=DV_QUANTITY)</code></pre>
+
+  <h2 id="flat-format">FLAT Format</h2>
+  <p>FLAT format is EHRBase's simplified format using paths:</p>
+  <pre><code><span class="keyword">from</span> oehrpy.serialization <span class="keyword">import</span> FlatBuilder
+
+<span class="comment"># For EHRBase 2.x, use the template's composition tree ID as the prefix</span>
+builder = FlatBuilder(composition_prefix=<span class="string">"vital_signs_observations"</span>)
+builder.context(language=<span class="string">"en"</span>, territory=<span class="string">"US"</span>, composer_name=<span class="string">"Dr. Smith"</span>)
+builder.set_quantity(<span class="string">"vital_signs_observations/vital_signs/blood_pressure/systolic"</span>, <span class="string">120.0</span>, <span class="string">"mm[Hg]"</span>)
+builder.set_text(<span class="string">"vital_signs_observations/vital_signs/notes"</span>, <span class="string">"Patient stable"</span>)
+
+flat_data = builder.build()</code></pre>
+</DocsLayout>

@@ -1,20 +1,27 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import ToolTitle from "../components/ToolTitle.astro";
+import ToolAbout from "../components/ToolAbout.astro";
+import { toolJsonLd } from "../utils/structured-data";
 import "../styles/pages/converter.css";
 ---
 <Layout
-  title={"oehrpy · Converter"}
-  description={"Convert openEHR compositions between Canonical JSON and EHRBase FLAT format right in your browser with the oehrpy converter."}
+  title={'openEHR Canonical JSON to FLAT Converter | oehrpy'}
+  description={'Convert openEHR compositions from Canonical JSON to EHRBase or Better FLAT format, or view FLAT as a tree, right in your browser. No upload, no install.'}
   path="converter.html"
-  twitterDescription={"Convert openEHR compositions between Canonical JSON and EHRBase FLAT format in your browser."}
+  twitterDescription={'Convert openEHR Canonical JSON compositions to FLAT format in your browser.'}
+  image="og/converter.png"
+  imageAlt={'oehrpy openEHR Canonical JSON to FLAT converter'}
+  breadcrumbs={[{ name: 'openEHR Canonical JSON ⇄ FLAT Converter', path: "converter.html" }]}
+  jsonLd={[toolJsonLd({ name: 'openEHR Canonical JSON ⇄ FLAT Converter', path: "converter.html", description: 'Convert openEHR compositions from Canonical JSON to EHRBase or Better FLAT format, or view FLAT as a tree, right in your browser. No upload, no install.', features: ['Convert Canonical JSON compositions to FLAT format', 'Render FLAT compositions as a tree', 'EHRBase 2.x and Better FLAT dialects'] })]}
 >
 <div class="app">
 
   <!-- Header -->
   <SiteHeader active="converter" showVersion={true} />
 
-  <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">oehrpy Converter — Canonical JSON ⇄ EHRBase FLAT</h1>
+  <ToolTitle title={'openEHR Canonical JSON ⇄ FLAT Converter'} summary={'Turn a Canonical JSON composition into EHRBase or Better FLAT, or unfold FLAT paths into a tree. Converts as you type, fully client-side.'} />
 
   <!-- Mode bar -->
   <div class="mode-bar">
@@ -80,18 +87,41 @@ import "../styles/pages/converter.css";
     <span class="sep">|</span>
     <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
     <span class="sep">|</span>
-    <a href="docs.html">Docs</a>
+    <a href="/docs.html">Docs</a>
     <span class="sep">|</span>
     <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a>
     <span class="sep">|</span>
     <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a>
     <span class="sep">|</span>
-    <a href="brand-kit.html">Brand Kit</a>
+    <a href="/brand-kit.html">Brand Kit</a>
     <span class="sep">|</span>
     <span>100% client-side</span>
   </footer>
 
 </div>
+
+<ToolAbout>
+    <h2>Canonical JSON and FLAT: the same composition, two shapes</h2>
+    <p>openEHR compositions are usually exchanged in one of two JSON formats. <strong>Canonical JSON</strong> is the standard serialization of the Reference Model: a deep tree where every object carries its <code>_type</code>. <strong>FLAT</strong> (the "simplified" format used by EHRBase and Better) is a single map of <code>path|attribute</code> keys to values, such as <code>vital_signs/blood_pressure/systolic|magnitude: 120</code>. It is much easier to build by hand or from a form.</p>
+    <p>This converter flattens a Canonical JSON composition into FLAT, so you can see how a stored composition maps onto the FLAT paths your application writes, and unfolds a FLAT composition into a tree so you can inspect its structure. It does not convert FLAT back to Canonical JSON.</p>
+
+    <h2>How to use it</h2>
+    <ol>
+      <li>Pick a mode: <strong>Canonical → FLAT</strong> to flatten a composition, or <strong>FLAT → Tree</strong> to see a FLAT composition as a nested structure.</li>
+      <li>Pick the platform dialect: <strong>EHRBase 2.x</strong> or <strong>Better</strong>.</li>
+      <li>Paste your JSON, or click <em>Load Example</em>. The output updates as you type; copy it with one click.</li>
+    </ol>
+
+    <h2>FAQ</h2>
+    <h3>Where do I get a Canonical JSON composition?</h3>
+    <p>Fetch it from your CDR, e.g. EHRBase <code>GET /rest/openehr/v1/ehr/&#123;ehr_id&#125;/composition/&#123;uid&#125;</code> with <code>Accept: application/json</code>.</p>
+    <h3>Are the generated FLAT paths guaranteed to be valid?</h3>
+    <p>FLAT paths depend on the template, so check the result with the <a href="/validator.html">FLAT validator</a> against the template's Web Template before posting it to a CDR.</p>
+    <h3>Can I do this in Python?</h3>
+    <p>Yes. oehrpy's serialization layer converts RM objects to and from Canonical JSON and FLAT. See the <a href="/docs/serialization.html">serialization guide</a>.</p>
+    <h3>Is my data uploaded anywhere?</h3>
+    <p>No. The conversion runs entirely in your browser.</p>
+</ToolAbout>
 
 <script is:inline>
 // ── State ──

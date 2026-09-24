@@ -1,20 +1,26 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import { docsJsonLd } from "../utils/structured-data";
 import "../styles/pages/workflow.css";
 ---
 <Layout
-  title={"Workflow - oehrpy"}
-  description={"Interactive openEHR workflow diagram showing how templates, compositions, and the EHRBase CDR fit together when building with oehrpy."}
+  title={"How openEHR Works: Templates, Compositions & CDRs | oehrpy"}
+  description={"A beginner's guide to the openEHR workflow: archetypes, operational templates, Web Templates, compositions, FLAT and canonical JSON, CDRs such as EHRBase, and AQL, and where the oehrpy Python SDK fits in."}
   path="workflow.html"
-  twitterDescription={"How openEHR templates, compositions, and the EHRBase CDR fit together when building with oehrpy."}
+  ogDescription={"How openEHR works, from clinical modelling to querying patient data: archetypes, templates, compositions, CDRs and AQL."}
+  twitterDescription={"How openEHR works: archetypes, templates, compositions, CDRs and AQL, and where oehrpy fits in."}
+  image="og/workflow.png"
+  imageAlt={"The openEHR workflow, from clinical modelling to querying patient data"}
+  breadcrumbs={[{ name: "How openEHR Works", path: "workflow.html" }]}
+  jsonLd={[docsJsonLd({ title: "How openEHR Works: the Data Lifecycle", path: "workflow.html", description: "A beginner's guide to the openEHR workflow: archetypes, templates, compositions, CDRs and AQL." })]}
 >
   <!-- Header -->
   <SiteHeader active="workflow" />
 
   <!-- Page Content -->
   <main class="page-container">
-    <h1 class="page-title">openEHR Workflow</h1>
+    <h1 class="page-title">How openEHR Works: the Data Lifecycle</h1>
     <p class="page-subtitle">
       Where oehrpy fits in the openEHR data lifecycle &mdash; from clinical modelling to querying patient data. Phases highlighted in blue are handled by oehrpy.
     </p>
@@ -212,11 +218,52 @@ import "../styles/pages/workflow.css";
         </div>
       </div>
     </div>
+
+    <!-- Explainer -->
+    <article class="explainer">
+      <h2 id="what-is-openehr">What is openEHR?</h2>
+      <p><a href="https://openehr.org/" target="_blank" rel="noopener noreferrer">openEHR</a> is an open, vendor-neutral standard for electronic health records. Its central idea is <strong>two-level modelling</strong>: software only has to understand a small, stable <em>Reference Model</em>, while the clinical meaning (what a blood pressure reading or an allergy record contains) is defined separately by clinicians in <em>archetypes</em> and <em>templates</em>. The same data can then be stored, exchanged and queried by any openEHR system, and new clinical content does not require new database schemas or code releases.</p>
+
+      <h2 id="key-concepts">Key concepts</h2>
+      <dl class="concepts">
+        <dt>Reference Model (RM)</dt>
+        <dd>The generic building blocks every openEHR system implements: <code>COMPOSITION</code>, <code>OBSERVATION</code>, <code>ELEMENT</code>, and data types such as <code>DV_QUANTITY</code> and <code>DV_CODED_TEXT</code>. oehrpy provides all 134 RM 1.1.0 classes as <a href="/docs/reference-model.html">type-safe Pydantic models</a>.</dd>
+        <dt>Archetype</dt>
+        <dd>A reusable, clinician-authored definition of one clinical concept, such as blood pressure or body temperature, built from RM types. Archetypes are shared internationally, for example through the <a href="https://ckm.openehr.org/" target="_blank" rel="noopener noreferrer">openEHR Clinical Knowledge Manager</a>.</dd>
+        <dt>Template and OPT</dt>
+        <dd>A template combines and constrains archetypes for one use case, e.g. a vital signs form. Modelling tools export it as an <strong>Operational Template</strong> (<code>.opt</code>, XML), the file you upload to a CDR. oehrpy can <a href="/docs/templates.html#opt-parser">parse</a> and <a href="/validator.html">validate</a> OPTs.</dd>
+        <dt>Web Template</dt>
+        <dd>A simplified JSON rendering of an OPT that the CDR generates. It lists every field with its FLAT path, type and constraints, which makes it the authoritative source for FLAT paths. Browse one with the <a href="/explorer.html">template explorer</a>.</dd>
+        <dt>EHR and composition</dt>
+        <dd>Each patient has one <strong>EHR</strong>. Clinical data is committed to it as <strong>compositions</strong>, one document per encounter or recording, each conforming to a template and versioned on every change.</dd>
+        <dt>Canonical JSON and FLAT</dt>
+        <dd>Two JSON serializations of a composition. <strong>Canonical JSON</strong> is the full RM tree with <code>_type</code> fields; <strong>FLAT</strong> is a map of <code>path|attribute</code> keys that is much easier to produce from an application. See the <a href="/docs/serialization.html">serialization guide</a> or try the <a href="/converter.html">converter</a>.</dd>
+        <dt>CDR</dt>
+        <dd>A Clinical Data Repository stores EHRs and compositions and exposes the openEHR REST API. <a href="https://ehrbase.org/" target="_blank" rel="noopener noreferrer">EHRBase</a> is the leading open-source CDR; oehrpy ships an <a href="/docs/ehrbase-client.html">async EHRBase client</a>.</dd>
+        <dt>AQL</dt>
+        <dd>The Archetype Query Language queries data across all EHRs by archetype paths rather than table columns, so the same query works on any openEHR CDR. oehrpy has a <a href="/docs/aql.html">fluent AQL builder</a>.</dd>
+      </dl>
+
+      <h2 id="phases">The five phases</h2>
+      <h3>1. Modelling</h3>
+      <p>Clinical modellers pick or author archetypes and assemble them into a template in a tool such as Archetype Designer, then export the operational template (<code>.opt</code>).</p>
+      <h3>2. Uploading to the CDR</h3>
+      <p>The OPT is uploaded to the CDR, which from then on accepts compositions for that template and can serve its Web Template.</p>
+      <h3>3. Application development</h3>
+      <p>Developers fetch the Web Template, check the OPT with <code>OPTValidator</code>, and generate or write template builders so the application produces correctly shaped data. This is where oehrpy starts to help.</p>
+      <h3>4. Writing compositions</h3>
+      <p>The application fills a builder (or builds FLAT or canonical JSON directly), validates it with <code>FlatValidator</code>, and commits it to the patient's EHR through the CDR's REST API.</p>
+      <h3>5. Reading and querying</h3>
+      <p>Data is read back per composition or queried across the population with AQL. Results can be deserialized into typed RM objects for further processing.</p>
+
+      <h2 id="next-steps">Next steps</h2>
+      <p>Install oehrpy with <code>pip install oehrpy</code> and follow the <a href="/docs.html">getting started guide</a>, or paste your own templates into the <a href="/validator.html">validator</a>, <a href="/converter.html">converter</a> and <a href="/explorer.html">explorer</a> to see these concepts in action.</p>
+    </article>
   </main>
 
   <!-- Footer -->
   <footer>
-    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="docs.html">Docs</a> &middot; Apache 2.0 License</p>
+    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="/docs.html">Docs</a> &middot; Apache 2.0 License</p>
     <p>See also: <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a> &middot; <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a></p>
   </footer>
 </Layout>

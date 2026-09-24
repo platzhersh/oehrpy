@@ -34,6 +34,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          # Full history: the generated sitemap's <lastmod> dates come
+          # from `git log` (website/src/pages/sitemap.xml.ts).
+          fetch-depth: 0
 
       - uses: actions/setup-node@v6
         with:
@@ -43,6 +46,10 @@ jobs:
 
       - run: npm ci --ignore-scripts
       - run: npm run build
+        env:
+          # Google Search Console HTML-tag verification token (repository
+          # variable; the meta tag is omitted while it is unset).
+          PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

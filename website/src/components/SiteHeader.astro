@@ -17,7 +17,9 @@ export type NavPage =
   | "explorer"
   | "workflow"
   | "vscode"
-  | "brand-kit";
+  | "brand-kit"
+  /** No nav entry is current (e.g. the 404 page). */
+  | "none";
 
 interface Props {
   active: NavPage;
@@ -29,15 +31,15 @@ interface Props {
 
 const { active, showVersion = false, logoSize = 32 } = Astro.props;
 const tools: { page: NavPage; href: string; label: string }[] = [
-  { page: "validator", href: "validator.html", label: "Validator" },
-  { page: "converter", href: "converter.html", label: "Converter" },
-  { page: "explorer", href: "explorer.html", label: "Explorer" },
+  { page: "validator", href: "/validator.html", label: "Validator" },
+  { page: "converter", href: "/converter.html", label: "Converter" },
+  { page: "explorer", href: "/explorer.html", label: "Explorer" },
 ];
 const toolActive = tools.some((t) => t.page === active);
 const cls = (page: NavPage) => (page === active ? "active" : undefined);
 ---
 <header>
-  <a href="index.html" class="logo-header">
+  <a href="/" class="logo-header">
     <Logo size={logoSize} />
     <span>oehrpy</span>
   </a>
@@ -48,18 +50,18 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
         <a href="#quickstart">Quick Start</a>
       </>
     ) : (
-      <a href="index.html">Home</a>
+      <a href="/">Home</a>
     )}
-    <a href="docs.html" class={cls("docs")}>Docs</a>
+    <a href="/docs.html" class={cls("docs")}>Docs</a>
     <div class="nav-dropdown">
       <button class:list={["nav-dropdown-btn", { active: toolActive }]} aria-expanded="false" aria-controls="nav-tools-menu">Tools <span class="dropdown-arrow">&#9662;</span></button>
       <div class="nav-dropdown-menu" id="nav-tools-menu">
         {tools.map((t) => <a href={t.href} class={cls(t.page)}>{t.label}</a>)}
       </div>
     </div>
-    <a href="workflow.html" class={cls("workflow")}>Workflow</a>
-    <a href="vscode.html" class={cls("vscode")}>VS Code</a>
-    <a href="brand-kit.html" class={cls("brand-kit")}>Brand Kit</a>
+    <a href="/workflow.html" class={cls("workflow")}>Workflow</a>
+    <a href="/vscode.html" class={cls("vscode")}>VS Code</a>
+    <a href="/brand-kit.html" class={cls("brand-kit")}>Brand Kit</a>
     {showVersion && <span class="badge" id="version-badge">v{packageVersion}</span>}
     <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer">
       <GithubIcon />

@@ -1,0 +1,50 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+---
+<DocsLayout
+  title={'Python EHRBase Client: EHRs, Compositions & AQL | oehrpy'}
+  description={'An async Python client for EHRBase: create EHRs, create, read, update and delete compositions in FLAT or canonical format, and run AQL queries against the CDR.'}
+  path="docs/ehrbase-client.html"
+  heading={'EHRBase Client'}
+>
+  <p class="lead"><code>EHRBaseClient</code> is an async Python client (built on httpx) for the <a href="https://ehrbase.org/" target="_blank" rel="noopener noreferrer">EHRBase</a> clinical data repository. It wraps the openEHR REST API: create and look up EHRs, create, read, update and delete compositions in FLAT or canonical format, upload templates and fetch Web Templates, and run AQL queries.</p>
+
+  <h2 id="basic-operations">Basic Operations</h2>
+  <pre><code><span class="keyword">from</span> oehrpy.client <span class="keyword">import</span> EHRBaseClient
+
+<span class="keyword">async with</span> EHRBaseClient(
+    base_url=<span class="string">"http://localhost:8080/ehrbase"</span>,
+    username=<span class="string">"admin"</span>,
+    password=<span class="string">"admin"</span>
+) <span class="keyword">as</span> client:
+    <span class="comment"># Create an EHR</span>
+    ehr = <span class="keyword">await</span> client.create_ehr()
+    <span class="keyword">print</span>(<span class="string">f"Created EHR: &#123;ehr.ehr_id&#125;"</span>)
+
+    <span class="comment"># Create a composition</span>
+    result = <span class="keyword">await</span> client.create_composition(
+        ehr_id=ehr.ehr_id,
+        template_id=<span class="string">"IDCR - Vital Signs Encounter.v1"</span>,
+        composition=flat_data,
+        format=<span class="string">"FLAT"</span>
+    )
+
+    <span class="comment"># Retrieve a composition</span>
+    composition = <span class="keyword">await</span> client.get_composition(
+        ehr_id=ehr.ehr_id,
+        composition_uid=result.uid,
+        format=<span class="string">"FLAT"</span>
+    )</code></pre>
+
+  <h2 id="querying-with-aql">Querying with AQL</h2>
+  <pre><code><span class="comment"># Execute AQL query</span>
+query_result = <span class="keyword">await</span> client.query(
+    <span class="string">"""SELECT c/uid/value, c/context/start_time/value
+    FROM EHR e CONTAINS COMPOSITION c
+    WHERE e/ehr_id/value = :ehr_id"""</span>,
+    query_parameters=&#123;<span class="string">"ehr_id"</span>: ehr.ehr_id&#125;
+)
+
+<span class="keyword">for</span> row <span class="keyword">in</span> query_result.rows:
+    <span class="keyword">print</span>(<span class="string">f"Composition: &#123;row[0]&#125; at &#123;row[1]&#125;"</span>)</code></pre>
+</DocsLayout>

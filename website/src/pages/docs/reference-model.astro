@@ -1,0 +1,173 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+---
+<DocsLayout
+  title={'openEHR Reference Model (RM) Classes in Python | oehrpy'}
+  description={'Use the openEHR Reference Model 1.1.0 in Python: 134 type-safe Pydantic classes for data types (DV_TEXT, DV_QUANTITY, DV_CODED_TEXT, DV_SCALE…) and structures, with validation and mypy support.'}
+  path="docs/reference-model.html"
+  heading={'openEHR Reference Model Classes in Python'}
+>
+  <p class="lead">oehrpy ships all 134 classes of the openEHR Reference Model (RM) 1.1.0, including the BASE types, as Pydantic v2 models generated from the official specifications. They validate on construction and type-check with mypy, so invalid clinical data fails in your editor rather than at the CDR.</p>
+
+  <h2 id="rm-classes">RM Classes</h2>
+  <p>The Reference Model (RM) classes form the foundation of oehrpy. These are type-safe Pydantic models that represent openEHR data structures.</p>
+
+  <div class="note">
+    <p><strong>New in RM 1.1.0:</strong> Support for <code>DV_SCALE</code> (decimal scale values), <code>preferred_term</code> field in <code>CODE_PHRASE</code>, and enhanced Folder support. All 134 types include both RM and BASE components.</p>
+  </div>
+
+  <h3>Data Types</h3>
+  <p>oehrpy includes all major openEHR data types:</p>
+
+  <h4>Text and Coded Values</h4>
+  <pre><code><span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_TEXT, DV_CODED_TEXT, CODE_PHRASE, TERMINOLOGY_ID
+
+<span class="comment"># Simple text</span>
+text = DV_TEXT(value=<span class="string">"Blood pressure measurement"</span>)
+
+<span class="comment"># Coded text with terminology</span>
+status = DV_CODED_TEXT(
+    value=<span class="string">"Normal"</span>,
+    defining_code=CODE_PHRASE(
+        terminology_id=TERMINOLOGY_ID(value=<span class="string">"local"</span>),
+        code_string=<span class="string">"at0001"</span>
+    )
+)</code></pre>
+
+  <h4>Quantities and Measurements</h4>
+  <pre><code><span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_QUANTITY, DV_COUNT
+
+<span class="comment"># Blood pressure (quantity with units)</span>
+systolic = DV_QUANTITY(
+    magnitude=<span class="string">120.0</span>,
+    units=<span class="string">"mm[Hg]"</span>,
+    property=CODE_PHRASE(
+        terminology_id=TERMINOLOGY_ID(value=<span class="string">"openehr"</span>),
+        code_string=<span class="string">"382"</span>  <span class="comment"># Pressure</span>
+    )
+)
+
+<span class="comment"># Heart rate (count)</span>
+heart_rate = DV_COUNT(magnitude=<span class="string">72</span>)</code></pre>
+
+  <h4>Date and Time</h4>
+  <pre><code><span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_DATE_TIME, DV_DATE, DV_TIME, DV_DURATION
+
+<span class="comment"># Date and time</span>
+timestamp = DV_DATE_TIME(value=<span class="string">"2024-01-15T14:30:00Z"</span>)
+date = DV_DATE(value=<span class="string">"2024-01-15"</span>)
+time = DV_TIME(value=<span class="string">"14:30:00"</span>)
+
+<span class="comment"># Duration</span>
+duration = DV_DURATION(value=<span class="string">"PT2H30M"</span>)  <span class="comment"># 2 hours 30 minutes</span></code></pre>
+
+  <h3>Structures</h3>
+  <p>Build complex clinical structures using openEHR structural types:</p>
+  <pre><code><span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> ELEMENT, CLUSTER, ITEM_TREE
+
+<span class="comment"># Create an element</span>
+bp_element = ELEMENT(
+    name=DV_TEXT(value=<span class="string">"Systolic"</span>),
+    value=systolic
+)
+
+<span class="comment"># Group elements in a cluster</span>
+bp_cluster = CLUSTER(
+    name=DV_TEXT(value=<span class="string">"Blood Pressure"</span>),
+    items=[bp_element, ...]
+)</code></pre>
+  <h2 id="data-types">Data Types Reference</h2>
+  <p>Complete list of available RM data types:</p>
+
+  <h3>Basic Types</h3>
+  <ul>
+    <li><code>DV_TEXT</code> - Plain text value</li>
+    <li><code>DV_CODED_TEXT</code> - Text with terminology code</li>
+    <li><code>DV_BOOLEAN</code> - Boolean value</li>
+    <li><code>DV_IDENTIFIER</code> - Unique identifier</li>
+    <li><code>DV_URI</code> - URI reference</li>
+    <li><code>DV_EHR_URI</code> - EHR-specific URI</li>
+  </ul>
+
+  <h3>Quantitative Types</h3>
+  <ul>
+    <li><code>DV_QUANTITY</code> - Quantity with units and magnitude</li>
+    <li><code>DV_COUNT</code> - Integer count</li>
+    <li><code>DV_PROPORTION</code> - Ratio or percentage</li>
+    <li><code>DV_ORDINAL</code> - Ordered value (e.g., severity scale)</li>
+    <li><code>DV_SCALE</code> - Scale/score with decimal values <em>(new in RM 1.1.0)</em></li>
+  </ul>
+
+  <h4>Using DV_SCALE (RM 1.1.0)</h4>
+  <pre><code><span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_SCALE, DV_CODED_TEXT, CODE_PHRASE, TERMINOLOGY_ID
+
+<span class="comment"># Pain scale with decimal value</span>
+pain_scale = DV_SCALE(
+    value=<span class="string">7.5</span>,  <span class="comment"># Decimal scale value</span>
+    symbol=DV_CODED_TEXT(
+        value=<span class="string">"Severe pain"</span>,
+        defining_code=CODE_PHRASE(
+            terminology_id=TERMINOLOGY_ID(value=<span class="string">"local"</span>),
+            code_string=<span class="string">"at0075"</span>,
+            preferred_term=<span class="string">"Severe"</span>  <span class="comment"># New in RM 1.1.0</span>
+        )
+    )
+)</code></pre>
+
+  <h3>Temporal Types</h3>
+  <ul>
+    <li><code>DV_DATE_TIME</code> - Date and time</li>
+    <li><code>DV_DATE</code> - Date only</li>
+    <li><code>DV_TIME</code> - Time only</li>
+    <li><code>DV_DURATION</code> - Time duration (ISO 8601)</li>
+  </ul>
+
+  <h3>Complex Types</h3>
+  <ul>
+    <li><code>DV_MULTIMEDIA</code> - Media content (images, video, etc.)</li>
+    <li><code>DV_PARSABLE</code> - Parsable text in specific format</li>
+  </ul>
+  <h2 id="validation">RM Validation</h2>
+  <p>oehrpy uses Pydantic v2 for comprehensive validation.</p>
+
+  <h3>Automatic Validation</h3>
+  <pre><code><span class="keyword">from</span> pydantic <span class="keyword">import</span> ValidationError
+<span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_QUANTITY
+
+<span class="keyword">try</span>:
+    <span class="comment"># This will raise a validation error</span>
+    invalid = DV_QUANTITY(
+        magnitude=<span class="string">"not a number"</span>,  <span class="comment"># Should be float</span>
+        units=<span class="string">"mm[Hg]"</span>
+    )
+<span class="keyword">except</span> ValidationError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(e)</code></pre>
+
+  <h3>Custom Validation</h3>
+  <p>All RM classes support Pydantic's validation features:</p>
+  <pre><code><span class="keyword">from</span> pydantic <span class="keyword">import</span> ValidationError
+
+<span class="comment"># Validate required fields</span>
+<span class="keyword">try</span>:
+    text = DV_TEXT()  <span class="comment"># Missing required 'value' field</span>
+<span class="keyword">except</span> ValidationError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(e.errors())</code></pre>
+  <h2 id="type-safety">Type Safety</h2>
+  <p>Full type hints enable IDE autocomplete and static type checking.</p>
+
+  <h3>Using mypy</h3>
+  <pre><code><span class="comment"># Type checking with mypy</span>
+<span class="keyword">from</span> oehrpy.rm <span class="keyword">import</span> DV_TEXT, DV_QUANTITY
+
+text: DV_TEXT = DV_TEXT(value=<span class="string">"example"</span>)  <span class="comment"># OK</span>
+quantity: DV_QUANTITY = DV_TEXT(value=<span class="string">"wrong"</span>)  <span class="comment"># mypy error</span></code></pre>
+
+  <h3>IDE Support</h3>
+  <p>Modern IDEs like VS Code, PyCharm, and others provide full autocomplete:</p>
+  <ul>
+    <li>Field names and types</li>
+    <li>Method signatures</li>
+    <li>Constructor parameters</li>
+    <li>Return types</li>
+  </ul>
+</DocsLayout>

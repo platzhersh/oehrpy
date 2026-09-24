@@ -141,6 +141,8 @@ npm run dev                             # http://localhost:4321/
 
 - Shared `<head>` lives in `website/src/layouts/Layout.astro`, the nav in `website/src/components/SiteHeader.astro`; each page has its stylesheet in `website/src/styles/pages/`.
 - Literal `{`/`}` in `.astro` markup must be written as `&#123;`/`&#125;`.
+- Link between pages with root-absolute hrefs (`/`, `/docs.html`); the home page is `/`, never `/index.html`.
+- Docs topic pages live in `website/src/pages/docs/`, use `DocsLayout.astro`, and must be listed in `website/src/utils/docs-nav.ts`. The sitemap is generated (`src/pages/sitemap.xml.ts`); see the SEO section of `website/README.md` for title, share-image and structured-data conventions.
 - The header version badge is read from `pyproject.toml` at build time — never hardcode versions.
 - Deployed by `.github/workflows/pages.yml`. `docs/` holds only project documentation (ADRs, PRDs, Markdown guides), not site source.
 

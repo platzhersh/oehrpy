@@ -152,8 +152,9 @@ console errors.
    and the Markdown guides stay; they are project documentation, not site
    source. The README logo now points to `website/public/assets/logo.svg`.
 4. **Follow-ups (out of scope):** unify the two design-token schemes and the
-   per-page footers into shared components; generate `sitemap.xml` with
-   `@astrojs/sitemap`; move the tool scripts into typed modules.
+   per-page footers into shared components; move the tool scripts into
+   typed modules. (`sitemap.xml` is now generated at build time by
+   `src/pages/sitemap.xml.ts`, with git-based `lastmod`, in OEH-60.)
 
 ## Alternatives Considered
 

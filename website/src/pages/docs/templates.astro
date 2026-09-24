@@ -1,0 +1,167 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+---
+<DocsLayout
+  title={'openEHR Templates: OPT Parser & Composition Builders | oehrpy'}
+  description={'Parse openEHR OPT 1.4 templates in Python, generate builder skeletons, and build FLAT compositions with type-safe template builders such as the Vital Signs builder.'}
+  path="docs/templates.html"
+  heading={'Templates, OPT Parsing & Composition Builders'}
+>
+  <p class="lead">Clinical data in openEHR is shaped by templates. oehrpy reads Operational Templates (OPT 1.4 XML) to extract their metadata, generates builder skeletons from them, and provides template builders that produce ready-to-post FLAT compositions with paths taken from the Web Template.</p>
+
+  <h2 id="opt-parser">OPT Parser &amp; Builder Generator</h2>
+  <p>oehrpy provides tools for working with OPT (Operational Template) files. OPT files are XML documents that define constraints on openEHR archetypes for specific clinical use cases. With oehrpy, you can parse OPT files to extract template metadata (template ID, concept, archetypes) and generate builder class skeletons.</p>
+
+  <div class="warning">
+    <p><strong>ADR-0005:</strong> FLAT paths cannot be reliably derived from OPT XML. The <code>BuilderGenerator</code> produces metadata-only class skeletons &mdash; no FLAT path strings. Use the <a href="#web-template">Web Template JSON</a> from the CDR for accurate FLAT paths. See <a href="https://github.com/platzhersh/oehrpy/blob/main/docs/adr/0005-web-template-as-primary-source-of-truth-for-flat-paths.md">ADR-0005</a> for details.</p>
+  </div>
+
+  <h3>Parsing OPT Files</h3>
+  <p>Use the <code>parse_opt()</code> function to parse an OPT file and extract template metadata:</p>
+  <pre><code><span class="keyword">from</span> oehrpy.templates <span class="keyword">import</span> parse_opt
+
+<span class="comment"># Parse an OPT file</span>
+template = parse_opt(<span class="string">"path/to/vital_signs.opt"</span>)
+
+<span class="comment"># Access template metadata</span>
+<span class="keyword">print</span>(<span class="string">f"Template ID: &#123;template.template_id&#125;"</span>)
+<span class="keyword">print</span>(<span class="string">f"Concept: &#123;template.concept&#125;"</span>)
+<span class="keyword">print</span>(<span class="string">f"Language: &#123;template.language&#125;"</span>)
+
+<span class="comment"># List all observations in the template</span>
+<span class="keyword">for</span> obs <span class="keyword">in</span> template.list_observations():
+    <span class="keyword">print</span>(<span class="string">f"  - &#123;obs.name&#125; (&#123;obs.archetype_id&#125;)"</span>)
+
+<span class="comment"># List all entry types (OBSERVATION, EVALUATION, etc.)</span>
+entries = template.list_entries()
+<span class="keyword">print</span>(<span class="string">f"Found &#123;len(entries)&#125; entries"</span>)</code></pre>
+
+  <h3>Template Definition</h3>
+  <p>The parsed <code>TemplateDefinition</code> provides access to:</p>
+  <ul>
+    <li><code>template_id</code> - The unique template identifier</li>
+    <li><code>concept</code> - Human-readable template concept name</li>
+    <li><code>description</code> - Template description/purpose</li>
+    <li><code>language</code> - Primary language (e.g., "en")</li>
+    <li><code>archetype_id</code> - Root archetype ID</li>
+    <li><code>rm_type</code> - Reference Model type (usually "COMPOSITION")</li>
+    <li><code>root</code> - The root archetype node tree</li>
+    <li><code>all_nodes</code> - Dictionary of all nodes by path</li>
+  </ul>
+
+  <h3>Generating Builder Skeletons</h3>
+  <p>Generate metadata-only class skeletons from OPT files. The generated code includes template ID, concept, and discovered archetypes, but <strong>not</strong> FLAT path strings (see ADR-0005):</p>
+  <pre><code><span class="keyword">from</span> oehrpy.templates <span class="keyword">import</span> generate_builder_from_opt
+
+<span class="comment"># Generate a builder skeleton (metadata only, no FLAT paths)</span>
+code = generate_builder_from_opt(<span class="string">"vital_signs.opt"</span>)
+
+<span class="comment"># Save to file</span>
+generate_builder_from_opt(
+    <span class="string">"vital_signs.opt"</span>,
+    output_path=<span class="string">"my_project/builders/vital_signs_skeleton.py"</span>
+)
+
+<span class="comment"># Use a custom class name</span>
+generate_builder_from_opt(
+    <span class="string">"vital_signs.opt"</span>,
+    output_path=<span class="string">"vital_signs_skeleton.py"</span>,
+    class_name=<span class="string">"MyVitalSignsBuilder"</span>
+)</code></pre>
+
+  <p>The generated skeleton must be supplemented with FLAT paths from the Web Template JSON. Fetch it after uploading the OPT to a CDR:</p>
+  <pre><code><span class="keyword">async with</span> EHRBaseClient(...) <span class="keyword">as</span> client:
+    <span class="comment"># Fetch Web Template (cached automatically)</span>
+    wt = <span class="keyword">await</span> client.get_web_template(<span class="string">"IDCR - Vital Signs Encounter.v1"</span>)
+    <span class="comment"># wt["tree"] contains the authoritative FLAT path segments</span></code></pre>
+
+  <h3 id="web-template">Web Template as FLAT Path Source</h3>
+  <p>The Web Template JSON is the sole authoritative source for FLAT path derivation (ADR-0005). The <code>EHRBaseClient</code> provides cached fetching:</p>
+  <pre><code><span class="keyword">async with</span> EHRBaseClient(...) <span class="keyword">as</span> client:
+    <span class="comment"># Fetch with Accept: application/openehr.wt+json (cached in memory)</span>
+    wt = <span class="keyword">await</span> client.get_web_template(<span class="string">"IDCR - Vital Signs Encounter.v1"</span>)
+
+    <span class="comment"># Force refresh from CDR</span>
+    wt = <span class="keyword">await</span> client.get_web_template(<span class="string">"IDCR - Vital Signs Encounter.v1"</span>, use_cache=<span class="keyword">False</span>)
+
+    <span class="comment"># Clear cache</span>
+    client.clear_web_template_cache()</code></pre>
+
+  <h3>Complete Workflow Example</h3>
+  <p>Here's a complete example using the pre-built <code>VitalSignsBuilder</code> (which has FLAT paths sourced from the Web Template):</p>
+  <pre><code><span class="keyword">from</span> oehrpy.templates <span class="keyword">import</span> VitalSignsBuilder
+
+<span class="comment"># Create the builder (FLAT paths sourced from Web Template)</span>
+builder = VitalSignsBuilder(composer_name=<span class="string">"Dr. Smith"</span>)
+
+<span class="comment"># Add clinical observations (type-safe with IDE autocomplete!)</span>
+builder.add_blood_pressure(systolic=<span class="string">120</span>, diastolic=<span class="string">80</span>)
+builder.add_pulse(rate=<span class="string">72</span>)
+builder.add_temperature(magnitude=<span class="string">37.2</span>)
+builder.add_respiration(rate=<span class="string">16</span>)
+builder.add_oxygen_saturation(spo2=<span class="string">98</span>)
+
+<span class="comment"># Build FLAT format data</span>
+flat_data = builder.build()
+
+<span class="comment"># Submit to EHRBase</span>
+<span class="keyword">async with</span> EHRBaseClient(...) <span class="keyword">as</span> client:
+    result = <span class="keyword">await</span> client.create_composition(
+        ehr_id=ehr_id,
+        template_id=builder.template_id,
+        composition=flat_data,
+        format=<span class="string">"FLAT"</span>
+    )</code></pre>
+
+  <div class="note">
+    <p><strong>Note:</strong> Pre-built builders like <code>VitalSignsBuilder</code> have FLAT paths verified against the Web Template from EHRBase. The <code>BuilderGenerator</code> produces metadata-only skeletons that need FLAT paths added manually from the Web Template.</p>
+  </div>
+  <h2 id="template-builders">Template Builders</h2>
+  <p>Template builders provide a high-level API for creating compositions. FLAT paths in pre-built builders are sourced from the Web Template JSON (ADR-0005).</p>
+
+  <h3>Vital Signs Builder</h3>
+  <pre><code><span class="keyword">from</span> oehrpy.templates <span class="keyword">import</span> VitalSignsBuilder
+
+<span class="comment"># Create a vital signs composition</span>
+builder = VitalSignsBuilder(composer_name=<span class="string">"Dr. Smith"</span>)
+
+<span class="comment"># Add measurements</span>
+builder.add_blood_pressure(systolic=<span class="string">120</span>, diastolic=<span class="string">80</span>)
+builder.add_pulse(rate=<span class="string">72</span>)
+builder.add_temperature(<span class="string">37.2</span>)
+builder.add_respiration(rate=<span class="string">16</span>)
+builder.add_oxygen_saturation(spo2=<span class="string">98</span>)
+
+<span class="comment"># Build FLAT format for EHRBase</span>
+flat_data = builder.build()
+<span class="comment"># &#123;</span>
+<span class="comment">#   "ctx/language": "en",</span>
+<span class="comment">#   "ctx/territory": "US",</span>
+<span class="comment">#   "vital_signs/blood_pressure:0/any_event:0/systolic|magnitude": 120,</span>
+<span class="comment">#   ...</span>
+<span class="comment"># &#125;</span></code></pre>
+
+  <h3>Creating Custom Builders</h3>
+  <p>You can create your own template builders for custom archetypes:</p>
+  <pre><code><span class="keyword">from</span> oehrpy.serialization <span class="keyword">import</span> FlatBuilder
+
+<span class="keyword">class</span> <span class="function">CustomTemplateBuilder</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, composer_name: str):
+        self.builder = FlatBuilder()
+        self.builder.context(
+            language=<span class="string">"en"</span>,
+            territory=<span class="string">"US"</span>,
+            composer_name=composer_name
+        )
+
+    <span class="keyword">def</span> <span class="function">add_observation</span>(self, value: float, unit: str):
+        self.builder.set_quantity(
+            <span class="string">"template/observation/value"</span>,
+            value,
+            unit
+        )
+        <span class="keyword">return</span> self
+
+    <span class="keyword">def</span> <span class="function">build</span>(self):
+        <span class="keyword">return</span> self.builder.build()</code></pre>
+</DocsLayout>
