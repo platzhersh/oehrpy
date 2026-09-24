@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://platzhersh.github.io/oehrpy/sitemap.xml
