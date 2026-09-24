@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Common types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `ci`, `chore`, `perf`, `build`
 - Examples: `feat(aql): add pagination support`, `fix(client): handle timeout on composition create`, `docs: update README badges`
 - Keep the title under 70 characters, lowercase, no trailing period
+- Merging to `main` does **not** release. Releases are cut on demand via the `Release` workflow (`workflow_dispatch`), where python-semantic-release derives the version and changelog from the commits since the last tag — see `RELEASING.md` and ADR-0010. Don't bump versions or edit `CHANGELOG.md` by hand.
 
 ## Key Commands
 

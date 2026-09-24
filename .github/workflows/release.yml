@@ -1,9 +1,28 @@
 name: Release
 
+# Releases are cut on demand (Actions → Release → Run workflow), not on every
+# push to main. python-semantic-release still derives the version bump and
+# changelog from the conventional commits merged since the last tag, so one
+# run can ship several features and fixes together. See RELEASING.md and
+# docs/adr/0010-on-demand-releases.md.
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump (auto = derive from conventional commits)"
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+      dry_run:
+        description: "Dry run: print the next version without committing, tagging or releasing"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -14,7 +33,7 @@ jobs:
   release:
     name: Semantic Release
     runs-on: ubuntu-latest
-    if: github.repository == 'platzhersh/oehrpy'
+    if: github.repository == 'platzhersh/oehrpy' && github.ref == 'refs/heads/main'
     concurrency:
       group: release
       cancel-in-progress: false
@@ -42,3 +61,19 @@ jobs:
           github_token: ${{ secrets.GH_TOKEN }}
           git_committer_name: "github-actions[bot]"
           git_committer_email: "github-actions[bot]@users.noreply.github.com"
+          force: ${{ inputs.bump != 'auto' && inputs.bump || '' }}
+          root_options: ${{ inputs.dry_run && '-v --noop' || '-v' }}
+
+      - name: Summary
+        env:
+          RELEASED: ${{ steps.release.outputs.released }}
+          VERSION: ${{ steps.release.outputs.version }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run: nothing was committed, tagged or published. The next version is in the Python Semantic Release step log." >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$RELEASED" = "true" ]; then
+            echo "Released **v$VERSION**. The GitHub Release triggers publish.yml to upload to PyPI." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No release: no releasable (feat/fix/perf/breaking) commits since the last tag. Pick an explicit bump to force one." >> "$GITHUB_STEP_SUMMARY"
+          fi
