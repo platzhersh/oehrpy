@@ -291,23 +291,6 @@ footer a:hover {
 
 /* Responsive */
 @media (max-width: 768px) {
-  header {
-    padding: 16px 20px;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  nav {
-    gap: 16px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  nav a:not(.github-link) {
-    font-size: 14px;
-  }
-  .github-link {
-    padding: 6px 12px;
-    font-size: 14px;
-  }
   h1 {
     font-size: 2.5rem;
   }
@@ -342,15 +325,6 @@ footer a:hover {
 }
 
 @media (max-width: 480px) {
-  header {
-    padding: 12px 16px;
-  }
-  nav {
-    gap: 12px;
-  }
-  .logo-header span {
-    font-size: 20px;
-  }
   h1 {
     font-size: 2rem;
   }

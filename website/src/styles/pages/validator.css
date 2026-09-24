@@ -827,23 +827,6 @@ footer .sep { color: var(--border); }
 @media (max-width: 900px) {
   main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
   .panel { border-right: none; border-bottom: 1px solid var(--border); }
-  header {
-    padding: 16px 20px;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  header nav {
-    gap: 16px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  header nav a:not(.github-link) {
-    font-size: 14px;
-  }
-  .github-link {
-    padding: 6px 12px;
-    font-size: 14px;
-  }
   .platform-bar {
     flex-wrap: wrap;
     height: auto;
@@ -857,18 +840,12 @@ footer .sep { color: var(--border); }
   .load-example-btn {
     margin-left: auto;
   }
+  .action-bar {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 480px) {
-  header {
-    padding: 12px 16px;
-  }
-  header nav {
-    gap: 12px;
-  }
-  .logo-header span {
-    font-size: 20px;
-  }
   footer {
     padding: 16px;
     font-size: 12px;

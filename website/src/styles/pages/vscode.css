@@ -308,6 +308,7 @@ nav a:hover, nav a.active {
 }
 .step-content {
   padding-top: 4px;
+  min-width: 0;
 }
 .step-content p {
   font-size: 0.95rem;
@@ -321,6 +322,8 @@ nav a:hover, nav a.active {
   background: var(--code-bg);
   padding: 2px 6px;
   border-radius: 4px;
+  /* Long FLAT paths would otherwise overflow narrow screens. */
+  overflow-wrap: anywhere;
 }
 
 /* Resolution List */
@@ -457,16 +460,6 @@ footer a:hover {
 
 /* Responsive */
 @media (max-width: 768px) {
-  header {
-    padding: 16px 20px;
-    flex-direction: column;
-    gap: 12px;
-  }
-  nav {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 16px;
-  }
   .page-container {
     padding: 40px 20px 60px;
   }
@@ -486,12 +479,6 @@ footer a:hover {
 }
 
 @media (max-width: 480px) {
-  nav {
-    gap: 12px;
-  }
-  .logo-header span {
-    font-size: 20px;
-  }
   .page-container {
     padding: 30px 16px 40px;
   }
