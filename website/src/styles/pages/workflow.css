@@ -34,27 +34,6 @@
   --legend-bg: #1e1e36;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #F8FAFB;
-    --bg-card: #FFFFFF;
-    --bg-deep: #F0F2F5;
-    --text: #1A202C;
-    --text-muted: #4A5568;
-    --text-dim: #718096;
-    --border: #E2E8F0;
-    --border-light: #CBD5E0;
-    --border-hover: #A0AEC0;
-    --badge-bg: rgba(107, 114, 128, 0.1);
-    --badge-text: #718096;
-    --phase-active-glow: rgba(59, 130, 246, 0.08);
-    --arrow-color: #CBD5E0;
-    --legend-bg: #EDF2F7;
-    --code-bg: #EDF2F7;
-    --code-text: #C05621;
-  }
-}
-
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);

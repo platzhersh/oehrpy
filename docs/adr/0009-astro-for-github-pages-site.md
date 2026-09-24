@@ -92,7 +92,10 @@ The goal is a **behavior-preserving port** so the diff can be reviewed as
 
 - Each page's CSS moved verbatim into `src/styles/pages/<page>.css`; the two
   token schemes and per-page footers were **not** unified yet, as that would
-  be a visual redesign rather than a migration.
+  be a visual redesign rather than a migration. The one deliberate style
+  change: `workflow` and `vscode` used to switch to a light palette under
+  `prefers-color-scheme: light`, unlike every other page. That override was
+  removed so the whole site uses the same dark design.
 - The tool pages' JavaScript (the Pyodide-backed Validator, the Converter,
   the Explorer, the brand-kit animations) stays as `<script is:inline>`
   blocks, unchanged apart from dropping the duplicated dropdown IIFE. The

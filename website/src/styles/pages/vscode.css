@@ -29,22 +29,6 @@
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #F8FAFB;
-    --bg-card: #FFFFFF;
-    --bg-deep: #F0F2F5;
-    --text: #1A202C;
-    --text-muted: #4A5568;
-    --text-dim: #718096;
-    --border: #E2E8F0;
-    --border-light: #CBD5E0;
-    --border-hover: #A0AEC0;
-    --code-bg: #EDF2F7;
-    --code-text: #C05621;
-  }
-}
-
 body {
   font-family: var(--sans);
   background: var(--bg);
