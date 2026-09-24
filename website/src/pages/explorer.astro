@@ -1,0 +1,773 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import "../styles/pages/explorer.css";
+---
+<Layout
+  title={"oehrpy · Explorer"}
+  description={"Explore openEHR templates and their FLAT paths interactively with the oehrpy template explorer."}
+  path="explorer.html"
+  twitterDescription={"Explore openEHR templates and their FLAT paths interactively in your browser."}
+>
+<div class="app">
+  <SiteHeader active="explorer" showVersion={true} logoSize={28} />
+
+  <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">oehrpy Template Explorer — browse openEHR templates and FLAT paths</h1>
+
+  <!-- Mode bar -->
+  <div class="mode-bar">
+    <span class="mode-label">Input</span>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-mode-wt" onclick="setInputMode('wt')">Web Template JSON</button>
+      <button class="mode-btn" id="btn-mode-opt" onclick="setInputMode('opt')" disabled title="OPT XML provides metadata only (no FLAT paths). Use Web Template JSON for FLAT paths (ADR-0005)." style="opacity:0.5;cursor:not-allowed;">OPT XML (metadata only)</button>
+    </div>
+    <span class="mode-desc" id="mode-desc">Paste a Web Template JSON to explore its structure</span>
+  </div>
+
+  <!-- Platform bar -->
+  <div class="platform-bar">
+    <span class="platform-label">Platform</span>
+    <div class="platform-toggle">
+      <button class="platform-btn active" id="btn-ehrbase" onclick="setPlatform('ehrbase')">EHRBase 2.x</button>
+      <button class="platform-btn" id="btn-better" onclick="setPlatform('better')">Better</button>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <button class="explore-btn" onclick="explore()">Explore</button>
+    <div class="status-pill idle" id="status-pill">
+      <div class="status-dot"></div>
+      <span id="status-text">Waiting for input</span>
+    </div>
+    <span class="stats-text" id="stats-text"></span>
+    <button class="load-example-btn" onclick="loadExample()">Load example</button>
+  </div>
+
+  <!-- Input panel -->
+  <div class="input-panel" id="input-panel">
+    <div class="input-header">
+      <span class="panel-title" id="input-title">Web Template JSON</span>
+      <button class="clear-btn" onclick="clearInput()">clear</button>
+    </div>
+    <textarea id="template-input" placeholder='Paste your Web Template JSON here...
+
+Fetch from EHRBase:
+GET /rest/openehr/v1/definition/template/adl1.4/&#123;template_id&#125;
+Accept: application/openehr.wt+json
+
+The Web Template is the authoritative source for FLAT paths (ADR-0005).
+The explorer reads the "tree" structure to show all nodes, FLAT paths,
+and constraints.' spellcheck="false"></textarea>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat"><span class="detail-label">Template:</span> <span class="stat-value" id="stat-template">-</span></div>
+    <span class="stat-sep">&middot;</span>
+    <div class="stat"><span class="stat-value" id="stat-nodes">0</span> nodes</div>
+    <span class="stat-sep">&middot;</span>
+    <div class="stat"><span class="stat-value" id="stat-archetypes">0</span> archetypes</div>
+    <span class="stat-sep">&middot;</span>
+    <div class="stat"><span class="stat-value" id="stat-required">0</span> required</div>
+  </div>
+
+  <!-- Main content: tree + detail -->
+  <div class="main-content">
+    <div class="tree-panel">
+      <div class="tree-header">
+        <input type="text" class="tree-search" id="tree-search" placeholder="Search nodes..." oninput="filterTree()">
+        <div class="tree-controls">
+          <button onclick="expandAll()">Expand all</button>
+          <button onclick="collapseAll()">Collapse all</button>
+        </div>
+      </div>
+      <div class="tree-body" id="tree-body">
+        <div class="tree-empty" id="tree-empty">
+          <div class="icon">&#9678;</div>
+          <div>Paste a Web Template JSON or OPT XML above, then click <strong>Explore</strong></div>
+          <div style="opacity:0.6; margin-top:4px;">or load an example to get started</div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="detail-panel">
+      <div class="detail-empty" id="detail-empty">Click a node in the tree to see its details</div>
+      <div class="detail-content" id="detail-content" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Path list -->
+  <div class="path-list-panel" id="path-list-panel">
+    <div class="path-list-header">
+      <span class="path-list-title">FLAT Paths</span>
+      <input type="text" class="path-filter" id="path-filter" placeholder="Filter paths..." oninput="filterPaths()">
+      <span class="path-count" id="path-count"></span>
+      <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+      <button class="export-btn" onclick="copyAllPaths()">Copy all</button>
+    </div>
+    <div class="path-list-body" id="path-list-body"></div>
+  </div>
+
+  <footer>
+    <span>Built with Python and openEHR</span>
+    <span class="sep">|</span>
+    <a href="https://github.com/platzhersh/oehrpy">GitHub</a>
+    <span class="sep">|</span>
+    <a href="docs.html">Docs</a>
+    <span class="sep">|</span>
+    <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a>
+    <span class="sep">|</span>
+    <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a>
+    <span class="sep">|</span>
+    <span class="engine-status" id="engine-status">
+      <span class="engine-dot js" id="engine-dot"></span>
+      <span id="engine-label">JS engine</span>
+    </span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script is:inline>
+// === STATE ===
+var currentPlatform = 'ehrbase';
+var currentInputMode = 'wt';
+var parsedTree = null;
+var allPaths = [];
+var selectedNodeId = null;
+var nodeIdCounter = 0;
+
+// === RM TYPE MAPS ===
+var STRUCTURAL_RM_TYPES = {
+  COMPOSITION:true, SECTION:true, OBSERVATION:true, EVALUATION:true,
+  INSTRUCTION:true, ACTION:true, ADMIN_ENTRY:true, CLUSTER:true,
+  HISTORY:true, EVENT:true, POINT_EVENT:true, INTERVAL_EVENT:true,
+  ITEM_TREE:true, ITEM_LIST:true, ITEM_SINGLE:true, ITEM_TABLE:true,
+  ELEMENT:true, EVENT_CONTEXT:true, ACTIVITY:true, ISM_TRANSITION:true,
+  INSTRUCTION_DETAILS:true
+};
+
+var VALID_SUFFIXES = {
+  DV_QUANTITY: ['|magnitude','|unit','|precision'],
+  DV_CODED_TEXT: ['|value','|code','|terminology'],
+  DV_TEXT: ['|value'],
+  DV_DATE_TIME: [], DV_DATE: [], DV_TIME: [], DV_BOOLEAN: [],
+  DV_COUNT: ['|magnitude'],
+  DV_ORDINAL: ['|value','|code','|terminology','|ordinal'],
+  DV_SCALE: ['|value','|code','|terminology','|symbol_value'],
+  DV_PROPORTION: ['|numerator','|denominator','|type'],
+  DV_DURATION: [],
+  DV_IDENTIFIER: ['|id','|type','|issuer','|assigner'],
+  DV_URI: [], DV_EHR_URI: [],
+  DV_MULTIMEDIA: ['|mediatype','|alternatetext','|uri','|size'],
+  DV_PARSABLE: ['|value','|formalism'],
+  CODE_PHRASE: ['|code','|terminology'],
+  PARTY_IDENTIFIED: ['|name','|id'],
+  PARTY_RELATED: ['|name','|id','|relationship'],
+  PARTY_SELF: []
+};
+
+// === INPUT MODE ===
+function setInputMode(mode) {
+  currentInputMode = mode;
+  document.getElementById('btn-mode-wt').classList.toggle('active', mode === 'wt');
+  document.getElementById('btn-mode-opt').classList.toggle('active', mode === 'opt');
+  document.getElementById('mode-desc').textContent = mode === 'wt'
+    ? 'Paste a Web Template JSON to explore its structure'
+    : 'Paste an OPT 1.4 XML to explore its structure (requires Python)';
+  document.getElementById('input-title').textContent = mode === 'wt' ? 'Web Template JSON' : 'OPT Template (XML)';
+  var ta = document.getElementById('template-input');
+  ta.placeholder = mode === 'wt'
+    ? 'Paste your Web Template JSON here...\n\nFetch from EHRBase:\nGET /rest/openehr/v1/definition/template/adl1.4/{template_id}'
+    : 'Paste your OPT 1.4 XML here...\n\n<?xml version="1.0" encoding="UTF-8"?>\n<template xmlns="http://schemas.openehr.org/v1">\n  ...\n</template>';
+}
+
+// === PLATFORM ===
+function setPlatform(p) {
+  currentPlatform = p;
+  document.getElementById('btn-ehrbase').classList.toggle('active', p === 'ehrbase');
+  document.getElementById('btn-better').classList.toggle('active', p === 'better');
+  if (parsedTree) {
+    allPaths = enumeratePaths(parsedTree, '');
+    renderPathList();
+    if (selectedNodeId !== null) updateDetailPaths();
+  }
+}
+
+// === PARSING ===
+function parseWebTemplateTree(node, parentPath) {
+  if (!node) return null;
+  var id = node.id || '';
+  var path = parentPath ? parentPath + '/' + id : id;
+  var rmType = node.rmType || node.rm_type || '';
+  var min = node.min !== undefined ? node.min : 0;
+  var max = node.max !== undefined ? node.max : -1;
+  var nodeId = node.nodeId || node.node_id || '';
+  var archId = '';
+  if (nodeId && nodeId.startsWith('openEHR-EHR-')) archId = nodeId;
+
+  var result = {
+    _uid: ++nodeIdCounter,
+    id: id,
+    name: node.name || node.localizedName || id,
+    rmType: rmType,
+    min: min,
+    max: max,
+    nodeId: nodeId,
+    archetypeId: archId,
+    aqlPath: node.aqlPath || '',
+    flatPath: path,
+    inputs: node.inputs || [],
+    children: [],
+    _expanded: true
+  };
+
+  if (node.children) {
+    for (var i = 0; i < node.children.length; i++) {
+      var child = parseWebTemplateTree(node.children[i], path);
+      if (child) result.children.push(child);
+    }
+  }
+  return result;
+}
+
+// === PATH ENUMERATION ===
+function enumeratePaths(node, prefix) {
+  if (!node) return [];
+  var results = [];
+  var path = prefix ? prefix + '/' + node.id : node.id;
+  var rmType = node.rmType;
+
+  if (!STRUCTURAL_RM_TYPES[rmType]) {
+    var suffixes = VALID_SUFFIXES[rmType];
+    var isReq = node.min >= 1;
+    if (suffixes && suffixes.length > 0) {
+      for (var s = 0; s < suffixes.length; s++) {
+        results.push({ path: path + suffixes[s], rmType: rmType, required: isReq, name: node.name, nodeUid: node._uid });
+      }
+      results.push({ path: path, rmType: rmType, required: isReq, name: node.name, nodeUid: node._uid });
+    } else {
+      results.push({ path: path, rmType: rmType, required: isReq, name: node.name, nodeUid: node._uid });
+    }
+  }
+
+  for (var c = 0; c < node.children.length; c++) {
+    results = results.concat(enumeratePaths(node.children[c], path));
+  }
+  return results;
+}
+
+// === STATS ===
+function computeStats(node) {
+  var stats = { nodes: 0, archetypes: 0, required: 0 };
+  function walk(n) {
+    stats.nodes++;
+    if (n.archetypeId) stats.archetypes++;
+    if (n.min >= 1 && !STRUCTURAL_RM_TYPES[n.rmType]) stats.required++;
+    for (var i = 0; i < n.children.length; i++) walk(n.children[i]);
+  }
+  walk(node);
+  return stats;
+}
+
+// === EXPLORE ===
+function explore() {
+  var input = document.getElementById('template-input').value.trim();
+  if (!input) {
+    showStatus('idle', 'Please provide a template');
+    return;
+  }
+
+  if (currentInputMode === 'opt') {
+    showStatus('idle', 'OPT XML parsing requires Pyodide (not yet loaded). Use Web Template JSON mode.');
+    return;
+  }
+
+  var json;
+  try { json = JSON.parse(input); } catch(e) {
+    showStatus('invalid', 'Invalid JSON: ' + e.message);
+    return;
+  }
+
+  if (!json.tree) {
+    showStatus('invalid', 'No "tree" property found in Web Template JSON');
+    return;
+  }
+
+  nodeIdCounter = 0;
+  parsedTree = parseWebTemplateTree(json.tree, '');
+  allPaths = enumeratePaths(parsedTree, '');
+  var stats = computeStats(parsedTree);
+
+  document.getElementById('stat-template').textContent = json.templateId || json.template_id || parsedTree.id;
+  document.getElementById('stat-nodes').textContent = stats.nodes;
+  document.getElementById('stat-archetypes').textContent = stats.archetypes;
+  document.getElementById('stat-required').textContent = stats.required;
+  document.getElementById('stats-bar').style.display = 'flex';
+
+  renderTree();
+  renderPathList();
+  document.getElementById('path-list-panel').style.display = 'flex';
+  selectedNodeId = null;
+  document.getElementById('detail-content').style.display = 'none';
+  document.getElementById('detail-empty').style.display = 'block';
+
+  showStatus('valid', stats.nodes + ' nodes · ' + stats.archetypes + ' archetypes · ' + stats.required + ' required');
+  document.getElementById('stats-text').textContent = allPaths.length + ' FLAT paths';
+}
+
+// === TREE RENDERING ===
+function renderTree() {
+  var body = document.getElementById('tree-body');
+  body.innerHTML = '';
+  if (!parsedTree) return;
+  body.appendChild(buildTreeNode(parsedTree, 0));
+}
+
+function buildTreeNode(node, depth) {
+  var div = document.createElement('div');
+  div.className = 'tree-node';
+  div.setAttribute('data-uid', node._uid);
+
+  var row = document.createElement('div');
+  row.className = 'tree-node-row';
+  row.style.paddingLeft = (12 + depth * 20) + 'px';
+  row.setAttribute('data-uid', node._uid);
+
+  // Toggle arrow
+  var toggle = document.createElement('span');
+  toggle.className = 'tree-toggle' + (node.children.length > 0 ? ' has-children' : '');
+  toggle.textContent = node.children.length > 0 ? (node._expanded ? '▼' : '▶') : ' ';
+  toggle.onclick = function(e) {
+    e.stopPropagation();
+    if (node.children.length === 0) return;
+    node._expanded = !node._expanded;
+    toggle.textContent = node._expanded ? '▼' : '▶';
+    row.setAttribute('aria-expanded', node._expanded ? 'true' : 'false');
+    var childContainer = div.querySelector('.tree-children');
+    if (childContainer) childContainer.style.display = node._expanded ? '' : 'none';
+  };
+  row.appendChild(toggle);
+
+  // Name
+  var name = document.createElement('span');
+  name.className = 'tree-name';
+  name.textContent = node.name || node.id;
+  row.appendChild(name);
+
+  // RM badge
+  var rmClass = getRmBadgeClass(node.rmType);
+  var rmBadge = document.createElement('span');
+  rmBadge.className = 'rm-badge ' + rmClass;
+  rmBadge.textContent = node.rmType;
+  row.appendChild(rmBadge);
+
+  // Occurrences badge
+  if (!STRUCTURAL_RM_TYPES[node.rmType] || node.rmType === 'COMPOSITION') {
+    var occBadge = document.createElement('span');
+    occBadge.className = 'occ-badge ' + (node.min >= 1 ? 'required' : 'optional');
+    occBadge.textContent = node.min >= 1 ? 'required' : 'optional';
+    row.appendChild(occBadge);
+  }
+
+  // Archetype ID
+  if (node.archetypeId) {
+    var archLabel = document.createElement('span');
+    archLabel.className = 'archetype-label';
+    archLabel.textContent = node.archetypeId;
+    row.appendChild(archLabel);
+  }
+
+  row.onclick = function() { selectNode(node); };
+  // Keyboard: Enter/Space selects, ArrowRight/ArrowLeft expand/collapse.
+  row.tabIndex = 0;
+  row.setAttribute('role', 'button');
+  if (node.children.length > 0) row.setAttribute('aria-expanded', node._expanded ? 'true' : 'false');
+  row.onkeydown = function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      selectNode(node);
+    } else if ((e.key === 'ArrowRight' && !node._expanded) || (e.key === 'ArrowLeft' && node._expanded)) {
+      e.preventDefault();
+      toggle.onclick(e);
+    }
+  };
+  div.appendChild(row);
+
+  // Children container
+  if (node.children.length > 0) {
+    var childContainer = document.createElement('div');
+    childContainer.className = 'tree-children';
+    childContainer.style.display = node._expanded ? '' : 'none';
+    for (var i = 0; i < node.children.length; i++) {
+      childContainer.appendChild(buildTreeNode(node.children[i], depth + 1));
+    }
+    div.appendChild(childContainer);
+  }
+
+  return div;
+}
+
+function getRmBadgeClass(rmType) {
+  if (rmType === 'COMPOSITION') return 'composition';
+  if (rmType === 'OBSERVATION') return 'observation';
+  if (rmType === 'EVALUATION' || rmType === 'INSTRUCTION' || rmType === 'ACTION' || rmType === 'ADMIN_ENTRY') return 'evaluation';
+  if (rmType === 'SECTION') return 'section';
+  if (rmType === 'CLUSTER') return 'cluster';
+  if (rmType && rmType.startsWith('DV_')) return 'dv';
+  if (STRUCTURAL_RM_TYPES[rmType]) return 'structural';
+  return 'dv';
+}
+
+// === NODE SELECTION ===
+function selectNode(node) {
+  selectedNodeId = node._uid;
+
+  // Highlight in tree
+  var rows = document.querySelectorAll('.tree-node-row');
+  for (var i = 0; i < rows.length; i++) {
+    rows[i].classList.toggle('selected', rows[i].getAttribute('data-uid') == node._uid);
+  }
+
+  // Show detail
+  document.getElementById('detail-empty').style.display = 'none';
+  var content = document.getElementById('detail-content');
+  content.style.display = 'block';
+
+  var html = '<div class="detail-title">' + esc(node.name || node.id) + '</div>';
+
+  // Basic info
+  html += '<div class="detail-section"><div class="detail-section-title">Info</div>';
+  html += detailRow('ID', node.id);
+  html += detailRow('RM Type', node.rmType);
+  if (node.nodeId) html += detailRow('Node ID', node.nodeId);
+  if (node.archetypeId) html += detailRow('Archetype', node.archetypeId);
+  html += detailRow('Occurrences', node.min + '..' + (node.max === -1 ? '*' : node.max) + (node.min >= 1 ? ' (mandatory)' : ' (optional)'));
+  if (node.aqlPath) html += detailRow('AQL Path', node.aqlPath);
+  html += '</div>';
+
+  // FLAT paths
+  html += '<div class="detail-section"><div class="detail-section-title">FLAT Paths</div>';
+  var ehrbasePath = node.flatPath;
+  var betterPath = addBetterIndexing(node.flatPath);
+  var ehrbaseActive = currentPlatform === 'ehrbase';
+  var activeStyle = 'font-weight:600;color:var(--text);';
+  var dimStyle = 'color:var(--text-dim);';
+  html += '<div style="font-size:11px;margin-bottom:4px;' + (ehrbaseActive ? activeStyle : dimStyle) + '">EHRBase 2.x' + (ehrbaseActive ? ' (active)' : '') + ':</div>';
+  html += '<div class="detail-path" style="' + (ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(ehrbasePath) + '</span><button class="copy-btn" data-copy="' + esc(ehrbasePath) + '">copy</button></div>';
+  html += '<div style="font-size:11px;margin-bottom:4px;margin-top:8px;' + (!ehrbaseActive ? activeStyle : dimStyle) + '">Better' + (!ehrbaseActive ? ' (active)' : '') + ':</div>';
+  html += '<div class="detail-path" style="' + (!ehrbaseActive ? 'border-color:var(--accent);' : '') + '"><span>' + esc(betterPath) + '</span><button class="copy-btn" data-copy="' + esc(betterPath) + '">copy</button></div>';
+  html += '</div>';
+
+  // Data type attributes
+  var suffixes = VALID_SUFFIXES[node.rmType];
+  if (suffixes && suffixes.length > 0) {
+    html += '<div class="detail-section"><div class="detail-section-title">Data Type Attributes</div>';
+    for (var s = 0; s < suffixes.length; s++) {
+      html += '<div class="detail-attr"><span class="suffix">' + esc(suffixes[s]) + '</span></div>';
+    }
+    html += '</div>';
+  }
+
+  // Coded values from inputs
+  if (node.inputs && node.inputs.length > 0) {
+    for (var inp = 0; inp < node.inputs.length; inp++) {
+      var input = node.inputs[inp];
+      if (input.list && input.list.length > 0) {
+        html += '<div class="detail-section"><div class="detail-section-title">Coded Values (' + esc(input.suffix || 'code') + ')</div>';
+        for (var cv = 0; cv < input.list.length; cv++) {
+          var item = input.list[cv];
+          html += '<div class="detail-attr"><span class="suffix">' + esc(item.value || '') + '</span> ' + esc(item.label || '') + '</div>';
+        }
+        html += '</div>';
+      }
+    }
+  }
+
+  content.innerHTML = html;
+  // Path values are passed as data, never interpolated into inline handlers.
+  content.querySelectorAll('.copy-btn[data-copy]').forEach(function(btn) {
+    btn.addEventListener('click', function() { copyText(btn.getAttribute('data-copy'), btn); });
+  });
+}
+
+function updateDetailPaths() {
+  if (selectedNodeId === null || !parsedTree) return;
+  var node = findNodeByUid(parsedTree, selectedNodeId);
+  if (node) selectNode(node);
+}
+
+function findNodeByUid(node, uid) {
+  if (node._uid === uid) return node;
+  for (var i = 0; i < node.children.length; i++) {
+    var found = findNodeByUid(node.children[i], uid);
+    if (found) return found;
+  }
+  return null;
+}
+
+function addBetterIndexing(path) {
+  var segments = path.split('/');
+  return segments.map(function(seg, i) {
+    if (i === 0) return seg;
+    if (i === segments.length - 1) return seg;
+    return seg + ':0';
+  }).join('/');
+}
+
+function formatPathForPlatform(path) {
+  return currentPlatform === 'better' ? addBetterIndexing(path) : path;
+}
+
+// === PATH LIST ===
+function renderPathList() {
+  var body = document.getElementById('path-list-body');
+  var unique = {};
+  var paths = [];
+  for (var i = 0; i < allPaths.length; i++) {
+    var p = allPaths[i];
+    if (!unique[p.path]) { unique[p.path] = true; paths.push(p); }
+  }
+  paths.sort(function(a, b) { return a.path < b.path ? -1 : a.path > b.path ? 1 : 0; });
+
+  var html = '';
+  for (var j = 0; j < paths.length; j++) {
+    var item = paths[j];
+    var displayPath = formatPathForPlatform(item.path);
+    html += '<div class="path-row" data-path="' + esc(displayPath) + '" data-uid="' + item.nodeUid + '" onclick="highlightNodeFromPath(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();highlightNodeFromPath(this);}" tabindex="0" role="button">' +
+      '<span class="path-req">' + (item.required ? '&#10004;' : '') + '</span>' +
+      '<span class="path-text">' + esc(displayPath) + '</span>' +
+      '<span class="path-rm">' + esc(item.rmType.replace('DV_','')) + '</span>' +
+    '</div>';
+  }
+  body.innerHTML = html;
+  document.getElementById('path-count').textContent = paths.length + ' paths';
+}
+
+function filterPaths() {
+  var q = document.getElementById('path-filter').value.toLowerCase();
+  var rows = document.querySelectorAll('.path-row');
+  var shown = 0;
+  for (var i = 0; i < rows.length; i++) {
+    var path = rows[i].getAttribute('data-path') || '';
+    var match = path.toLowerCase().indexOf(q) !== -1;
+    rows[i].style.display = match ? '' : 'none';
+    if (match) shown++;
+  }
+  document.getElementById('path-count').textContent = shown + ' paths';
+}
+
+function highlightNodeFromPath(el) {
+  var uid = parseInt(el.getAttribute('data-uid'));
+  if (!parsedTree) return;
+  var node = findNodeByUid(parsedTree, uid);
+  if (node) {
+    selectNode(node);
+    var row = document.querySelector('.tree-node-row[data-uid="' + uid + '"]');
+    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// === TREE FILTERING ===
+function filterTree() {
+  var q = document.getElementById('tree-search').value.toLowerCase();
+  var rows = document.querySelectorAll('.tree-node-row');
+  if (!q) {
+    for (var i = 0; i < rows.length; i++) rows[i].classList.remove('hidden');
+    return;
+  }
+  for (var j = 0; j < rows.length; j++) {
+    var name = rows[j].querySelector('.tree-name');
+    var text = name ? name.textContent.toLowerCase() : '';
+    var match = text.indexOf(q) !== -1;
+    rows[j].classList.toggle('hidden', !match);
+    if (match) expandAncestors(rows[j]);
+  }
+}
+
+// Open every collapsed branch above a matching row so it is visible.
+function expandAncestors(row) {
+  var nodeDiv = row.parentElement;
+  while (nodeDiv && nodeDiv.parentElement && nodeDiv.parentElement.classList.contains('tree-children')) {
+    var container = nodeDiv.parentElement;
+    container.style.display = '';
+    var parentDiv = container.parentElement;
+    var parentRow = parentDiv.querySelector(':scope > .tree-node-row');
+    var parentToggle = parentRow && parentRow.querySelector('.tree-toggle');
+    if (parentToggle) parentToggle.textContent = '▼';
+    if (parentRow) parentRow.setAttribute('aria-expanded', 'true');
+    var parentNode = parsedTree ? findNodeByUid(parsedTree, parseInt(parentDiv.getAttribute('data-uid'))) : null;
+    if (parentNode) parentNode._expanded = true;
+    nodeDiv = parentDiv;
+  }
+}
+
+// === EXPAND / COLLAPSE ===
+function expandAll() {
+  if (!parsedTree) return;
+  setExpanded(parsedTree, true);
+  renderTree();
+}
+
+function collapseAll() {
+  if (!parsedTree) return;
+  setExpanded(parsedTree, false);
+  parsedTree._expanded = true; // keep root expanded
+  renderTree();
+}
+
+function setExpanded(node, val) {
+  node._expanded = val;
+  for (var i = 0; i < node.children.length; i++) setExpanded(node.children[i], val);
+}
+
+// === EXPORT ===
+function exportCSV() {
+  if (allPaths.length === 0) return;
+  var unique = {};
+  var paths = [];
+  for (var i = 0; i < allPaths.length; i++) {
+    if (!unique[allPaths[i].path]) { unique[allPaths[i].path] = true; paths.push(allPaths[i]); }
+  }
+  var csv = 'path,rm_type,required\n';
+  for (var j = 0; j < paths.length; j++) {
+    csv += '"' + formatPathForPlatform(paths[j].path) + '","' + paths[j].rmType + '",' + (paths[j].required ? 'true' : 'false') + '\n';
+  }
+  var blob = new Blob([csv], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'flat_paths.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyAllPaths() {
+  if (allPaths.length === 0) return;
+  var unique = {};
+  var lines = [];
+  for (var i = 0; i < allPaths.length; i++) {
+    var fp = formatPathForPlatform(allPaths[i].path);
+    if (!unique[fp]) { unique[fp] = true; lines.push(fp); }
+  }
+  navigator.clipboard.writeText(lines.join('\n')).then(function() { showToast('Copied ' + lines.length + ' paths'); });
+}
+
+// === UI HELPERS ===
+function showStatus(type, text) {
+  var pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + type;
+  document.getElementById('status-text').textContent = text;
+}
+
+function clearInput() {
+  document.getElementById('template-input').value = '';
+}
+
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show';
+  setTimeout(function() { toast.className = 'toast'; }, 3000);
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'copied!';
+    setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+  });
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function detailRow(label, value) { return '<div class="detail-row"><span class="detail-label">' + esc(label) + '</span><span class="detail-value">' + esc(value) + '</span></div>'; }
+
+// === KEYBOARD SHORTCUT ===
+document.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); explore(); }
+});
+
+// === EXAMPLE DATA ===
+function loadExample() {
+  var exampleWT = {
+    "templateId": "Vital Signs",
+    "version": "2.3",
+    "defaultLanguage": "en",
+    "languages": ["en"],
+    "tree": {
+      "id": "vital_signs",
+      "name": "Vital Signs",
+      "localizedName": "Vital Signs",
+      "rmType": "COMPOSITION",
+      "nodeId": "openEHR-EHR-COMPOSITION.encounter.v1",
+      "min": 1, "max": 1,
+      "children": [
+        { "id": "category", "name": "category", "rmType": "DV_CODED_TEXT", "min": 1, "max": 1, "children": [] },
+        { "id": "language", "name": "language", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] },
+        { "id": "territory", "name": "territory", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] },
+        { "id": "composer", "name": "composer", "rmType": "PARTY_IDENTIFIED", "min": 1, "max": 1, "children": [] },
+        {
+          "id": "context", "name": "context", "rmType": "EVENT_CONTEXT", "min": 1, "max": 1,
+          "children": [
+            { "id": "start_time", "name": "start_time", "rmType": "DV_DATE_TIME", "min": 1, "max": 1, "children": [] },
+            { "id": "setting", "name": "setting", "rmType": "DV_CODED_TEXT", "min": 1, "max": 1, "children": [] }
+          ]
+        },
+        {
+          "id": "blood_pressure", "name": "Blood pressure",
+          "rmType": "OBSERVATION",
+          "nodeId": "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+          "min": 0, "max": 1,
+          "children": [
+            {
+              "id": "any_event", "name": "Any event", "rmType": "EVENT", "min": 0, "max": -1,
+              "children": [
+                { "id": "systolic", "name": "Systolic", "rmType": "DV_QUANTITY", "nodeId": "at0004", "min": 1, "max": 1, "aqlPath": "/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value", "children": [],
+                  "inputs": [{"suffix": "magnitude", "type": "DECIMAL"}, {"suffix": "unit", "type": "CODED_TEXT", "list": [{"value": "mm[Hg]", "label": "mm[Hg]"}]}] },
+                { "id": "diastolic", "name": "Diastolic", "rmType": "DV_QUANTITY", "nodeId": "at0005", "min": 0, "max": 1, "aqlPath": "/data[at0001]/events[at0006]/data[at0003]/items[at0005]/value", "children": [],
+                  "inputs": [{"suffix": "magnitude", "type": "DECIMAL"}, {"suffix": "unit", "type": "CODED_TEXT", "list": [{"value": "mm[Hg]", "label": "mm[Hg]"}]}] },
+                { "id": "comment", "name": "Comment", "rmType": "DV_TEXT", "nodeId": "at0033", "min": 0, "max": 1, "children": [] }
+              ]
+            },
+            {
+              "id": "method", "name": "Method", "rmType": "DV_CODED_TEXT", "nodeId": "at0011", "min": 0, "max": 1, "children": [],
+              "inputs": [{"suffix": "code", "type": "CODED_TEXT", "list": [
+                {"value": "at0012", "label": "Auscultation"},
+                {"value": "at0013", "label": "Palpation"},
+                {"value": "at0014", "label": "Machine"}
+              ]}]
+            },
+            { "id": "language", "name": "language", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] },
+            { "id": "encoding", "name": "encoding", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] }
+          ]
+        },
+        {
+          "id": "pulse_heart_beat", "name": "Pulse/Heart beat",
+          "rmType": "OBSERVATION",
+          "nodeId": "openEHR-EHR-OBSERVATION.pulse.v2",
+          "min": 0, "max": 1,
+          "children": [
+            {
+              "id": "any_event", "name": "Any event", "rmType": "EVENT", "min": 0, "max": -1,
+              "children": [
+                { "id": "rate", "name": "Rate", "rmType": "DV_QUANTITY", "nodeId": "at0004", "min": 0, "max": 1, "aqlPath": "/data[at0002]/events[at0003]/data[at0001]/items[at0004]/value", "children": [],
+                  "inputs": [{"suffix": "magnitude", "type": "DECIMAL"}, {"suffix": "unit", "type": "CODED_TEXT", "list": [{"value": "/min", "label": "/min"}]}] },
+                { "id": "regularity", "name": "Regularity", "rmType": "DV_CODED_TEXT", "nodeId": "at0005", "min": 0, "max": 1, "children": [],
+                  "inputs": [{"suffix": "code", "type": "CODED_TEXT", "list": [
+                    {"value": "at0006", "label": "Regular"},
+                    {"value": "at1028", "label": "Irregular"}
+                  ]}] }
+              ]
+            },
+            { "id": "language", "name": "language", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] },
+            { "id": "encoding", "name": "encoding", "rmType": "CODE_PHRASE", "min": 1, "max": 1, "children": [] }
+          ]
+        }
+      ]
+    }
+  };
+
+  document.getElementById('template-input').value = JSON.stringify(exampleWT, null, 2);
+  setInputMode('wt');
+  explore();
+}
+
+</script>
+</Layout>

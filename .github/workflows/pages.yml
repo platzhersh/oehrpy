@@ -1,0 +1,67 @@
+name: Pages (website)
+
+# Builds the Astro site in website/ on every change that touches it, and
+# (only on main) publishes the build to GitHub Pages via the Actions
+# deployment flow. See docs/adr/0009-astro-for-github-pages-site.md.
+#
+# The "deploy" job only serves the live site once the repository's Pages
+# source is set to "GitHub Actions" (Settings → Pages → Source). The
+# "build" job also runs on every PR to catch a broken site build before
+# merge.
+on:
+  push:
+    branches: [main]
+    paths: ['website/**', 'pyproject.toml', 'vscode-extension/package.json', '.github/workflows/pages.yml']
+  pull_request:
+    branches: [main]
+    paths: ['website/**', 'pyproject.toml', 'vscode-extension/package.json', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: website/dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5

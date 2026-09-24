@@ -129,6 +129,20 @@ python examples/generate_builder_from_opt.py path/to/template.opt
 - **`pyproject.toml`**: Build config, dependencies, tool settings (mypy, ruff, pytest)
 - **`.github/workflows/ci.yml`**: CI pipeline (lint → type-check → test)
 
+## Website (GitHub Pages)
+
+The public site (https://platzhersh.github.io/oehrpy/) is an Astro project in `website/` with its own `package.json` — see `docs/adr/0009-astro-for-github-pages-site.md` and `website/README.md`.
+
+```bash
+cd website && npm ci && npm run build   # astro check + build to website/dist
+npm run dev                             # http://localhost:4321/oehrpy/
+```
+
+- Shared `<head>` lives in `website/src/layouts/Layout.astro`, the nav in `website/src/components/SiteHeader.astro`; each page has its stylesheet in `website/src/styles/pages/`.
+- Literal `{`/`}` in `.astro` markup must be written as `&#123;`/`&#125;`.
+- The header version badge is read from `pyproject.toml` at build time — never hardcode versions.
+- Deployed by `.github/workflows/pages.yml`. The old `docs/*.html` files are frozen pending retirement (ADR-0009 migration plan) — edit `website/` instead.
+
 ## RM Version Support
 
 The SDK uses **openEHR RM 1.1.0** as the default and only version. Key differences from 1.0.4:

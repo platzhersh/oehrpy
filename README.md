@@ -408,6 +408,7 @@ oehrpy/
 │   ├── pydantic_generator.py  # Pydantic code generator
 │   └── bmm/               # BMM specification files
 ├── tests/                 # Test suite
+├── website/               # GitHub Pages site (Astro)
 └── docs/                  # Documentation
 ```
 
@@ -427,6 +428,7 @@ Apache-2.0
 - [ADR-0002: Integration Testing](docs/adr/0002-integration-testing-with-ehrbase.md)
 - [ADR-0007: Dual-Backend FLAT Validation](docs/adr/0007-dual-backend-flat-validation.md)
 - [ADR-0008: OPT Validation in VS Code via the Python CLI](docs/adr/0008-opt-validation-via-python-cli-in-vscode.md)
+- [ADR-0009: Astro for the GitHub Pages Site](docs/adr/0009-astro-for-github-pages-site.md)
 - [PRD-0000: Python openEHR SDK](docs/prd/PRD-0000-python-openehr-sdk.md)
 - [PRD-0008: OPT Validator](docs/prd/PRD-0008-opt-validator.md)
 

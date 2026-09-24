@@ -1,0 +1,324 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import "../styles/pages/index.css";
+---
+<Layout
+  title={"oehrpy - Python openEHR SDK"}
+  description={"oehrpy is a comprehensive, type-safe Python SDK for openEHR — Reference Model classes, template composition builders, an EHRBase client, and an AQL query builder."}
+  path="index.html"
+  ogDescription={"A comprehensive, type-safe Python SDK for openEHR — Reference Model classes, composition builders, an EHRBase client, and an AQL query builder."}
+  twitterDescription={"A comprehensive, type-safe Python SDK for openEHR — RM classes, composition builders, EHRBase client, and AQL query builder."}
+>
+  <script is:inline type="application/ld+json" slot="head">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "oehrpy",
+    "description": "A comprehensive, type-safe Python SDK for openEHR providing Reference Model classes, template composition builders, an EHRBase client, and an AQL query builder.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Cross-platform",
+    "url": "https://platzhersh.github.io/oehrpy/",
+    "downloadUrl": "https://pypi.org/project/oehrpy/",
+    "codeRepository": "https://github.com/platzhersh/oehrpy",
+    "programmingLanguage": "Python",
+    "license": "https://github.com/platzhersh/oehrpy/blob/main/LICENSE",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "Open CIS Project"
+    }
+  }
+  </script>
+  <!-- Header -->
+  <SiteHeader active="home" />
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="logo-container">
+      <svg id="hero-logo" viewBox="0 0 200 220" width="200" xmlns="http://www.w3.org/2000/svg" role="button" tabindex="0" aria-label="oehrpy logo — click to replay animation">
+        <defs>
+          <linearGradient id="hero-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#60a5fa"/>
+            <stop offset="100%" style="stop-color:#3b82f6"/>
+          </linearGradient>
+          <linearGradient id="hero-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fdba74"/>
+            <stop offset="100%" style="stop-color:#f97316"/>
+          </linearGradient>
+        </defs>
+        <g class="blue-snake">
+          <path d="M100 30 C55 30 45 65 45 85 C45 108 70 120 100 120 C130 120 155 108 155 85 C155 65 145 30 100 30"
+                fill="url(#hero-blue)"/>
+          <circle cx="72" cy="58" r="8" fill="#fff"/>
+        </g>
+        <g class="orange-snake">
+          <path d="M100 170 C145 170 155 135 155 115 C155 92 130 80 100 80 C70 80 45 92 45 115 C45 135 55 170 100 170"
+                fill="url(#hero-orange)"/>
+          <circle cx="128" cy="142" r="8" fill="#fff"/>
+        </g>
+        <text class="logo-text" x="100" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="600" fill="#f3f4f6">oehrpy</text>
+      </svg>
+    </div>
+    <h1>Python openEHR SDK</h1>
+    <p class="tagline">Build modern healthcare applications with the power of openEHR</p>
+    <div class="cta-buttons">
+      <a href="#quickstart" class="btn btn-primary">Get Started</a>
+      <a href="https://github.com/platzhersh/oehrpy" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <h2 class="section-title">Why oehrpy?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🐍</div>
+        <h3>Pythonic API</h3>
+        <p>Intuitive, idiomatic Python interfaces that feel natural to work with. Type hints, async support, and modern Python best practices throughout.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏥</div>
+        <h3>openEHR Native</h3>
+        <p>Full support for openEHR archetypes, templates (OPT), and compositions. Pre-built type-safe builders with FLAT paths sourced from Web Templates.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>High Performance</h3>
+        <p>Optimized for speed with minimal overhead. Built to handle real-world healthcare workloads efficiently.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Type Safe</h3>
+        <p>Comprehensive type hints and runtime validation ensure your healthcare data remains consistent and reliable.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>OPT Parser</h3>
+        <p>Parse OPT 1.4 XML files to extract template metadata. Use Web Templates from the CDR for FLAT path derivation.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9989;</div>
+        <h3>Validators</h3>
+        <p>Validate FLAT compositions against Web Templates and OPT files against the RM specification. Catch errors before they hit your CDR, with "did you mean?" suggestions and actionable fix recommendations.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Code Example Section -->
+  <section class="code-section" id="quickstart">
+    <h2 class="section-title">Quick Start</h2>
+    <div class="code-container">
+      <div class="code-header">
+        <div class="code-dot dot-red"></div>
+        <div class="code-dot dot-yellow"></div>
+        <div class="code-dot dot-green"></div>
+      </div>
+      <pre><code><span class="code-comment"># Install oehrpy</span>
+pip install oehrpy
+
+<span class="code-comment"># Use the pre-built type-safe builder</span>
+<span class="code-keyword">from</span> oehrpy.templates <span class="code-keyword">import</span> VitalSignsBuilder
+
+builder = <span class="code-function">VitalSignsBuilder</span>(composer_name=<span class="code-string">"Dr. Smith"</span>)
+builder.<span class="code-function">add_blood_pressure</span>(systolic=<span class="code-number">120</span>, diastolic=<span class="code-number">80</span>)
+builder.<span class="code-function">add_pulse</span>(rate=<span class="code-number">72</span>)
+
+<span class="code-comment"># Get FLAT format ready for EHRBase</span>
+flat_data = builder.<span class="code-function">build</span>()
+</code></pre>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>Built with Python and openEHR | <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> | <a href="docs.html">Docs</a> | <a href="brand-kit.html">Brand Kit</a></p>
+    <p style="margin-top: 10px; font-size: 14px;">oehrpy is open source software &middot; See also: <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a> &middot; <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a></p>
+  </footer>
+
+  <script is:inline>
+    // Motion.dev-inspired easing curves
+    const smoothOut = 'cubic-bezier(0.16, 1, 0.3, 1)';
+    const gentleEase = 'cubic-bezier(0.4, 0, 0.2, 1)';
+
+    // Helper: grab the hero logo parts and reset any in-flight animations.
+    function resetHeroLogo() {
+      const svg = document.getElementById('hero-logo');
+      const blueSnake = svg.querySelector('.blue-snake');
+      const orangeSnake = svg.querySelector('.orange-snake');
+      const text = svg.querySelector('.logo-text');
+
+      [blueSnake, orangeSnake, text].forEach(el => {
+        el.getAnimations().forEach(a => a.cancel());
+        el.style.opacity = '0';
+        el.style.transform = '';
+      });
+
+      // Ensure the svg itself is visible (first load fades it in via CSS opacity: 0).
+      svg.animate([{ opacity: 1 }, { opacity: 1 }], {
+        duration: 1,
+        fill: 'forwards'
+      });
+
+      return { svg, blueSnake, orangeSnake, text };
+    }
+
+    // --- Animation variants (mirror brand-kit.html motion logos) ---
+
+    function playDrop() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([
+        { transform: 'translateY(-60px)', opacity: 0 },
+        { transform: 'translateY(8px)', opacity: 1, offset: 0.6 },
+        { transform: 'translateY(-3px)', opacity: 1, offset: 0.8 },
+        { transform: 'translateY(0)', opacity: 1 }
+      ], { duration: 1400, easing: smoothOut, fill: 'forwards' });
+
+      orangeSnake.animate([
+        { transform: 'translateY(60px)', opacity: 0 },
+        { transform: 'translateY(-8px)', opacity: 1, offset: 0.6 },
+        { transform: 'translateY(3px)', opacity: 1, offset: 0.8 },
+        { transform: 'translateY(0)', opacity: 1 }
+      ], { duration: 1400, easing: smoothOut, fill: 'forwards', delay: 200 });
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(8px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 800, easing: gentleEase, fill: 'forwards', delay: 1000 });
+    }
+
+    function playSlide() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([
+        { transform: 'translateX(-80px)', opacity: 0 },
+        { transform: 'translateX(0)', opacity: 1 }
+      ], { duration: 1200, easing: smoothOut, fill: 'forwards' });
+
+      orangeSnake.animate([
+        { transform: 'translateX(80px)', opacity: 0 },
+        { transform: 'translateX(0)', opacity: 1 }
+      ], { duration: 1200, easing: smoothOut, fill: 'forwards', delay: 150 });
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(8px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 800, easing: gentleEase, fill: 'forwards', delay: 900 });
+    }
+
+    function playFadeScale() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([
+        { transform: 'scale(0.85)', opacity: 0 },
+        { transform: 'scale(1)', opacity: 1 }
+      ], { duration: 1000, easing: smoothOut, fill: 'forwards' });
+
+      orangeSnake.animate([
+        { transform: 'scale(0.85)', opacity: 0 },
+        { transform: 'scale(1)', opacity: 1 }
+      ], { duration: 1000, easing: smoothOut, fill: 'forwards', delay: 250 });
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(5px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 700, easing: gentleEase, fill: 'forwards', delay: 800 });
+    }
+
+    function playSpiral() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([
+        { transform: 'rotate(-270deg) scale(0)', opacity: 0 },
+        { transform: 'rotate(0deg) scale(1)', opacity: 1 }
+      ], { duration: 1600, easing: smoothOut, fill: 'forwards' });
+
+      orangeSnake.animate([
+        { transform: 'rotate(270deg) scale(0)', opacity: 0 },
+        { transform: 'rotate(0deg) scale(1)', opacity: 1 }
+      ], { duration: 1600, easing: smoothOut, fill: 'forwards', delay: 200 });
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(5px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 700, easing: gentleEase, fill: 'forwards', delay: 1400 });
+    }
+
+    function playSpin() {
+      const { blueSnake, orangeSnake, text } = resetHeroLogo();
+
+      blueSnake.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 400, easing: gentleEase, fill: 'forwards'
+      });
+      orangeSnake.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 400, easing: gentleEase, fill: 'forwards'
+      });
+
+      setTimeout(() => {
+        blueSnake.animate([
+          { transform: 'rotate(0deg)' },
+          { transform: 'rotate(360deg)' }
+        ], { duration: 1800, easing: gentleEase, fill: 'forwards' });
+
+        orangeSnake.animate([
+          { transform: 'rotate(0deg)' },
+          { transform: 'rotate(360deg)' }
+        ], { duration: 1800, easing: gentleEase, fill: 'forwards' });
+      }, 400);
+
+      text.animate([
+        { opacity: 0, transform: 'translateY(5px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ], { duration: 700, easing: gentleEase, fill: 'forwards', delay: 1800 });
+    }
+
+    const heroAnimations = [playDrop, playSlide, playFadeScale, playSpiral, playSpin];
+
+    // Respect the visitor's reduced-motion preference: the logo is shown
+    // statically (see index.css) and never animated.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function playRandomHeroAnimation() {
+      if (reduceMotion) return;
+      const pick = heroAnimations[Math.floor(Math.random() * heroAnimations.length)];
+      pick();
+    }
+
+    // Run a random animation when the page loads
+    window.addEventListener('load', () => {
+      setTimeout(playRandomHeroAnimation, 200);
+    });
+
+    // Replay a random animation on click / keyboard activation
+    const heroLogoEl = document.getElementById('hero-logo');
+    if (heroLogoEl) {
+      heroLogoEl.addEventListener('click', playRandomHeroAnimation);
+      heroLogoEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          playRandomHeroAnimation();
+        }
+      });
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+          history.pushState(null, '', this.getAttribute('href'));
+        }
+      });
+    });
+  </script>
+</Layout>

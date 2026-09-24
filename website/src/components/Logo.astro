@@ -1,0 +1,24 @@
+---
+// The two-drop oehrpy mark (blue top, orange bottom), inlined so it
+// inherits no extra request and can be sized per page.
+interface Props {
+  size?: number;
+}
+const { size = 32 } = Astro.props;
+---
+<svg viewBox="0 0 80 80" width={size} height={size} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <linearGradient id="logo-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa"/>
+      <stop offset="100%" style="stop-color:#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="logo-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fdba74"/>
+      <stop offset="100%" style="stop-color:#f97316"/>
+    </linearGradient>
+  </defs>
+  <path d="M40 10 C20 10 15 25 15 35 C15 46 28 52 40 52 C52 52 65 46 65 35 C65 25 60 10 40 10" fill="url(#logo-blue)"/>
+  <circle cx="28" cy="24" r="4" fill="#fff"/>
+  <path d="M40 70 C60 70 65 55 65 45 C65 34 52 28 40 28 C28 28 15 34 15 45 C15 55 20 70 40 70" fill="url(#logo-orange)"/>
+  <circle cx="52" cy="56" r="4" fill="#fff"/>
+</svg>

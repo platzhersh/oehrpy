@@ -1,0 +1,54 @@
+---
+// Shared <head> for every page: SEO/Open Graph/Twitter tags, canonical
+// URL, favicon and web fonts. Previously each of the eight pages carried
+// its own copy of this block.
+interface Props {
+  title: string;
+  description: string;
+  /** Page file name, e.g. "docs.html"; used for canonical/og:url. */
+  path: string;
+  ogDescription?: string;
+  twitterDescription?: string;
+}
+
+const { title, description, path, ogDescription = description, twitterDescription = ogDescription } =
+  Astro.props;
+const siteRoot = new URL(import.meta.env.BASE_URL.replace(/\/?$/, "/"), Astro.site);
+const pageUrl = new URL(path, siteRoot).href;
+const imageUrl = new URL("assets/logo.svg", siteRoot).href;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Open CIS Project" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <link rel="canonical" href={pageUrl} />
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="oehrpy" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={imageUrl} />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={twitterDescription} />
+    <meta name="twitter:image" content={imageUrl} />
+    <slot name="head" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
