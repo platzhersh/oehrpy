@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="oehrpy — openEHR, the Pythonic way" width="400">
+  <img src="website/public/assets/logo.svg" alt="oehrpy — openEHR, the Pythonic way" width="400">
 </p>
 
 <p align="center">
@@ -9,7 +9,7 @@
   <a href="https://github.com/platzhersh/oehrpy/blob/main/LICENSE"><img src="https://img.shields.io/pypi/l/oehrpy" alt="License"></a>
   <a href="https://github.com/platzhersh/oehrpy/actions/workflows/ci.yml"><img src="https://github.com/platzhersh/oehrpy/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-latest-blue" alt="Changelog"></a>
-  <a href="https://platzhersh.github.io/oehrpy/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Documentation"></a>
+  <a href="https://oehrpy.dev/"><img src="https://img.shields.io/badge/docs-oehrpy.dev-blue" alt="Documentation"></a>
 </p>
 
 > **Pronunciation:** /oʊ.ɛər.paɪ/ ("o-air-pie") — short for "openehrpy", where "ehr" is pronounced like "air" (as in openEHR).
@@ -20,7 +20,7 @@ A comprehensive Python SDK for openEHR that provides type-safe Reference Model c
 
 This project addresses the gap in the openEHR ecosystem where no comprehensive, actively maintained Python SDK exists. It eliminates the need for developers to manually construct complex nested JSON structures when working with openEHR compositions.
 
-> **New to openEHR?** Start with the [workflow overview](https://platzhersh.github.io/oehrpy/workflow.html) to see where oehrpy fits in the openEHR data lifecycle.
+> **New to openEHR?** Start with the [workflow overview](https://oehrpy.dev/workflow.html) to see where oehrpy fits in the openEHR data lifecycle.
 
 ## Installation
 

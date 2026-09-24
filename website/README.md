@@ -1,6 +1,6 @@
 # oehrpy — Website
 
-The public GitHub Pages site (<https://platzhersh.github.io/oehrpy/>): landing page, documentation, the in-browser Validator / Converter / Explorer tools, the workflow diagram, the VS Code extension page and the brand kit. Built with [Astro](https://astro.build). See [`docs/adr/0009-astro-for-github-pages-site.md`](../docs/adr/0009-astro-for-github-pages-site.md) for why it exists and how it is structured.
+The public site (<https://oehrpy.dev>, served by GitHub Pages): landing page, documentation, the in-browser Validator / Converter / Explorer tools, the workflow diagram, the VS Code extension page and the brand kit. Built with [Astro](https://astro.build). See [`docs/adr/0009-astro-for-github-pages-site.md`](../docs/adr/0009-astro-for-github-pages-site.md) for why it exists and how it is structured.
 
 This is a separate npm project (its own `package.json`, `node_modules`, lockfile) — it is not part of the Python package build.
 
@@ -10,7 +10,7 @@ Run from this directory (`website/`), with Node.js ≥ 22.12:
 
 ```bash
 npm install       # install dependencies
-npm run dev       # local dev server at http://localhost:4321/oehrpy/
+npm run dev       # local dev server at http://localhost:4321/
 npm run build     # type-check (astro check) + build to dist/
 npm run preview   # preview the production build locally
 npm run check     # type-check only
@@ -30,8 +30,8 @@ website/
 └── astro.config.mjs
 ```
 
-- Pages build to flat files (`docs.html`, `validator.html`, …) under the `/oehrpy/` base path, so existing links and the sitemap keep working — see `build.format` and `base` in `astro.config.mjs`.
-- Link between pages with **relative** hrefs (`docs.html`, `assets/logo.svg`); every page is emitted at the site root, so they resolve under the base path.
+- Pages build to flat files (`docs.html`, `validator.html`, …) at the site root, so existing links and the sitemap keep working — see `build.format` and `base` in `astro.config.mjs`.
+- Link between pages with **relative** hrefs (`docs.html`, `assets/logo.svg`); every page is emitted at the site root.
 - The interactive tools' JavaScript lives in `<script is:inline>` blocks inside each page because the markup calls those functions from `onclick=` attributes; `astro check` still type-checks it as JavaScript.
 - The header version badge comes from `pyproject.toml` — don't hardcode versions in pages.
 

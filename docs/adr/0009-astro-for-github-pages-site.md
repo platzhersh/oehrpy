@@ -65,10 +65,13 @@ built and deployed by a GitHub Actions workflow
   dependency surface. Astro components cover the shared layout; an
   integration can be added later if an interactive component would benefit
   from it.
-- **Same URLs:** `base: "/oehrpy"` (it is a GitHub *project* site) and
-  `build.format: "file"` keep every existing URL (`docs.html`,
-  `validator.html`, …) working, so the README links, the sitemap, and search
-  engine indexing are unaffected.
+- **Same page names:** `build.format: "file"` keeps every existing page URL
+  (`docs.html`, `validator.html`, …), so links and the sitemap keep working.
+  The site was first built with `base: "/oehrpy"` for the GitHub *project*
+  site URL; since the cut-over it is served from the custom domain
+  <https://oehrpy.dev> at the domain root, so `site` is
+  `https://oehrpy.dev` and there is no `base` (with the old base, every
+  bundled stylesheet 404'd under `/oehrpy/_astro/`).
 - **Deploy via Actions, not by committing build output to `docs/`:** avoids
   checking generated files into the repo and matches GitHub's recommended
   Pages setup. The `build` job runs on every PR that touches `website/`, so a
@@ -137,18 +140,17 @@ console errors.
 
 ## Migration Plan
 
-1. **Land `website/` and `pages.yml`** alongside the still-live `docs/` site.
+1. **✅ Land `website/` and `pages.yml`** alongside the still-live `docs/` site.
    The workflow builds on PRs and pushes; its deploy job only takes effect
    once step 2 is done.
-2. **Cut over:** Settings → Pages → Build and deployment → Source →
+2. **✅ Cut over:** Settings → Pages → Build and deployment → Source →
    "GitHub Actions", then re-run the "Pages (website)" workflow on `main`
-   (or push a change under `website/`).
-3. **Retire the old site files** from `docs/` (`*.html`, `assets/`,
-   `robots.txt`, `sitemap.xml`). Until then they are frozen: edit
-   `website/` only. `docs/adr/`, `docs/prd/` and the Markdown guides stay —
-   they are project documentation, not site source. The README's logo
-   reference (`docs/assets/logo.svg`) must move to
-   `website/public/assets/logo.svg` in the same change.
+   (or push a change under `website/`). The site is now served from the
+   custom domain <https://oehrpy.dev>.
+3. **✅ Retire the old site files** from `docs/` (`*.html`, `assets/`,
+   `robots.txt`, `sitemap.xml`), done in OEH-59. `docs/adr/`, `docs/prd/`
+   and the Markdown guides stay; they are project documentation, not site
+   source. The README logo now points to `website/public/assets/logo.svg`.
 4. **Follow-ups (out of scope):** unify the two design-token schemes and the
    per-page footers into shared components; generate `sitemap.xml` with
    `@astrojs/sitemap`; move the tool scripts into typed modules.
