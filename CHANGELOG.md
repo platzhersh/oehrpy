@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.16.1 (2026-09-24)
+
+### Bug Fixes
+
+- **website**: Serve from oehrpy.dev root and retire old docs site (#79)
+  ([#79](https://github.com/platzhersh/oehrpy/pull/79),
+  [`d383fb7`](https://github.com/platzhersh/oehrpy/commit/d383fb7554948513f187a4d403ca992b61c5f9f3))
+
+### Continuous Integration
+
+- Bump github actions off deprecated node 20 runtime (#77)
+  ([#77](https://github.com/platzhersh/oehrpy/pull/77),
+  [`2672ef8`](https://github.com/platzhersh/oehrpy/commit/2672ef852ebb693ee85ac91531c3820e0ea0b9f4))
+
+
 ## v0.16.0 (2026-09-24)
 
 ### Build System
