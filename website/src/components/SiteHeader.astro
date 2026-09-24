@@ -77,6 +77,34 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
     </a>
   </nav>
 </header>
+<script is:inline>
+  // Mobile menu button. Inline (not bundled) so it runs before first paint:
+  // it adds .nav-js, which is what lets the CSS collapse the nav, so the
+  // links are never hidden unless this script is there to reopen them.
+  // Escape, an outside click or following a link (e.g. #features on the
+  // home page) closes the panel.
+  (() => {
+    const header = document.currentScript.previousElementSibling;
+    const toggle = header.querySelector(".nav-toggle");
+    header.classList.add("nav-js");
+    const setMenu = (open) => {
+      header.classList.toggle("nav-open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Menu");
+    };
+    toggle.addEventListener("click", () => setMenu(!header.classList.contains("nav-open")));
+    document.addEventListener("click", (e) => {
+      if (!header.contains(e.target)) setMenu(false);
+    });
+    header.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && header.classList.contains("nav-open")) {
+        setMenu(false);
+        toggle.focus();
+      }
+    });
+  })();
+</script>
 
 <style is:global>
   /* Mobile header, shared by every page: up to 900px (below which the full
@@ -84,8 +112,10 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
      opens as a full-width panel under the logo.
      Selectors are prefixed with .site-header so they outrank the per-page
      desktop rules (`header nav`, `.github-link`, ...) regardless of
-     stylesheet order. Above 900px only the `.nav-toggle` hide rule applies,
-     so the desktop header is untouched. */
+     stylesheet order. The panel only collapses once the inline script above
+     has added .nav-js, so without JavaScript the links stay listed open.
+     Above 900px only the `.nav-toggle` hide rule applies, so the desktop
+     header is untouched. */
   .nav-toggle {
     display: none;
   }
@@ -98,7 +128,7 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
     .site-header .logo-header span {
       font-size: 20px;
     }
-    .site-header .nav-toggle {
+    .site-header.nav-js .nav-toggle {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -120,7 +150,7 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
     }
 
     .site-header nav {
-      display: none;
+      display: flex;
       flex-basis: 100%;
       flex-direction: column;
       align-items: stretch;
@@ -129,8 +159,8 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
       padding-top: 4px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .site-header.nav-open nav {
-      display: flex;
+    .site-header.nav-js:not(.nav-open) nav {
+      display: none;
     }
     .site-header nav a:not(.github-link),
     .site-header .nav-dropdown-menu a {
@@ -171,29 +201,6 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
 </style>
 
 <script>
-  // Mobile menu button: toggles the nav panel; Escape, an outside click or
-  // following a link (e.g. #features on the home page) closes it.
-  const header = document.querySelector<HTMLElement>(".site-header");
-  const toggle = header?.querySelector<HTMLButtonElement>(".nav-toggle");
-  if (header && toggle) {
-    const setMenu = (open: boolean) => {
-      header.classList.toggle("nav-open", open);
-      toggle.setAttribute("aria-expanded", open ? "true" : "false");
-      toggle.setAttribute("aria-label", open ? "Close menu" : "Menu");
-    };
-    toggle.addEventListener("click", () => setMenu(!header.classList.contains("nav-open")));
-    document.addEventListener("click", (e) => {
-      if (!header.contains(e.target as Node)) setMenu(false);
-    });
-    header.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && header.classList.contains("nav-open")) {
-        setMenu(false);
-        toggle.focus();
-      }
-    });
-  }
-
   // Nav "Tools" dropdown: click to toggle, click outside or Escape to close.
   const dropdown = document.querySelector<HTMLElement>(".nav-dropdown");
   const btn = dropdown?.querySelector<HTMLButtonElement>(".nav-dropdown-btn");
