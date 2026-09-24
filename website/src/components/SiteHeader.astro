@@ -17,7 +17,9 @@ export type NavPage =
   | "explorer"
   | "workflow"
   | "vscode"
-  | "brand-kit";
+  | "brand-kit"
+  /** No nav entry is current (e.g. the 404 page). */
+  | "none";
 
 interface Props {
   active: NavPage;
@@ -29,9 +31,9 @@ interface Props {
 
 const { active, showVersion = false, logoSize = 32 } = Astro.props;
 const tools: { page: NavPage; href: string; label: string }[] = [
-  { page: "validator", href: "validator.html", label: "Validator" },
-  { page: "converter", href: "converter.html", label: "Converter" },
-  { page: "explorer", href: "explorer.html", label: "Explorer" },
+  { page: "validator", href: "/validator.html", label: "Validator" },
+  { page: "converter", href: "/converter.html", label: "Converter" },
+  { page: "explorer", href: "/explorer.html", label: "Explorer" },
 ];
 const toolActive = tools.some((t) => t.page === active);
 const cls = (page: NavPage) => (page === active ? "active" : undefined);

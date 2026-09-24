@@ -103,7 +103,7 @@ import "../styles/pages/converter.css";
 <ToolAbout>
     <h2>Canonical JSON and FLAT: the same composition, two shapes</h2>
     <p>openEHR compositions are usually exchanged in one of two JSON formats. <strong>Canonical JSON</strong> is the standard serialization of the Reference Model: a deep tree where every object carries its <code>_type</code>. <strong>FLAT</strong> (the "simplified" format used by EHRBase and Better) is a single map of <code>path|attribute</code> keys to values, such as <code>vital_signs/blood_pressure/systolic|magnitude: 120</code>. It is much easier to build by hand or from a form.</p>
-    <p>This converter translates between the two so you can see how a stored composition maps onto the FLAT paths your application writes.</p>
+    <p>This converter flattens a Canonical JSON composition into FLAT, so you can see how a stored composition maps onto the FLAT paths your application writes, and unfolds a FLAT composition into a tree so you can inspect its structure. It does not convert FLAT back to Canonical JSON.</p>
 
     <h2>How to use it</h2>
     <ol>
