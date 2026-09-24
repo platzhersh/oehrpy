@@ -1,0 +1,222 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import "../styles/pages/workflow.css";
+---
+<Layout
+  title={"Workflow - oehrpy"}
+  description={"Interactive openEHR workflow diagram showing how templates, compositions, and the EHRBase CDR fit together when building with oehrpy."}
+  path="workflow.html"
+  twitterDescription={"How openEHR templates, compositions, and the EHRBase CDR fit together when building with oehrpy."}
+>
+  <!-- Header -->
+  <SiteHeader active="workflow" />
+
+  <!-- Page Content -->
+  <main class="page-container">
+    <h1 class="page-title">openEHR Workflow</h1>
+    <p class="page-subtitle">
+      Where oehrpy fits in the openEHR data lifecycle &mdash; from clinical modelling to querying patient data. Phases highlighted in blue are handled by oehrpy.
+    </p>
+
+    <!-- Workflow Diagram -->
+    <div class="workflow">
+
+      <!-- Phase 1: Modelling (dimmed) -->
+      <section id="modelling" class="phase dimmed">
+        <div class="phase-label">
+          <span class="phase-number">Phase 1</span>
+          <span class="phase-name">Modelling</span>
+          <span class="phase-badge badge-external">Outside oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">Archetype Designer</div>
+            <div class="node-desc">Define archetypes &amp; templates using clinical modelling tools (e.g. Better Archetype Designer)</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Export .opt</div>
+            <div class="node-desc">Export an Operational Template (<code>.opt</code>) file from the modelling tool</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Arrow -->
+      <div class="phase-arrow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </div>
+
+      <!-- Phase 2: CDR Upload (dimmed) -->
+      <section id="upload" class="phase dimmed">
+        <div class="phase-label">
+          <span class="phase-number">Phase 2</span>
+          <span class="phase-name">CDR Upload</span>
+          <span class="phase-badge badge-external">Outside oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">Upload Template</div>
+            <div class="node-desc">Upload the <code>.opt</code> to your CDR (e.g. EHRBase) via its admin API</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Web Template</div>
+            <div class="node-desc">CDR generates a Web Template with FLAT paths and constraints</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scope Divider -->
+      <div class="scope-divider">
+        <span class="scope-divider-label">oehrpy scope</span>
+      </div>
+
+      <!-- Phase 3: App Development (active) -->
+      <section id="app-dev" class="phase active">
+        <div class="phase-label">
+          <span class="phase-number">Phase 3</span>
+          <span class="phase-name">App Development</span>
+          <span class="phase-badge badge-oehrpy">oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">Parse OPT</div>
+            <div class="node-desc">Parse <code>.opt</code> files with <code>OPTParser</code> to extract template metadata</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Fetch Web Template</div>
+            <div class="node-desc">Get Web Template JSON from CDR with <code>get_web_template()</code> for FLAT paths (ADR-0005)</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Generate Builder</div>
+            <div class="node-desc">Generate metadata-only builder skeletons with <code>BuilderGenerator</code>; FLAT paths from Web Template</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Validate Template</div>
+            <div class="node-desc">Validate OPT files against RM spec using <code>OPTValidator</code></div>
+          </div>
+          <div class="node">
+            <div class="node-title">Validate Composition</div>
+            <div class="node-desc">Catch FLAT path errors before submission with <code>FlatValidator</code></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Arrow -->
+      <div class="phase-arrow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </div>
+
+      <!-- Phase 4: Write Composition (active) -->
+      <section id="write" class="phase active">
+        <div class="phase-label">
+          <span class="phase-number">Phase 4</span>
+          <span class="phase-name">Write Composition</span>
+          <span class="phase-badge badge-oehrpy">oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">Template Builder</div>
+            <div class="node-desc">Construct compositions with type-safe builders (e.g. <code>VitalSignsBuilder</code>)</div>
+          </div>
+          <div class="node">
+            <div class="node-title">FLAT Format</div>
+            <div class="node-desc">Build FLAT compositions with <code>FlatBuilder</code> using dot-separated paths</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Canonical JSON</div>
+            <div class="node-desc">Serialize RM objects to openEHR canonical JSON with <code>_type</code> fields</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Submit to CDR</div>
+            <div class="node-desc">Send compositions via <code>EHRBaseClient</code> async REST client</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Arrow -->
+      <div class="phase-arrow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </div>
+
+      <!-- Phase 5: Read / Query (active) -->
+      <section id="read" class="phase active">
+        <div class="phase-label">
+          <span class="phase-number">Phase 5</span>
+          <span class="phase-name">Read / Query</span>
+          <span class="phase-badge badge-oehrpy">oehrpy</span>
+        </div>
+        <div class="phase-content">
+          <div class="node">
+            <div class="node-title">AQL Builder</div>
+            <div class="node-desc">Build type-safe AQL queries with <code>AqlBuilder</code> fluent API</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Execute Query</div>
+            <div class="node-desc">Run AQL queries against the CDR via <code>EHRBaseClient</code></div>
+          </div>
+          <div class="node">
+            <div class="node-title">Deserialize</div>
+            <div class="node-desc">Parse query results back into typed RM objects for processing</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-title">Format Reference</div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <span class="legend-key">.opt</span>
+          <span class="legend-value">Operational Template &mdash; XML file exported from modelling tools</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">Web Template</span>
+          <span class="legend-value">CDR-generated JSON with FLAT paths and constraints</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">FLAT</span>
+          <span class="legend-value">Dot-separated paths like <code>bp:0/systolic|magnitude</code></span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">Canonical JSON</span>
+          <span class="legend-value">Hierarchical JSON with <code>_type</code> discriminator fields</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">AQL</span>
+          <span class="legend-value">Archetype Query Language for retrieving clinical data</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-key">RM</span>
+          <span class="legend-value">Reference Model &mdash; 134 Pydantic classes for openEHR 1.1.0</span>
+        </div>
+      </div>
+      <div class="scope-legend">
+        <div class="scope-legend-item">
+          <span class="scope-swatch active"></span>
+          oehrpy scope (Phases 3&ndash;5)
+        </div>
+        <div class="scope-legend-item">
+          <span class="scope-swatch dimmed"></span>
+          External tools (Phases 1&ndash;2)
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="docs.html">Docs</a> &middot; Apache 2.0 License</p>
+    <p>See also: <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a> &middot; <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a></p>
+  </footer>
+</Layout>

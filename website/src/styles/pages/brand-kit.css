@@ -1,0 +1,189 @@
+/* Page styles for brand-kit.astro, ported verbatim from the former docs/brand-kit.html. */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  padding: 40px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-size: 2.5rem;
+  color: #f3f4f6;
+  font-family: 'Inter', sans-serif;
+}
+.subtitle {
+  text-align: center;
+  color: #888;
+  margin-bottom: 50px;
+}
+.section {
+  max-width: 1200px;
+  margin: 0 auto 60px;
+}
+.section-title {
+  font-size: 1.3rem;
+  color: #f97316;
+  margin-bottom: 25px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #333;
+}
+.logo-row {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+.logo-card {
+  background: #252540;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+}
+.logo-card.light {
+  background: #ffffff;
+}
+.logo-card.dark {
+  background: #0a0a14;
+}
+.logo-card h4 {
+  margin-top: 15px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #999;
+}
+.favicon-grid {
+  display: flex;
+  gap: 20px;
+  align-items: end;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.favicon-item {
+  text-align: center;
+}
+.favicon-item span {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #666;
+}
+.preview-box {
+  padding: 30px;
+  border-radius: 12px;
+  display: inline-block;
+}
+.preview-box.on-white {
+  background: #fff;
+}
+.preview-box.on-dark {
+  background: #0a0a14;
+}
+
+/* Animation Section */
+.animation-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.animation-card {
+  background: #252540;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  overflow: hidden;
+}
+.animation-card h4 {
+  margin-top: 20px;
+  color: #999;
+  font-weight: 400;
+}
+.replay-btn {
+  margin-top: 15px;
+  padding: 8px 20px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+.replay-btn:hover {
+  background: #2563eb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  body {
+    padding: 20px;
+  }
+  h1 {
+    font-size: 2rem;
+  }
+  .section-title {
+    font-size: 1.1rem;
+  }
+  .logo-row {
+    gap: 20px;
+  }
+  .logo-card {
+    padding: 20px;
+    width: 100%;
+    max-width: 100%;
+  }
+  .logo-card svg {
+    max-width: 100%;
+    height: auto;
+  }
+  .animation-container {
+    gap: 20px;
+  }
+  .animation-card {
+    padding: 24px;
+    width: 100%;
+  }
+  .preview-box {
+    padding: 20px;
+    width: 100%;
+    overflow-x: auto;
+  }
+  .favicon-grid {
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 16px;
+  }
+  h1 {
+    font-size: 1.75rem;
+  }
+  .subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+  }
+  .section {
+    margin-bottom: 40px;
+  }
+  .logo-card {
+    padding: 16px;
+  }
+  .animation-card {
+    padding: 20px;
+  }
+  .preview-box {
+    padding: 16px;
+  }
+}

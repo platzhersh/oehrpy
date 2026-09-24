@@ -1,0 +1,233 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import "../styles/pages/vscode.css";
+---
+<Layout
+  title={"VS Code Extension - oehrpy"}
+  description={"VS Code extension for validating openEHR FLAT format compositions against Web Templates — inline diagnostics, hover documentation, and quick fixes."}
+  path="vscode.html"
+  ogDescription={"VS Code extension for validating openEHR FLAT format compositions — inline diagnostics, hover docs, and quick fixes without leaving the editor."}
+  twitterDescription={"Validate openEHR FLAT compositions in VS Code — red squiggles on invalid paths, hover documentation, quick fixes."}
+>
+  <!-- Header -->
+  <SiteHeader active="vscode" />
+
+  <!-- Page Content -->
+  <main class="page-container">
+    <h1 class="page-title">VS Code Extension</h1>
+    <p class="page-subtitle">
+      Validate openEHR FLAT format compositions against Web Templates directly in VS Code. Catch invalid paths, wrong suffixes, and missing required fields before they reach EHRBase.
+    </p>
+
+    <!-- Install -->
+    <div class="section">
+      <a class="install-btn" href="https://github.com/platzhersh/oehrpy/tree/main/vscode-extension" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Get the Extension
+      </a>
+      <p class="install-alt">Or install manually: <code>code --install-extension oehrpy-validator-0.1.0.vsix</code></p>
+    </div>
+
+    <!-- Features -->
+    <div class="section">
+      <h2 class="section-title">Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--red);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </span>
+          <h3>Inline Diagnostics</h3>
+          <p>Red squiggles on invalid FLAT paths with detailed error messages. Yellow warnings for missing required fields.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--blue);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+          <h3>Hover Documentation</h3>
+          <p>Hover over any FLAT path to see the RM type, cardinality, whether it&rsquo;s required, and valid suffixes.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--green);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </span>
+          <h3>Validate on Save</h3>
+          <p>Automatic validation when you save a FLAT composition JSON file. Configurable and debounced at 500ms.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--yellow);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </span>
+          <h3>Quick Fix</h3>
+          <p>&ldquo;Did you mean?&rdquo; suggestions via the lightbulb menu. One click to replace an invalid path with the correct one.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--orange);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </span>
+          <h3>Template Auto-Detection</h3>
+          <p>Finds Web Templates from workspace settings, same directory, or <code>templates/</code> folder automatically.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon" style="color: var(--blue-light);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          </span>
+          <h3>Status Bar</h3>
+          <p>See validation state at a glance &mdash; valid, error count, or &ldquo;no template&rdquo; &mdash; in the bottom bar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Getting Started -->
+    <div class="section">
+      <h2 class="section-title">Getting Started</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="step-number">1</span>
+          <div class="step-content">
+            <p>Install <strong>Python 3.10+</strong> with oehrpy: <code>pip install oehrpy</code></p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">2</span>
+          <div class="step-content">
+            <p>Install the extension in VS Code</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">3</span>
+          <div class="step-content">
+            <p>Open a FLAT composition JSON file &mdash; keys like <code>vital_signs/blood_pressure/systolic|magnitude</code></p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">4</span>
+          <div class="step-content">
+            <p>Place a Web Template (<code>web_template.json</code> or <code>*.wt.json</code>) in the same directory, or configure paths in settings</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">5</span>
+          <div class="step-content">
+            <p>Save the file &mdash; diagnostics appear automatically</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commands -->
+    <div class="section">
+      <h2 class="section-title">Commands</h2>
+      <table class="commands-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>Keybinding</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>oehrpy: Validate FLAT Composition</code></td>
+            <td><kbd>Ctrl+Shift+F10</kbd></td>
+            <td>Validate the active JSON file</td>
+          </tr>
+          <tr>
+            <td><code>oehrpy: Select Web Template</code></td>
+            <td>&mdash;</td>
+            <td>Pick a Web Template for the current file</td>
+          </tr>
+          <tr>
+            <td><code>oehrpy: Show Valid Paths</code></td>
+            <td>&mdash;</td>
+            <td>List all valid FLAT paths in the output panel</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Web Template Resolution -->
+    <div class="section">
+      <h2 class="section-title">Web Template Resolution</h2>
+      <p class="section-desc">The extension finds the Web Template for a composition by checking these locations in order:</p>
+      <ol class="resolution-list">
+        <li><strong>Explicit config</strong> &mdash; <code>oehrpy.webTemplatePaths</code> in workspace settings</li>
+        <li><strong>Same directory</strong> &mdash; <code>web_template.json</code> or <code>*.wt.json</code> next to the composition</li>
+        <li><strong>Project root</strong> &mdash; <code>web_templates/</code> or <code>templates/</code> directory in the workspace</li>
+        <li><strong>User prompt</strong> &mdash; asks you to pick a file and remembers the choice</li>
+      </ol>
+    </div>
+
+    <!-- Configuration -->
+    <div class="section">
+      <h2 class="section-title">Configuration</h2>
+      <p class="section-desc">Add to <code>.vscode/settings.json</code>:</p>
+      <div class="code-block"><span class="comment">// CDR platform dialect</span>
+<span class="key">"oehrpy.platform"</span>: <span class="string">"ehrbase"</span>,
+
+<span class="comment">// Validate automatically on save</span>
+<span class="key">"oehrpy.validateOnSave"</span>: <span class="value">true</span>,
+
+<span class="comment">// Map template IDs to file paths</span>
+<span class="key">"oehrpy.webTemplatePaths"</span>: &#123;
+  <span class="string">"IDCR - Adverse Reaction List.v1"</span>: <span class="string">"./templates/adverse_reaction_wt.json"</span>
+&#125;,
+
+<span class="comment">// Python interpreter (leave empty to auto-detect)</span>
+<span class="key">"oehrpy.pythonPath"</span>: <span class="string">""</span>,
+
+<span class="comment">// CLI timeout in milliseconds</span>
+<span class="key">"oehrpy.validationTimeout"</span>: <span class="value">5000</span></div>
+    </div>
+
+    <!-- Roadmap -->
+    <div class="section">
+      <h2 class="section-title">Roadmap</h2>
+      <div class="roadmap">
+        <div class="roadmap-phase">
+          <h4>v0.1.0 &mdash; Core Extension <span class="roadmap-badge badge-done">Done</span></h4>
+          <ul>
+            <li>Inline diagnostics</li>
+            <li>Validate on save</li>
+            <li>Hover documentation</li>
+            <li>Quick Fix</li>
+            <li>Status bar</li>
+            <li>Template auto-detection</li>
+          </ul>
+        </div>
+        <div class="roadmap-phase">
+          <h4>v0.2.0 &mdash; Enhanced UX <span class="roadmap-badge badge-next">Next</span></h4>
+          <ul>
+            <li>Path autocomplete</li>
+            <li>Web Template tree view</li>
+            <li>Marketplace publication</li>
+          </ul>
+        </div>
+        <div class="roadmap-phase">
+          <h4>v0.3.0 &mdash; Template Validation <span class="roadmap-badge badge-planned">Planned</span></h4>
+          <ul>
+            <li>OPT 1.4 XML validation</li>
+            <li>Web Template schema validation</li>
+            <li>OPT hover &amp; FLAT path impact</li>
+          </ul>
+        </div>
+        <div class="roadmap-phase">
+          <h4>v0.4.0 &mdash; AQL Language Support <span class="roadmap-badge badge-planned">Planned</span></h4>
+          <ul>
+            <li>AQL syntax highlighting</li>
+            <li>AQL validation</li>
+            <li>AQL path autocomplete</li>
+            <li>AQL snippet library</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>oehrpy &mdash; <a href="https://github.com/platzhersh/oehrpy" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="docs.html">Docs</a> &middot; Apache 2.0 License</p>
+    <p>See also: <a href="https://openehr-explorer.dev/" target="_blank" rel="noopener noreferrer">openEHR Explorer</a> &middot; <a href="https://github.com/platzhersh/open-cis" target="_blank" rel="noopener noreferrer">Open CIS</a></p>
+  </footer>
+</Layout>

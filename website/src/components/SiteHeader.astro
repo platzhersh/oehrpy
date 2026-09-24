@@ -1,0 +1,93 @@
+---
+import GithubIcon from "./GithubIcon.astro";
+import Logo from "./Logo.astro";
+import { packageVersion } from "../lib/version";
+
+// The one copy of the site navigation. Before the Astro migration every
+// page carried its own hand-edited <header>, and the nav order had
+// already drifted between pages (Workflow sat before "Tools" on some and
+// after it on others). Header *styling* still comes from each page's own
+// stylesheet (src/styles/pages/*.css), which is why the markup below keeps
+// the exact class names those stylesheets target.
+export type NavPage =
+  | "home"
+  | "docs"
+  | "validator"
+  | "converter"
+  | "explorer"
+  | "workflow"
+  | "vscode";
+
+interface Props {
+  active: NavPage;
+  /** Show the package version badge (used by the in-browser tool pages). */
+  showVersion?: boolean;
+  /** Pixel size of the header logo mark. */
+  logoSize?: number;
+}
+
+const { active, showVersion = false, logoSize = 32 } = Astro.props;
+const tools: { page: NavPage; href: string; label: string }[] = [
+  { page: "validator", href: "validator.html", label: "Validator" },
+  { page: "converter", href: "converter.html", label: "Converter" },
+  { page: "explorer", href: "explorer.html", label: "Explorer" },
+];
+const toolActive = tools.some((t) => t.page === active);
+const cls = (page: NavPage) => (page === active ? "active" : undefined);
+---
+<header>
+  <a href="index.html" class="logo-header">
+    <Logo size={logoSize} />
+    <span>oehrpy</span>
+  </a>
+  <nav>
+    {active === "home" ? (
+      <>
+        <a href="#features">Features</a>
+        <a href="#quickstart">Quick Start</a>
+      </>
+    ) : (
+      <a href="index.html">Home</a>
+    )}
+    <a href="docs.html" class={cls("docs")}>Docs</a>
+    <div class="nav-dropdown">
+      <button class:list={["nav-dropdown-btn", { active: toolActive }]} aria-haspopup="true" aria-expanded="false">Tools <span class="dropdown-arrow">&#9662;</span></button>
+      <div class="nav-dropdown-menu">
+        {tools.map((t) => <a href={t.href} class={cls(t.page)}>{t.label}</a>)}
+      </div>
+    </div>
+    <a href="workflow.html" class={cls("workflow")}>Workflow</a>
+    <a href="vscode.html" class={cls("vscode")}>VS Code</a>
+    <a href="brand-kit.html">Brand Kit</a>
+    {showVersion && <span class="badge" id="version-badge">v{packageVersion}</span>}
+    <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer">
+      <GithubIcon />
+      GitHub
+    </a>
+  </nav>
+</header>
+
+<script>
+  // Nav "Tools" dropdown: click to toggle, click outside or Escape to close.
+  const dropdown = document.querySelector<HTMLElement>(".nav-dropdown");
+  const btn = dropdown?.querySelector<HTMLButtonElement>(".nav-dropdown-btn");
+  if (dropdown && btn) {
+    const setOpen = (open: boolean) => {
+      dropdown.classList.toggle("is-open", open);
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setOpen(!dropdown.classList.contains("is-open"));
+    });
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target as Node)) setOpen(false);
+    });
+    dropdown.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+  }
+</script>
