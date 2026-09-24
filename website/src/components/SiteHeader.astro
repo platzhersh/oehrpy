@@ -6,9 +6,11 @@ import { packageVersion } from "../utils/version";
 // The one copy of the site navigation. Before the Astro migration every
 // page carried its own hand-edited <header>, and the nav order had
 // already drifted between pages (Workflow sat before "Tools" on some and
-// after it on others). Header *styling* still comes from each page's own
-// stylesheet (src/styles/pages/*.css), which is why the markup below keeps
-// the exact class names those stylesheets target.
+// after it on others). The desktop header *styling* still comes from each
+// page's own stylesheet (src/styles/pages/*.css), which is why the markup
+// below keeps the exact class names those stylesheets target. The mobile
+// (responsive) header rules live only in the <style> block at the bottom
+// of this file, so every page wraps the nav the same way.
 export type NavPage =
   | "home"
   | "docs"
@@ -38,12 +40,18 @@ const tools: { page: NavPage; href: string; label: string }[] = [
 const toolActive = tools.some((t) => t.page === active);
 const cls = (page: NavPage) => (page === active ? "active" : undefined);
 ---
-<header>
+<header class="site-header">
   <a href="/" class="logo-header">
     <Logo size={logoSize} />
     <span>oehrpy</span>
   </a>
-  <nav>
+  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <path class="nav-toggle-open" d="M4 7h16M4 12h16M4 17h16" />
+      <path class="nav-toggle-close" d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  </button>
+  <nav id="site-nav">
     {active === "home" ? (
       <>
         <a href="#features">Features</a>
@@ -63,12 +71,134 @@ const cls = (page: NavPage) => (page === active ? "active" : undefined);
     <a href="/vscode.html" class={cls("vscode")}>VS Code</a>
     <a href="/brand-kit.html" class={cls("brand-kit")}>Brand Kit</a>
     {showVersion && <span class="badge" id="version-badge">v{packageVersion}</span>}
-    <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer">
+    <a href="https://github.com/platzhersh/oehrpy" class="github-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
       <GithubIcon />
-      GitHub
+      <span class="github-label">GitHub</span>
     </a>
   </nav>
 </header>
+<script is:inline>
+  // Mobile menu button. Inline (not bundled) so it runs before first paint:
+  // it adds .nav-js, which is what lets the CSS collapse the nav, so the
+  // links are never hidden unless this script is there to reopen them.
+  // Escape, an outside click or following a link (e.g. #features on the
+  // home page) closes the panel.
+  (() => {
+    const header = document.currentScript.previousElementSibling;
+    const toggle = header.querySelector(".nav-toggle");
+    header.classList.add("nav-js");
+    const setMenu = (open) => {
+      header.classList.toggle("nav-open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Menu");
+    };
+    toggle.addEventListener("click", () => setMenu(!header.classList.contains("nav-open")));
+    document.addEventListener("click", (e) => {
+      if (!header.contains(e.target)) setMenu(false);
+    });
+    header.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && header.classList.contains("nav-open")) {
+        setMenu(false);
+        toggle.focus();
+      }
+    });
+  })();
+</script>
+
+<style is:global>
+  /* Mobile header, shared by every page: up to 900px (below which the full
+     desktop nav stops fitting) the nav collapses behind a menu button and
+     opens as a full-width panel under the logo.
+     Selectors are prefixed with .site-header so they outrank the per-page
+     desktop rules (`header nav`, `.github-link`, ...) regardless of
+     stylesheet order. The panel only collapses once the inline script above
+     has added .nav-js, so without JavaScript the links stay listed open.
+     Above 900px only the `.nav-toggle` hide rule applies, so the desktop
+     header is untouched. */
+  .nav-toggle {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .site-header {
+      padding: 12px 16px;
+      flex-wrap: wrap;
+    }
+    .site-header .logo-header span {
+      font-size: 20px;
+    }
+    .site-header.nav-js .nav-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: transparent;
+      color: #f3f4f6;
+      cursor: pointer;
+    }
+    .site-header .nav-toggle-close,
+    .site-header.nav-open .nav-toggle-open {
+      display: none;
+    }
+    .site-header.nav-open .nav-toggle-close {
+      display: inline;
+    }
+
+    .site-header nav {
+      display: flex;
+      flex-basis: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      margin: 12px 0 0;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .site-header.nav-js:not(.nav-open) nav {
+      display: none;
+    }
+    .site-header nav a:not(.github-link),
+    .site-header .nav-dropdown-menu a {
+      display: block;
+      padding: 12px 4px;
+      font-size: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .site-header .nav-dropdown-menu a:hover,
+    .site-header .nav-dropdown-menu a:focus {
+      background: none;
+    }
+    /* The Tools dropdown is flattened: its links sit in the list directly. */
+    .site-header .nav-dropdown-btn {
+      display: none;
+    }
+    .site-header .nav-dropdown-menu {
+      display: block;
+      position: static;
+      transform: none;
+      margin: 0;
+      padding: 0;
+      min-width: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+    }
+    .site-header nav .badge {
+      align-self: flex-start;
+      margin-top: 14px;
+    }
+    .site-header .github-link {
+      align-self: flex-start;
+      margin: 14px 0 6px;
+    }
+  }
+</style>
 
 <script>
   // Nav "Tools" dropdown: click to toggle, click outside or Escape to close.

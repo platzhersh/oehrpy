@@ -263,7 +263,7 @@ h3[id] {
 @media (max-width: 768px) {
   h2[id],
   h3[id] {
-    scroll-margin-top: 180px;
+    scroll-margin-top: 80px;
   }
 }
 
@@ -277,28 +277,6 @@ h3[id] {
 }
 
 @media (max-width: 768px) {
-  header {
-    padding: 16px 20px;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  nav {
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  nav a:first-child:not(.github-link) {
-    display: none;
-  }
-  nav a:not(.github-link) {
-    font-size: 14px;
-  }
-  .github-link {
-    padding: 6px 12px;
-    font-size: 14px;
-  }
-  .github-link span {
-    display: none;
-  }
   .content {
     padding: 24px 16px;
     max-width: 100%;
@@ -329,15 +307,6 @@ h3[id] {
 }
 
 @media (max-width: 480px) {
-  header {
-    padding: 12px 16px;
-  }
-  nav {
-    gap: 12px;
-  }
-  .logo-header span {
-    font-size: 20px;
-  }
   .content {
     padding: 20px 12px;
   }

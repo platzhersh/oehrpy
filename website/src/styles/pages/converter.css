@@ -508,16 +508,6 @@ footer .sep { color: var(--border); }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  header {
-    padding: 16px 20px;
-  }
-  header nav {
-    gap: 16px;
-  }
-  .github-link {
-    padding: 6px 12px;
-    font-size: 14px;
-  }
   .converter-container {
     flex-direction: column;
   }
@@ -540,15 +530,6 @@ footer .sep { color: var(--border); }
 }
 
 @media (max-width: 480px) {
-  header {
-    padding: 12px 16px;
-  }
-  header nav {
-    gap: 12px;
-  }
-  .logo-header span {
-    font-size: 20px;
-  }
   footer {
     padding: 16px;
     font-size: 12px;

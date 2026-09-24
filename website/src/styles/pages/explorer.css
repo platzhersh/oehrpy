@@ -192,7 +192,6 @@ footer a:hover { text-decoration: underline; }
 .toast.warn { border-color: var(--yellow); }
 
 @media (max-width: 768px) {
-  header { padding: 12px 16px; }
   .action-bar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 8px 16px; gap: 8px 16px; }
   .main-content { flex-direction: column; }
   .detail-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 300px; }
