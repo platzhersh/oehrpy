@@ -357,7 +357,11 @@ class TestRoundTripWorkflows:
         )
 
         flat_data = retrieved.composition
-        time_keys = [k for k in flat_data if k.endswith("/time") and "blood_pressure" in k]
+        time_keys = [
+            k
+            for k in flat_data
+            if k.endswith(("/time", "/history_origin")) and "blood_pressure" in k
+        ]
 
         assert len(time_keys) > 0
         # Check that the timestamp is preserved (allowing for formatting differences)
