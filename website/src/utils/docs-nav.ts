@@ -65,6 +65,17 @@ export const DOCS_PAGES: DocsPage[] = [
     ],
   },
   {
+    path: "docs/supported-cdrs.html",
+    label: "Supported CDRs",
+    group: "API Reference",
+    sections: [
+      { id: "cdr-matrix", label: "CDR Matrix" },
+      { id: "choosing-a-client", label: "Choosing a Client" },
+      { id: "authentication", label: "Authentication" },
+      { id: "deviations", label: "Handled Deviations" },
+    ],
+  },
+  {
     path: "docs/aql.html",
     label: "AQL Query Builder",
     group: "API Reference",

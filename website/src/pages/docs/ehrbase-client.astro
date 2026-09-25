@@ -7,7 +7,7 @@ import DocsLayout from "../../layouts/DocsLayout.astro";
   path="docs/ehrbase-client.html"
   heading={'EHRBase Client'}
 >
-  <p class="lead"><code>EHRBaseClient</code> is an async Python client (built on httpx) for the <a href="https://ehrbase.org/" target="_blank" rel="noopener noreferrer">EHRBase</a> clinical data repository. It wraps the openEHR REST API: create and look up EHRs, create, read, update and delete compositions in FLAT or canonical format, upload templates and fetch Web Templates, and run AQL queries.</p>
+  <p class="lead"><code>EHRBaseClient</code> is an async Python client (built on httpx) for the <a href="https://ehrbase.org/" target="_blank" rel="noopener noreferrer">EHRBase</a> clinical data repository. It wraps the openEHR REST API: create and look up EHRs, create, read, update and delete compositions in FLAT or canonical format, upload templates and fetch Web Templates, and run AQL queries. The same API works against FerroEHR and other ITS-REST servers; see <a href="/docs/supported-cdrs.html">Supported CDRs</a>.</p>
 
   <h2 id="basic-operations">Basic Operations</h2>
   <pre><code><span class="keyword">from</span> oehrpy.client <span class="keyword">import</span> EHRBaseClient

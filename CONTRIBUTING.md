@@ -144,11 +144,23 @@ pytest tests/ -m integration -v
 docker-compose down -v
 ```
 
+To run the same suite against FerroEHR (served on port 8081):
+
+```bash
+docker compose --profile ferroehr up -d --wait ferroehr
+OEHRPY_CDR=ferroehr pytest tests/ -m integration -v -rxX
+docker compose --profile ferroehr down -v
+```
+
+Tests that hit a known FerroEHR server bug are marked
+`@pytest.mark.ferroehr_xfail(reason=...)` and are reported as expected
+failures only in the FerroEHR run.
+
 #### Writing Integration Tests
 
 - Use the `@pytest.mark.integration` marker
 - Place tests in `tests/integration/`
-- Use fixtures from `tests/integration/conftest.py` for EHRBase client and test data
+- Use fixtures from `tests/integration/conftest.py` for the CDR client (`ehrbase_client`/`cdr_client`, whichever CDR `OEHRPY_CDR` selects) and test data
 
 ## Submitting Changes
 

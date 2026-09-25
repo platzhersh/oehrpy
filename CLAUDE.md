@@ -88,12 +88,14 @@ python examples/generate_builder_from_opt.py path/to/template.opt
 - **Pre-built Builders** (`builders.py`): Template-specific builders (e.g., VitalSignsBuilder) with FLAT paths sourced from Web Template JSON.
 - Key workflow: OPT XML → Parser → Template Metadata; Web Template JSON → FLAT Path Derivation → Builder
 
-**4. EHRBase Client** (`src/oehrpy/client/ehrbase.py`)
-- Async REST client for EHRBase CDR operations
-- Uses httpx for async HTTP
-- Supports EHR creation, composition CRUD, and AQL queries
-- Handles multiple composition formats (CANONICAL, FLAT, STRUCTURED)
-- `get_web_template()` fetches Web Template JSON with in-memory caching (ADR-0005)
+**4. CDR Clients** (`src/oehrpy/client/`, see ADR-0011)
+- `openehr.py`: vendor-neutral `OpenEHRClient`/`OpenEHRConfig` implementing ITS-REST 1.1.0 (EHR, EHR_STATUS, COMPOSITION, CONTRIBUTION, DIRECTORY, templates, AQL, stored queries), errors (`OpenEHRError`, `EHRBaseError` alias, `AuthorizationError` for 403) and response dataclasses
+- `ehrbase.py`: `EHRBaseClient` adapter (`format` query param, unquoted `If-Match`, admin API at `/rest/admin`); re-exports all historical names
+- `ferroehr.py`: `FerroEHRClient` adapter (unauthenticated JSON `/rest/status`, `EHR_STATUS.archetype_details`, `version=*` template listing, admin API at `/rest/openehr/v1/admin`)
+- `auth.py`: pluggable auth (`BasicAuth`, `BearerAuth` with static token or token provider) via `auth_method`/`admin_auth_method`
+- `factory.py`: `create_client(server_type=...)`, `detect_server_type()`
+- Vendor differences go into hooks/class attributes on the adapter, not `if server_type` branches in the base client
+- Uses httpx for async HTTP; `get_web_template()` caches Web Template JSON in memory (ADR-0005)
 
 **5. AQL Query Builder** (`src/oehrpy/aql/builder.py`)
 - Fluent API for building type-safe AQL queries
@@ -203,6 +205,8 @@ docker-compose down -v
   - On PRs labeled with `integration`
   - Uses GitHub Actions service containers for EHRBase + PostgreSQL
 - Unit tests always run (fast feedback on every PR)
+
+**Choosing the CDR:** `OEHRPY_CDR=ehrbase` (default) or `OEHRPY_CDR=ferroehr`. FerroEHR runs via `docker compose --profile ferroehr up -d --wait ferroehr` on port 8081 (users `ferroehr`/`ferroehr-admin`/`ferroehr-readonly`, password `ferroehr`, dev HS256 OIDC issuer for bearer tests). CI runs a non-blocking FerroEHR job. Mark tests hitting known FerroEHR bugs with `@pytest.mark.ferroehr_xfail(reason=...)`.
 
 **Test Configuration:**
 - Tests use `@pytest.mark.integration` marker

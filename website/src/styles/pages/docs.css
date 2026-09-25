@@ -333,6 +333,30 @@ h3[id] {
 .function { color: #60a5fa; }
 .comment { color: #6b7280; }
 
+/* Tables in docs content (e.g. Supported CDRs) */
+.content table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 24px;
+  font-size: 14px;
+}
+.content th,
+.content td {
+  text-align: left;
+  vertical-align: top;
+  padding: 10px 14px;
+  border-bottom: 1px solid #2d2d4d;
+}
+.content th {
+  color: #f3f4f6;
+  font-weight: 600;
+}
+.content td {
+  color: #d1d5db;
+}
+
 /* Multi-page docs navigation (DocsLayout.astro) */
 .sidebar-link.current {
   color: #f3f4f6;

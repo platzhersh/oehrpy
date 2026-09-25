@@ -5,7 +5,7 @@ This package provides:
 - Type-safe Pydantic models for all openEHR Reference Model 1.1.0 types
 - Template-specific composition builders (e.g., Vital Signs)
 - Serialization support for canonical JSON and FLAT formats
-- Async REST client for EHRBase CDR
+- Async REST clients for openEHR CDRs (EHRBase, FerroEHR, generic ITS-REST)
 - AQL query builder
 
 Quick Start:

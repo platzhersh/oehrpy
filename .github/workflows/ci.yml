@@ -184,6 +184,7 @@ jobs:
       - name: Run integration tests
         run: pytest tests/ -m integration -v --tb=short
         env:
+          OEHRPY_CDR: ehrbase
           EHRBASE_URL: http://localhost:8080/ehrbase
           EHRBASE_USER: ehrbase-user
           EHRBASE_PASSWORD: SuperSecretPassword
@@ -193,3 +194,39 @@ jobs:
       - name: Show EHRBase logs on failure
         if: failure()
         run: docker logs ehrbase
+
+  integration-test-ferroehr:
+    name: Integration Tests (FerroEHR)
+    runs-on: ubuntu-latest
+    # Non-blocking while FerroEHR support matures (OEH-83)
+    continue-on-error: true
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/develop' ||
+      contains(github.event.pull_request.labels.*.name, 'integration')
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Start FerroEHR
+        run: docker compose --profile ferroehr up -d --wait ferroehr
+
+      - name: Run integration tests
+        run: pytest tests/ -m integration -v --tb=short -rxX
+        env:
+          OEHRPY_CDR: ferroehr
+          FERROEHR_URL: http://localhost:8081/ferroehr
+
+      - name: Show FerroEHR logs on failure
+        if: failure()
+        run: docker compose --profile ferroehr logs ferroehr

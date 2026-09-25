@@ -63,6 +63,7 @@ class TestCompositionOperations:
         assert composition.uid is not None
         assert "::" in composition.uid  # Versioned UID format
 
+    @pytest.mark.ferroehr_xfail(reason="OEH-50: FerroEHR FLAT GET drops nested HISTORY content")
     async def test_get_composition(
         self,
         ehrbase_client: EHRBaseClient,

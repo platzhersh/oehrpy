@@ -1,3 +1,11 @@
+# Local CDRs for integration tests.
+#
+#   docker compose up -d                                # EHRBase on :8080 (default)
+#   docker compose --profile ferroehr up -d ferroehr    # FerroEHR on :8081
+#   docker compose --profile ferroehr up -d             # both
+#
+# FerroEHR is BSL 1.1 licensed; running it locally/in CI for testing is
+# non-commercial use. oehrpy only talks to it over REST.
 version: '3.8'
 
 services:
@@ -40,6 +48,71 @@ services:
       interval: 10s
       timeout: 5s
       retries: 15
+
+  ferroehr-postgres:
+    profiles: [ferroehr]
+    image: ghcr.io/rubentalstra/ferroehr-postgres:4.3.1
+    environment:
+      POSTGRES_PASSWORD: postgres
+      PG_INIT_USER: ferroehr
+      PG_INIT_PASSWORD: ferroehr
+      PG_INIT_DB: ferroehr
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ferroehr -d ferroehr"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  ferroehr:
+    profiles: [ferroehr]
+    image: ghcr.io/rubentalstra/ferroehr:4.3.1
+    environment:
+      FERROEHR__DB__URL: postgres://ferroehr:ferroehr@ferroehr-postgres:5432/ferroehr
+      FERROEHR__LOG__FORMAT: pretty
+    configs:
+      - source: ferroehr-config
+        target: /etc/ferroehr/ferroehr.toml
+    ports:
+      - "8081:8080"
+    depends_on:
+      ferroehr-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/ferroehr", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+configs:
+  # Test posture: RBAC on, admin API mounted, three Basic users (all with
+  # password "ferroehr") and a dev-only HS256 OIDC issuer for bearer tests.
+  ferroehr-config:
+    content: |
+      [server]
+      bind = "0.0.0.0:8080"
+      [admin]
+      enabled = true
+      [auth]
+      enabled = true
+      [[auth.basic.users]]
+      username = "ferroehr"
+      password_hash = "$$argon2id$$v=19$$m=19456,t=2,p=1$$ZmVycm9laHJEZXZTYWx0$$be5nPwWjfUl1qvSrvkvqvdMOuCgM0VFcN/VN4MFLjT8"
+      roles = ["USER"]
+      [[auth.basic.users]]
+      username = "ferroehr-admin"
+      password_hash = "$$argon2id$$v=19$$m=19456,t=2,p=1$$ZmVycm9laHJEZXZTYWx0$$be5nPwWjfUl1qvSrvkvqvdMOuCgM0VFcN/VN4MFLjT8"
+      roles = ["ADMIN", "USER"]
+      [[auth.basic.users]]
+      username = "ferroehr-readonly"
+      password_hash = "$$argon2id$$v=19$$m=19456,t=2,p=1$$ZmVycm9laHJEZXZTYWx0$$be5nPwWjfUl1qvSrvkvqvdMOuCgM0VFcN/VN4MFLjT8"
+      roles = ["READONLY"]
+      [auth.oidc]
+      issuer = "http://oehrpy.test"
+      allow_insecure_issuer = true
+      audiences = ["ferroehr"]
+      algorithms = ["HS256"]
+      hmac_secret = "oehrpy-dev-hmac-secret-not-for-production"
 
 volumes:
   postgres_data:
