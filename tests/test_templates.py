@@ -132,7 +132,8 @@ class TestVitalSignsBuilder:
         result = builder.build()
 
         bp_prefix = "vital_signs_observations/vital_signs/blood_pressure"
-        assert result[f"{bp_prefix}/time"] == time_str
+        assert result[f"{bp_prefix}/history_origin"] == time_str
+        assert f"{bp_prefix}/time" not in result
 
 
 class TestOPTParser:

@@ -41,7 +41,7 @@ EHRBase 2.26.0 uses a **completely different FLAT format** than documented in th
   "vital_signs_observations/vital_signs/blood_pressure/systolic|unit": "mm[Hg]",
   "vital_signs_observations/vital_signs/blood_pressure/diastolic|magnitude": 80.0,
   "vital_signs_observations/vital_signs/blood_pressure/diastolic|unit": "mm[Hg]",
-  "vital_signs_observations/vital_signs/blood_pressure/time": "2026-01-09T12:00:00Z",
+  "vital_signs_observations/vital_signs/blood_pressure/history_origin": "2026-01-09T12:00:00Z",
   "vital_signs_observations/vital_signs/blood_pressure/language|code": "en",
   "vital_signs_observations/vital_signs/blood_pressure/language|terminology": "ISO_639-1",
   "vital_signs_observations/vital_signs/blood_pressure/encoding|terminology": "IANA_character-sets",
@@ -110,9 +110,15 @@ EHRBase 2.26.0 uses a **completely different FLAT format** than documented in th
   "{composition_id}/{section}/{observation}/language|terminology": "ISO_639-1",
   "{composition_id}/{section}/{observation}/encoding|code": "UTF-8",
   "{composition_id}/{section}/{observation}/encoding|terminology": "IANA_character-sets",
-  "{composition_id}/{section}/{observation}/time": "2026-01-09T12:00:00Z"
+  "{composition_id}/{section}/{observation}/history_origin": "2026-01-09T12:00:00Z"
 }
 ```
+
+When the template has a single event, the Web Template collapses it into the
+observation and the event gets no path of its own. `history_origin` (ITS-REST
+simplified formats, OBSERVATION mapping) sets `HISTORY.origin` and the event
+time on both EHRBase and FerroEHR. EHRBase also accepts `{observation}/time`,
+but FerroEHR rejects it as an unknown path.
 
 ### 3. Data Type Attributes
 
