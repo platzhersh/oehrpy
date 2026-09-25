@@ -1,0 +1,73 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+---
+<DocsLayout
+  title={'Supported openEHR CDRs: EHRBase, FerroEHR & ITS-REST | oehrpy'}
+  description={'Use oehrpy with EHRBase, FerroEHR or any openEHR ITS-REST 1.1.0 server: vendor adapters, Basic and OIDC bearer authentication, admin APIs and known deviations.'}
+  path="docs/supported-cdrs.html"
+  heading={'Supported CDRs'}
+>
+  <p class="lead">oehrpy's REST client is split into a vendor-neutral <code>OpenEHRClient</code>, which implements the openEHR ITS-REST 1.1.0 API as specified, and thin adapters that handle where a CDR deviates from it. All clients share the same methods, so switching CDR is a configuration change.</p>
+
+  <h2 id="cdr-matrix">CDR Matrix</h2>
+  <table>
+    <thead>
+      <tr><th>CDR</th><th>Status</th><th>Client</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><a href="https://ehrbase.org/" target="_blank" rel="noopener noreferrer">EHRBase</a> 2.26+</td><td>Supported (default)</td><td><code>EHRBaseClient</code></td><td>Admin API at <code>/rest/admin</code></td></tr>
+      <tr><td><a href="https://github.com/rubentalstra/FerroEHR" target="_blank" rel="noopener noreferrer">FerroEHR</a> 4.3+</td><td>Supported</td><td><code>FerroEHRClient</code></td><td>Admin API at <code>/rest/openehr/v1/admin</code> (<code>ADMIN</code> role). Known server issue: FLAT <code>GET</code> drops nested HISTORY content.</td></tr>
+      <tr><td>Other ITS-REST 1.1.0 servers</td><td>Generic</td><td><code>OpenEHRClient</code></td><td>No vendor admin API</td></tr>
+      <tr><td>Better Platform, EHRServer</td><td>Planned</td><td>&mdash;</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="choosing-a-client">Choosing a Client</h2>
+  <pre><code><span class="keyword">from</span> oehrpy.client <span class="keyword">import</span> create_client, detect_server_type
+
+<span class="comment"># From configuration: "ehrbase", "ferroehr" or "generic"</span>
+client = create_client(
+    <span class="string">"ferroehr"</span>,
+    base_url=<span class="string">"http://localhost:8080/ferroehr"</span>,
+    username=<span class="string">"ferroehr"</span>,
+    password=<span class="string">"ferroehr"</span>,
+)
+
+<span class="comment"># Or probe GET &#123;base&#125;/rest/status</span>
+info = <span class="keyword">await</span> detect_server_type(<span class="string">"http://localhost:8080/ferroehr"</span>)
+client = create_client(info.server_type, base_url=<span class="string">"http://localhost:8080/ferroehr"</span>)
+
+<span class="keyword">async with</span> client:
+    ehr = <span class="keyword">await</span> client.create_ehr()</code></pre>
+
+  <h2 id="authentication">Authentication</h2>
+  <p>Pass <code>username</code>/<code>password</code> for HTTP Basic, or any auth method as <code>auth_method</code>: <code>BasicAuth</code>, <code>BearerAuth</code> (a static token, or a sync or async token provider that is called for every request) or any <code>httpx.Auth</code>. Admin operations use <code>admin_username</code>/<code>admin_password</code> or <code>admin_auth_method</code>, and fall back to the regular credentials.</p>
+  <pre><code><span class="keyword">from</span> oehrpy.client <span class="keyword">import</span> BearerAuth, FerroEHRClient
+
+<span class="keyword">async def</span> get_access_token() -&gt; str:
+    <span class="comment"># Return a valid OIDC access token; cache and refresh it yourself</span>
+    ...
+
+<span class="keyword">async with</span> FerroEHRClient(
+    base_url=<span class="string">"https://cdr.example.org/ferroehr"</span>,
+    auth_method=BearerAuth(token_provider=get_access_token),
+) <span class="keyword">as</span> client:
+    info = <span class="keyword">await</span> client.get_server_info()</code></pre>
+  <p>A <code>403</code> (e.g. a <code>READONLY</code> user writing, or a non-admin calling the admin API) raises <code>AuthorizationError</code>. All client errors derive from <code>OpenEHRError</code>; <code>EHRBaseError</code> remains as an alias.</p>
+
+  <h2 id="deviations">Handled Deviations</h2>
+  <table>
+    <thead>
+      <tr><th>Concern</th><th>EHRBase</th><th>FerroEHR</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Server status</td><td>Authenticated, <code>ehrbase_version</code></td><td>Unauthenticated JSON</td></tr>
+      <tr><td>Composition format</td><td><code>format</code> query parameter</td><td><code>Content-Type</code> / <code>Accept</code> media type</td></tr>
+      <tr><td>FLAT commit</td><td><code>templateId</code> query parameter</td><td><code>openehr-template-id</code> header</td></tr>
+      <tr><td>EHR creation</td><td>Default EHR_STATUS</td><td>EHR_STATUS with <code>archetype_details</code></td></tr>
+      <tr><td>Template list</td><td>All versions</td><td>All versions via <code>version=*</code></td></tr>
+      <tr><td>Composition update</td><td>Returns the composition</td><td>May return 204; UID from <code>ETag</code></td></tr>
+      <tr><td>Admin API</td><td><code>/rest/admin/&#123;ehr,template,query&#125;</code></td><td><code>/rest/openehr/v1/admin/&#123;ehr,template,query&#125;</code></td></tr>
+    </tbody>
+  </table>
+</DocsLayout>

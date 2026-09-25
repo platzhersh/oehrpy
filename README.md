@@ -14,7 +14,7 @@
 
 > **Pronunciation:** /oʊ.ɛər.paɪ/ ("o-air-pie") — short for "openehrpy", where "ehr" is pronounced like "air" (as in openEHR).
 
-A comprehensive Python SDK for openEHR that provides type-safe Reference Model classes, template-specific composition builders, EHRBase client, and AQL query builder.
+A comprehensive Python SDK for openEHR that provides type-safe Reference Model classes, template-specific composition builders, REST clients for EHRBase and FerroEHR, and AQL query builder.
 
 ## Overview
 
@@ -41,6 +41,7 @@ pip install -e .
 - **Python:** 3.10+
 - **openEHR RM:** 1.1.0
 - **EHRBase:** 2.26.0+ (uses new FLAT format with composition tree IDs)
+- **FerroEHR:** 4.3+ (see [Supported CDRs](#supported-cdrs))
 
 > **Note:** EHRBase 2.0+ introduced breaking changes to the FLAT format. This SDK implements the **new format** used by EHRBase 2.26.0. For details, see [FLAT Format Versions](docs/FLAT_FORMAT_VERSIONS.md).
 
@@ -51,7 +52,7 @@ pip install -e .
 - **OPT Parser & Generator**: Parse OPT files and auto-generate type-safe builder classes
 - **FLAT Format**: Full support for EHRBase 2.26.0+ FLAT format serialization
 - **Canonical JSON**: Convert RM objects to/from openEHR canonical JSON format
-- **EHRBase Client**: Async REST client for EHRBase CDR operations
+- **CDR Clients**: Async ITS-REST client with adapters for EHRBase and FerroEHR, Basic and OIDC bearer auth
 - **Contributions & Audit**: Commit multiple changes atomically with audit metadata via a fluent builder
 - **AQL Builder**: Fluent API for building type-safe AQL queries
 - **OPT Validator**: Validate OPT 1.4 XML files before CDR upload (well-formedness, semantics, FLAT path impact)
@@ -261,6 +262,50 @@ async with EHRBaseClient(
     )
 ```
 
+### Supported CDRs
+
+| CDR | Status | Client | Notes |
+|---|---|---|---|
+| [EHRBase](https://ehrbase.org/) 2.26+ | ✅ Supported (default) | `EHRBaseClient` | Admin API at `/rest/admin` |
+| [FerroEHR](https://github.com/rubentalstra/FerroEHR) 4.3+ | ✅ Supported | `FerroEHRClient` | Admin API at `/rest/openehr/v1/admin` (`ADMIN` role); known server issue: FLAT `GET` drops nested HISTORY content ([OEH-50](https://linear.app/platzh1rsch/issue/OEH-50)) |
+| Other ITS-REST 1.1.0 servers | ⚙️ Generic | `OpenEHRClient` | No vendor admin API |
+| Better Platform, EHRServer | 🗓️ Planned | — | |
+
+Where the CDRs deviate (FLAT media type, template header, status endpoint,
+`EHR_STATUS.archetype_details`, template versions, admin paths), the adapters
+handle it for you; see [ADR-0011](docs/adr/0011-vendor-adapters-for-openehr-cdrs.md).
+
+```python
+from oehrpy.client import BearerAuth, FerroEHRClient, create_client
+
+# FerroEHR with Basic auth (separate admin user for the admin API)
+async with FerroEHRClient(
+    base_url="http://localhost:8080/ferroehr",
+    username="ferroehr",
+    password="ferroehr",
+    admin_username="ferroehr-admin",
+    admin_password="ferroehr",
+) as client:
+    info = await client.get_server_info()  # unauthenticated, works with bad creds
+    ehr = await client.create_ehr()
+    await client.delete_ehr(ehr.ehr_id)     # admin API
+
+# FerroEHR with an OIDC access token; the provider is called per request,
+# so cache the token and refresh it when it is about to expire
+async with FerroEHRClient(
+    base_url="https://cdr.example.org/ferroehr",
+    auth_method=BearerAuth(token_provider=get_access_token),
+) as client:
+    ...
+
+# Pick the CDR from configuration ("ehrbase", "ferroehr" or "generic")
+client = create_client(os.environ["CDR_TYPE"], base_url=os.environ["CDR_URL"],
+                       username=os.environ["CDR_USER"], password=os.environ["CDR_PASSWORD"])
+```
+
+`EHRBaseError` remains importable as an alias of the new base exception
+`OpenEHRError`; a 403 (e.g. a `READONLY` user writing) raises `AuthorizationError`.
+
 ### Contributions & Audit
 
 Group one or more versioned-object changes into a single atomic changeset with
@@ -398,7 +443,7 @@ oehrpy/
 ├── src/oehrpy/       # Main package
 │   ├── rm/                # Generated RM + BASE classes (134 types)
 │   ├── serialization/     # JSON serialization (canonical + FLAT)
-│   ├── client/            # EHRBase REST client
+│   ├── client/            # openEHR REST clients (generic, EHRBase, FerroEHR)
 │   ├── templates/         # Template builders (Vital Signs, etc.)
 │   ├── validation/        # FLAT composition & OPT template validation
 │   │   └── opt/           # OPT 1.4 XML validator (4 check categories)

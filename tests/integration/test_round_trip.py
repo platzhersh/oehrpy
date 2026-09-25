@@ -112,6 +112,7 @@ class TestRoundTripWorkflows:
         composition_uids = [r["uid"].split("::")[0] for r in results_dict if r.get("uid")]
         assert composition.uid.split("::")[0] in composition_uids
 
+    @pytest.mark.ferroehr_xfail(reason="OEH-50: FerroEHR FLAT GET drops nested HISTORY content")
     async def test_update_retrieve_workflow(
         self,
         ehrbase_client: EHRBaseClient,

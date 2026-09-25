@@ -1,11 +1,51 @@
-"""Pytest fixtures for integration tests."""
+"""Pytest fixtures for integration tests.
+
+The suite runs against one CDR at a time, selected with ``OEHRPY_CDR``:
+
+- ``ehrbase`` (default): ``EHRBASE_URL``, ``EHRBASE_USER``, ``EHRBASE_PASSWORD``,
+  ``EHRBASE_ADMIN_USER``, ``EHRBASE_ADMIN_PASSWORD``
+- ``ferroehr``: ``FERROEHR_URL``, ``FERROEHR_USER``, ``FERROEHR_PASSWORD``,
+  ``FERROEHR_ADMIN_USER``, ``FERROEHR_ADMIN_PASSWORD``,
+  ``FERROEHR_READONLY_USER``, ``FERROEHR_HMAC_SECRET`` (defaults match the
+  ``ferroehr`` profile in ``docker-compose.yml``)
+
+Tests hitting a known FerroEHR server bug are marked
+``@pytest.mark.ferroehr_xfail(reason=...)`` and become non-strict xfails when
+running against FerroEHR.
+"""
 
 import os
+from collections.abc import AsyncIterator
 from pathlib import Path
 
 import pytest
 
-from oehrpy.client import EHRBaseClient, EHRBaseError, ValidationError
+from oehrpy.client import (
+    EHRBaseError,
+    OpenEHRClient,
+    ServerType,
+    ValidationError,
+    create_client,
+)
+
+CDR = ServerType(os.getenv("OEHRPY_CDR", ServerType.EHRBASE.value))
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Turn ``ferroehr_xfail`` markers into xfails when testing FerroEHR."""
+    for item in items:
+        marker = item.get_closest_marker("ferroehr_xfail")
+        if marker is None:
+            continue
+        if CDR is ServerType.FERROEHR:
+            reason = marker.kwargs.get("reason", "known FerroEHR server issue")
+            item.add_marker(pytest.mark.xfail(reason=reason, strict=False))
+
+
+@pytest.fixture
+def cdr_server_type() -> ServerType:
+    """The CDR vendor under test."""
+    return CDR
 
 
 @pytest.fixture
@@ -39,34 +79,72 @@ def ehrbase_admin_password() -> str:
 
 
 @pytest.fixture
+def ferroehr_settings() -> dict[str, str]:
+    """FerroEHR connection settings from environment or docker-compose defaults."""
+    return {
+        "url": os.getenv("FERROEHR_URL", "http://localhost:8081/ferroehr"),
+        "user": os.getenv("FERROEHR_USER", "ferroehr"),
+        "password": os.getenv("FERROEHR_PASSWORD", "ferroehr"),
+        "admin_user": os.getenv("FERROEHR_ADMIN_USER", "ferroehr-admin"),
+        "admin_password": os.getenv("FERROEHR_ADMIN_PASSWORD", "ferroehr"),
+        "readonly_user": os.getenv("FERROEHR_READONLY_USER", "ferroehr-readonly"),
+        "hmac_secret": os.getenv(
+            "FERROEHR_HMAC_SECRET", "oehrpy-dev-hmac-secret-not-for-production"
+        ),
+        "issuer": os.getenv("FERROEHR_OIDC_ISSUER", "http://oehrpy.test"),
+        "audience": os.getenv("FERROEHR_OIDC_AUDIENCE", "ferroehr"),
+    }
+
+
+@pytest.fixture
 async def ehrbase_client(
     ehrbase_url: str,
     ehrbase_user: str,
     ehrbase_password: str,
     ehrbase_admin_user: str,
     ehrbase_admin_password: str,
-) -> EHRBaseClient:
-    """Provide authenticated EHRBase client.
+    ferroehr_settings: dict[str, str],
+) -> AsyncIterator[OpenEHRClient]:
+    """Provide an authenticated client for the CDR under test.
 
-    This fixture creates a connected client and ensures proper cleanup.
+    Named ``ehrbase_client`` for historical reasons; with ``OEHRPY_CDR=ferroehr``
+    it is a :class:`~oehrpy.client.FerroEHRClient`.
     """
-    async with EHRBaseClient(
-        base_url=ehrbase_url,
-        username=ehrbase_user,
-        password=ehrbase_password,
-        admin_username=ehrbase_admin_user,
-        admin_password=ehrbase_admin_password,
-    ) as client:
+    if CDR is ServerType.FERROEHR:
+        client = create_client(
+            CDR,
+            base_url=ferroehr_settings["url"],
+            username=ferroehr_settings["user"],
+            password=ferroehr_settings["password"],
+            admin_username=ferroehr_settings["admin_user"],
+            admin_password=ferroehr_settings["admin_password"],
+        )
+    else:
+        client = create_client(
+            CDR,
+            base_url=ehrbase_url,
+            username=ehrbase_user,
+            password=ehrbase_password,
+            admin_username=ehrbase_admin_user,
+            admin_password=ehrbase_admin_password,
+        )
+    async with client:
         # Verify connection before running tests
         healthy = await client.health_check()
         if not healthy:
-            pytest.skip("EHRBase is not healthy or not running")
+            pytest.skip(f"{CDR.value} is not healthy or not running")
 
         yield client
 
 
 @pytest.fixture
-async def test_ehr(ehrbase_client: EHRBaseClient) -> str:
+async def cdr_client(ehrbase_client: OpenEHRClient) -> OpenEHRClient:
+    """Vendor-neutral alias of :func:`ehrbase_client`."""
+    return ehrbase_client
+
+
+@pytest.fixture
+async def test_ehr(ehrbase_client: OpenEHRClient) -> str:
     """Create a test EHR and return its ID.
 
     This fixture creates a fresh EHR for each test that needs one.
@@ -89,7 +167,7 @@ def vital_signs_opt_path() -> Path:
 
 @pytest.fixture
 async def vital_signs_template(
-    ehrbase_client: EHRBaseClient,
+    ehrbase_client: OpenEHRClient,
     vital_signs_opt_path: Path,
 ) -> str:
     """Upload Vital Signs template and return template ID.

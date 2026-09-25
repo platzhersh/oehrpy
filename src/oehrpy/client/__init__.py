@@ -1,36 +1,60 @@
 """
-REST client for EHRBase and openEHR CDR servers.
+REST clients for openEHR CDR servers.
 
-This module provides async HTTP clients for interacting with
-openEHR Clinical Data Repositories.
+- :class:`OpenEHRClient` — vendor-neutral ITS-REST 1.1.0 client
+- :class:`EHRBaseClient` — EHRBase adapter (the default)
+- :class:`FerroEHRClient` — FerroEHR adapter
+- :func:`create_client` — pick an adapter by ``server_type``
 """
 
+from .auth import AuthMethod, BasicAuth, BearerAuth
 from .contribution import ContributionBuilder
-from .ehrbase import (
+from .ehrbase import CDRType, EHRBaseClient, EHRBaseConfig
+from .factory import create_client, detect_server_type
+from .ferroehr import FerroEHRClient, FerroEHRConfig
+from .openehr import (
     AuthenticationError,
-    CDRType,
+    AuthorizationError,
     CompositionFormat,
     CompositionResponse,
     CompositionVersionResponse,
     ContributionResponse,
-    EHRBaseClient,
-    EHRBaseConfig,
     EHRBaseError,
     EHRResponse,
     ExampleDetailLevel,
     ExampleType,
     NotFoundError,
+    OpenEHRClient,
+    OpenEHRConfig,
+    OpenEHRError,
     PreconditionFailedError,
     QueryResponse,
+    ServerInfo,
+    ServerType,
+    StoredQueryResponse,
     TemplateResponse,
+    UnsupportedOperationError,
     ValidationError,
     VersionedCompositionResponse,
 )
 
 __all__ = [
-    "CDRType",
+    # Clients & configuration
+    "OpenEHRClient",
+    "OpenEHRConfig",
     "EHRBaseClient",
     "EHRBaseConfig",
+    "FerroEHRClient",
+    "FerroEHRConfig",
+    "CDRType",
+    "ServerType",
+    "create_client",
+    "detect_server_type",
+    # Authentication
+    "AuthMethod",
+    "BasicAuth",
+    "BearerAuth",
+    # Requests & responses
     "EHRResponse",
     "CompositionResponse",
     "CompositionFormat",
@@ -40,11 +64,17 @@ __all__ = [
     "ContributionBuilder",
     "ContributionResponse",
     "QueryResponse",
+    "ServerInfo",
+    "StoredQueryResponse",
     "TemplateResponse",
     "VersionedCompositionResponse",
+    # Errors
+    "OpenEHRError",
     "EHRBaseError",
     "AuthenticationError",
+    "AuthorizationError",
     "NotFoundError",
     "PreconditionFailedError",
+    "UnsupportedOperationError",
     "ValidationError",
 ]
