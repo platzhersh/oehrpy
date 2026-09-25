@@ -577,6 +577,15 @@ class TestTransportSecurity:
             await client.connect()
 
     @pytest.mark.asyncio()
+    @pytest.mark.parametrize("header", ["Authorization", "authorization"])
+    async def test_authorization_header_over_remote_http_is_refused(self, header: str) -> None:
+        client = OpenEHRClient(
+            base_url="http://cdr.example.org/openehr", headers={header: "Bearer t"}
+        )
+        with pytest.raises(ValueError, match="plain HTTP"):
+            await client.connect()
+
+    @pytest.mark.asyncio()
     async def test_basic_credentials_over_remote_http_warn(self) -> None:
         client = EHRBaseClient(base_url="http://ehrbase:8080/ehrbase", username="u", password="p")
         with pytest.warns(InsecureTransportWarning):
@@ -596,6 +605,11 @@ class TestTransportSecurity:
                 "http://cdr.example.org/ferroehr",
                 {"auth_method": BearerAuth("t"), "allow_insecure_http": True},
             ),
+            (
+                "http://cdr.example.org/ferroehr",
+                {"headers": {"Authorization": "Bearer t"}, "allow_insecure_http": True},
+            ),
+            ("http://cdr.example.org/ferroehr", {"headers": {"X-Trace": "1"}}),
         ],
     )
     async def test_allowed_combinations(self, base_url: str, kwargs: dict[str, Any]) -> None:
