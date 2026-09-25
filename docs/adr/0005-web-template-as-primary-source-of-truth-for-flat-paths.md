@@ -164,6 +164,13 @@ significant heuristic logic. The Web Template tree (`tree.children[]` with `rmTy
 `min`, `max`, `inputs`) is a better structured source. The example endpoint remains
 useful as a developer tool and is documented in `docs/flat-format-learnings.md`.
 
+> **Note (2026-09):** ITS-REST 1.1.0 selects the example format via the `Accept`
+> header (`application/openehr.wt.flat+json`) and adds a `detail_level` parameter
+> defaulting to `required` (mandatory data points only). Spec-conformant CDRs
+> therefore return a much sparser example than EHRBase unless `detail_level=medium`
+> or `complete` is requested. `?format=FLAT` is EHRBase-specific. The SDK wraps this
+> in `EHRBaseClient.get_template_example()`.
+
 ### Alternative C: Use canonical JSON format exclusively, drop FLAT support
 
 Abandon FLAT format and require callers to work only with canonical JSON (structured
