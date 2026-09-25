@@ -198,6 +198,7 @@ class EHRBaseClient(OpenEHRClient):
         if permanent:
             response = await self.client.delete(
                 f"/admin/rest/v1/templates/{template_id}",
+                auth=self._admin_auth(),
             )
         else:
             response = await self.client.delete(

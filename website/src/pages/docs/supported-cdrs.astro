@@ -33,9 +33,15 @@ client = create_client(
     password=<span class="string">"ferroehr"</span>,
 )
 
-<span class="comment"># Or probe GET &#123;base&#125;/rest/status</span>
-info = <span class="keyword">await</span> detect_server_type(<span class="string">"http://localhost:8080/ferroehr"</span>)
-client = create_client(info.server_type, base_url=<span class="string">"http://localhost:8080/ferroehr"</span>)
+<span class="comment"># Or probe GET &#123;base&#125;/rest/status (EHRBase may require credentials there)</span>
+url = <span class="string">"http://localhost:8080/ehrbase"</span>
+info = <span class="keyword">await</span> detect_server_type(url, auth=(<span class="string">"ehrbase-user"</span>, <span class="string">"SuperSecretPassword"</span>))
+client = create_client(
+    info.server_type,
+    base_url=url,
+    username=<span class="string">"ehrbase-user"</span>,
+    password=<span class="string">"SuperSecretPassword"</span>,
+)
 
 <span class="keyword">async with</span> client:
     ehr = <span class="keyword">await</span> client.create_ehr()</code></pre>
@@ -54,6 +60,7 @@ client = create_client(info.server_type, base_url=<span class="string">"http://l
 ) <span class="keyword">as</span> client:
     info = <span class="keyword">await</span> client.get_server_info()</code></pre>
   <p>A <code>403</code> (e.g. a <code>READONLY</code> user writing, or a non-admin calling the admin API) raises <code>AuthorizationError</code>. All client errors derive from <code>OpenEHRError</code>; <code>EHRBaseError</code> remains as an alias.</p>
+  <p>Credentials are only sent over plain <code>http://</code> to <code>localhost</code>. For any other host, <code>auth_method</code> credentials are refused and <code>username</code>/<code>password</code> emit an <code>InsecureTransportWarning</code>; use <code>https://</code>, or pass <code>allow_insecure_http=True</code> for a trusted network.</p>
 
   <h2 id="deviations">Handled Deviations</h2>
   <table>

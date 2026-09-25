@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from collections.abc import Callable
 from typing import Any
 
@@ -13,12 +14,14 @@ from oehrpy.client import (
     AuthorizationError,
     BasicAuth,
     BearerAuth,
+    CDRType,
     CompositionFormat,
     EHRBaseClient,
     EHRBaseConfig,
     EHRBaseError,
     FerroEHRClient,
     FerroEHRConfig,
+    InsecureTransportWarning,
     OpenEHRClient,
     OpenEHRError,
     ServerInfo,
@@ -559,3 +562,58 @@ class TestItsRestResources:
 
         query = await client.get_stored_query("org.example::count", "1.0.0")
         assert query.q == "SELECT 1"
+
+
+# --- transport security ---
+
+
+class TestTransportSecurity:
+    @pytest.mark.asyncio()
+    async def test_bearer_over_remote_http_is_refused(self) -> None:
+        client = FerroEHRClient(
+            base_url="http://cdr.example.org/ferroehr", auth_method=BearerAuth("t")
+        )
+        with pytest.raises(ValueError, match="plain HTTP"):
+            await client.connect()
+
+    @pytest.mark.asyncio()
+    async def test_basic_credentials_over_remote_http_warn(self) -> None:
+        client = EHRBaseClient(base_url="http://ehrbase:8080/ehrbase", username="u", password="p")
+        with pytest.warns(InsecureTransportWarning):
+            await client.connect()
+        await client.close()
+
+    @pytest.mark.asyncio()
+    @pytest.mark.parametrize(
+        ("base_url", "kwargs"),
+        [
+            ("http://localhost:8080/ferroehr", {"auth_method": BearerAuth("t")}),
+            ("http://127.0.0.1:8080/ferroehr", {"auth_method": BearerAuth("t")}),
+            ("http://[::1]:8080/ferroehr", {"auth_method": BearerAuth("t")}),
+            ("https://cdr.example.org/ferroehr", {"auth_method": BearerAuth("t")}),
+            ("http://cdr.example.org/ferroehr", {}),
+            (
+                "http://cdr.example.org/ferroehr",
+                {"auth_method": BearerAuth("t"), "allow_insecure_http": True},
+            ),
+        ],
+    )
+    async def test_allowed_combinations(self, base_url: str, kwargs: dict[str, Any]) -> None:
+        client = FerroEHRClient(base_url=base_url, **kwargs)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            await client.connect()
+        await client.close()
+
+    @pytest.mark.asyncio()
+    async def test_better_permanent_delete_uses_admin_credentials(self) -> None:
+        recorder = Recorder(httpx.Response(204))
+        client = _ehrbase(
+            recorder,
+            cdr_type=CDRType.BETTER,
+            admin_username="better-admin",
+            admin_password="pw",
+        )
+        await client.delete_template("vs.v1", permanent=True)
+        assert recorder.last.url.path.endswith("/admin/rest/v1/templates/vs.v1")
+        assert _basic_user(recorder.last) == "better-admin"

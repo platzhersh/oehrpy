@@ -17,6 +17,7 @@ Example:
 from __future__ import annotations
 
 import json
+import warnings
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, TypeVar
@@ -80,6 +81,8 @@ _EHRBASE_EXAMPLE_MEDIA_TYPES: dict[CompositionFormat, str] = {
     CompositionFormat.STRUCTURED: "application/openehr.wt.structured.schema+json",
 }
 
+_LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
+
 _EHR_STATUS_ARCHETYPE = "openEHR-EHR-EHR_STATUS.generic.v1"
 _OPT_TEMPLATE_ID_PATH = (
     ".//{http://schemas.openehr.org/v1}template_id/{http://schemas.openehr.org/v1}value"
@@ -136,6 +139,10 @@ class PreconditionFailedError(OpenEHRError):
     """Version conflict — the If-Match header did not match (HTTP 412)."""
 
     pass
+
+
+class InsecureTransportWarning(UserWarning):
+    """Credentials are configured for a plain-HTTP, non-loopback CDR URL."""
 
 
 class UnsupportedOperationError(OpenEHRError):
@@ -437,6 +444,9 @@ class OpenEHRConfig:
     auth_method: AuthMethod = None
     admin_auth_method: AuthMethod = None
     headers: dict[str, str] = field(default_factory=dict)
+    #: Allow sending credentials over plain ``http://`` to non-loopback hosts
+    #: (e.g. inside a trusted Docker network). Off by default.
+    allow_insecure_http: bool = False
 
     @property
     def auth(self) -> AuthMethod:
@@ -529,8 +539,31 @@ class OpenEHRClient:
         """Exit async context."""
         await self.close()
 
+    def _check_transport_security(self) -> None:
+        """Refuse to send credentials in cleartext to a non-loopback host.
+
+        ``auth_method``/``admin_auth_method`` credentials (e.g. OIDC tokens)
+        raise ``ValueError``; legacy ``username``/``password`` only warn, to
+        keep existing deployments on internal ``http://`` networks working.
+        Set ``allow_insecure_http=True`` to opt out.
+        """
+        config = self.config
+        if config.allow_insecure_http or (config.auth is None and config.admin_auth is None):
+            return
+        url = httpx.URL(config.base_url)
+        if url.scheme != "http" or url.host in _LOOPBACK_HOSTS:
+            return
+        message = (
+            f"Credentials would be sent over plain HTTP to {url.host}; use https:// "
+            "or set allow_insecure_http=True"
+        )
+        if config.auth_method is not None or config.admin_auth_method is not None:
+            raise ValueError(message)
+        warnings.warn(message, InsecureTransportWarning, stacklevel=3)
+
     async def connect(self) -> None:
         """Create the HTTP client connection."""
+        self._check_transport_security()
         self._client = httpx.AsyncClient(
             base_url=self.config.base_url,
             auth=self.config.auth,
