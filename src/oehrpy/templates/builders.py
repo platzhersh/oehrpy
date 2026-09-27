@@ -233,9 +233,13 @@ class VitalSignsBuilder(TemplateBuilder):
         """
         prefix = self._BP_PREFIX
 
-        # Set time
+        # Measurement time. The template has a single event, which the Web
+        # Template collapses into the observation, so the event has no path of
+        # its own; ``history_origin`` (master05 §OBSERVATION) sets HISTORY.origin
+        # and the event time on EHRBase and FerroEHR alike (``/time`` on the
+        # observation is an EHRBase-only extension).
         time_str = self._format_time(time)
-        self._flat.set(f"{prefix}/time", time_str)
+        self._flat.set(f"{prefix}/history_origin", time_str)
 
         # Set measurements
         self._flat.set_quantity(f"{prefix}/systolic", systolic, "mm[Hg]")
@@ -278,7 +282,7 @@ class VitalSignsBuilder(TemplateBuilder):
         prefix = self._PULSE_PREFIX
 
         time_str = self._format_time(time)
-        self._flat.set(f"{prefix}/time", time_str)
+        self._flat.set(f"{prefix}/history_origin", time_str)
         self._flat.set_quantity(f"{prefix}/heart_rate", rate, "/min")
 
         if regularity:
@@ -309,7 +313,7 @@ class VitalSignsBuilder(TemplateBuilder):
         prefix = self._TEMP_PREFIX
 
         time_str = self._format_time(time)
-        self._flat.set(f"{prefix}/time", time_str)
+        self._flat.set(f"{prefix}/history_origin", time_str)
         self._flat.set_quantity(f"{prefix}/temperature", temperature, unit)
 
         if site:
@@ -336,7 +340,7 @@ class VitalSignsBuilder(TemplateBuilder):
         prefix = self._RESP_PREFIX
 
         time_str = self._format_time(time)
-        self._flat.set(f"{prefix}/time", time_str)
+        self._flat.set(f"{prefix}/history_origin", time_str)
         self._flat.set_quantity(f"{prefix}/rate", rate, "/min")
 
         if regularity:
@@ -363,7 +367,7 @@ class VitalSignsBuilder(TemplateBuilder):
         prefix = self._SPO2_PREFIX
 
         time_str = self._format_time(time)
-        self._flat.set(f"{prefix}/time", time_str)
+        self._flat.set(f"{prefix}/history_origin", time_str)
         # SpO2 is a DV_PROPORTION with fixed denominator of 100
         self._flat.set_proportion(f"{prefix}/spo2", numerator=spo2, denominator=100.0)
 

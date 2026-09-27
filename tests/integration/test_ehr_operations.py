@@ -29,9 +29,13 @@ class TestEHROperations:
         )
 
         assert ehr.ehr_id is not None
-        # Verify subject info in ehr_status
+        # Verify subject info in ehr_status. EHRBase inlines the EHR_STATUS;
+        # canonical EHR (e.g. FerroEHR) carries only an OBJECT_REF to it.
         assert ehr.ehr_status is not None
-        subject = ehr.ehr_status.get("subject")
+        ehr_status = ehr.ehr_status
+        if "subject" not in ehr_status:
+            ehr_status = await ehrbase_client.get_ehr_status(ehr.ehr_id)
+        subject = ehr_status.get("subject")
         assert subject is not None
         external_ref = subject.get("external_ref")
         assert external_ref is not None
