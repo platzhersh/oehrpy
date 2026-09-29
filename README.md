@@ -84,6 +84,37 @@ bp_systolic = DV_QUANTITY(
 print(f"Blood pressure: {bp_systolic.magnitude} {bp_systolic.units}")
 ```
 
+### End-to-End: RM Values → FLAT → CDR
+
+You do **not** need to write your own FLAT serializer or subclass RM types. `FlatBuilder` maps RM values onto FLAT `|attribute` keys (e.g. `DV_QUANTITY` → `|magnitude` + `|unit`, `DV_CODED_TEXT` → `|value` + `|code` + `|terminology`), and the paths themselves come from the CDR's Web Template ([ADR-0005](docs/adr/0005-web-template-as-primary-source-of-truth-for-flat-paths.md)). The same FLAT payload works on EHRBase and FerroEHR, since both implement the openEHR Simplified Formats spec.
+
+```python
+from oehrpy.client import EHRBaseClient
+from oehrpy.rm import DV_QUANTITY
+from oehrpy.serialization import FlatBuilder
+
+BP = "vital_signs_observations/vital_signs/blood_pressure"  # from the Web Template
+
+systolic = DV_QUANTITY(magnitude=120.0, units="mm[Hg]")
+
+builder = FlatBuilder(composition_prefix="vital_signs_observations")
+builder.context(language="en", territory="US", composer_name="Dr. Smith")
+builder.set(f"{BP}/history_origin", "2024-01-15T10:30:00Z")
+builder.set_quantity(f"{BP}/systolic", systolic.magnitude, systolic.units)
+flat = builder.build()
+
+async with EHRBaseClient(base_url=..., username=..., password=...) as client:
+    await client.upload_template(opt_xml)
+    web_template = await client.get_web_template("IDCR - Vital Signs Encounter.v1")  # valid paths
+    ehr = await client.create_ehr()
+    result = await client.create_composition(
+        ehr_id=ehr.ehr_id, composition=flat,
+        template_id="IDCR - Vital Signs Encounter.v1", format="FLAT",
+    )
+```
+
+A complete, runnable version (upload, Web Template, POST, read back) is in [`examples/flat_end_to_end.py`](examples/flat_end_to_end.py).
+
 ### Template Builders
 
 Build compositions using type-safe builders without knowing FLAT paths:
