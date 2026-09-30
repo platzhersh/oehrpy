@@ -269,7 +269,17 @@ async with EHRBaseClient(
 | [EHRBase](https://ehrbase.org/) 2.26+ | ✅ Supported (default) | `EHRBaseClient` | Admin API at `/rest/admin` |
 | [FerroEHR](https://github.com/rubentalstra/FerroEHR) 4.3+ | ✅ Supported | `FerroEHRClient` | Admin API at `/rest/openehr/v1/admin` (`ADMIN` role); known server issue: FLAT `GET` drops nested HISTORY content ([OEH-50](https://linear.app/platzh1rsch/issue/OEH-50)) |
 | Other ITS-REST 1.1.0 servers | ⚙️ Generic | `OpenEHRClient` | No vendor admin API |
-| Better Platform, EHRServer | 🗓️ Planned | — | |
+| Better Platform | 🛠️ Tooling only | — | FLAT validation, conversion and template explorer support the Better dialect; no dedicated client yet ([OEH-87](https://linear.app/platzh1rsch/issue/OEH-87)) |
+| EHRServer | 🗓️ Planned | — | |
+
+| Feature | EHRBase | FerroEHR | Better | Other ITS-REST |
+|---|---|---|---|---|
+| REST client | ✅ `EHRBaseClient` | ✅ `FerroEHRClient` | ❌ not yet | ⚙️ `OpenEHRClient` |
+| Admin API | ✅ | ✅ | ❌ not yet | ❌ |
+| Template upload/list | ✅ | ✅ | ❓ untested | ✅ |
+| Template delete | ✅ | ✅ | ⚠️ only via `EHRBaseClient(cdr_type=CDRType.BETTER)` | ✅ |
+| FLAT dialect (validator, converter, explorer, CLI) | ✅ `platform="ehrbase"` | no separate dialect | ✅ `platform="better"` (`/any_event:0/` and `template_id` prefix not yet enumerated) | — |
+| Integration tests in CI | ✅ | ✅ (non-blocking) | ❌ | ❌ |
 
 Where the CDRs deviate (FLAT media type, template header, status endpoint,
 `EHR_STATUS.archetype_details`, template versions, admin paths), the adapters
