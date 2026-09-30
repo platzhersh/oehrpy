@@ -31,6 +31,7 @@ BP = f"{PREFIX}/vital_signs/blood_pressure"
 
 
 def build_flat() -> dict:
+    """Build the FLAT payload for one blood pressure reading."""
     # An RM value you already hold ...
     systolic = DV_QUANTITY(magnitude=120.0, units="mm[Hg]")
     diastolic = DV_QUANTITY(magnitude=80.0, units="mm[Hg]")
@@ -51,7 +52,22 @@ def build_flat() -> dict:
     return builder.build()
 
 
+def check_paths(web_template: dict) -> None:
+    """Fail early if our hard-coded FLAT paths do not exist in the Web Template."""
+    node = web_template["tree"]
+    if node["id"] != PREFIX:
+        raise SystemExit(f"Web Template root id is {node['id']!r}, expected {PREFIX!r}")
+    for segment in BP.removeprefix(f"{PREFIX}/").split("/"):
+        children = {child["id"]: child for child in node.get("children", [])}
+        if segment not in children:
+            raise SystemExit(
+                f"{segment!r} not found in Web Template; available: {sorted(children)}"
+            )
+        node = children[segment]
+
+
 async def main() -> None:
+    """Upload the template, post the composition and read it back."""
     async with EHRBaseClient(
         base_url=os.environ.get("EHRBASE_URL", "http://localhost:8080/ehrbase"),
         username=os.environ.get("EHRBASE_USER", "ehrbase-user"),
@@ -64,7 +80,7 @@ async def main() -> None:
 
         # Look up valid FLAT paths instead of guessing them.
         web_template = await client.get_web_template(TEMPLATE_ID)
-        print("Web Template root id:", web_template["tree"]["id"])
+        check_paths(web_template)
 
         ehr = await client.create_ehr()
         flat = build_flat()
