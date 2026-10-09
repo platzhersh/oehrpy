@@ -1,6 +1,94 @@
 # CHANGELOG
 
 
+## v0.17.0 (2026-10-09)
+
+### Bug Fixes
+
+- **templates**: Set vital signs time via history_origin (#87)
+  ([#87](https://github.com/platzhersh/oehrpy/pull/87),
+  [`51a3e10`](https://github.com/platzhersh/oehrpy/commit/51a3e105491366e2c75e8daff376d0dc0e0ddac4))
+
+- **website**: Add ico/png favicon fallbacks (#93)
+  ([#93](https://github.com/platzhersh/oehrpy/pull/93),
+  [`815aa97`](https://github.com/platzhersh/oehrpy/commit/815aa971e7d7e065d6e849d303273b1931c869ab))
+
+- **website**: Load oehrpy wheel in validator without micropip (#78)
+  ([#78](https://github.com/platzhersh/oehrpy/pull/78),
+  [`86e5d7c`](https://github.com/platzhersh/oehrpy/commit/86e5d7cb76efeb9c540fbeb4a92724ef28409448))
+
+- **website**: Menu button header nav on small screens (#83)
+  ([#83](https://github.com/platzhersh/oehrpy/pull/83),
+  [`f3ed997`](https://github.com/platzhersh/oehrpy/commit/f3ed997bb4329ea3ab039f8f9b60556beee15f3c))
+
+- **website**: Square favicon and brand kit header/footer (#81)
+  ([#81](https://github.com/platzhersh/oehrpy/pull/81),
+  [`1cb1e1a`](https://github.com/platzhersh/oehrpy/commit/1cb1e1a6854f0f096448aff6d5fd7105b473ada4))
+
+### Build System
+
+- **deps**: Bump picomatch from 2.3.1 to 2.3.2 in /vscode-extension (#46)
+  ([#46](https://github.com/platzhersh/oehrpy/pull/46),
+  [`9e5adaf`](https://github.com/platzhersh/oehrpy/commit/9e5adaf0bf1f916f73e00e3435096cf4f7ef7703))
+
+- **deps-dev**: Bump brace-expansion from 1.1.12 to 1.1.21 in /vscode-extension (#91)
+  ([#91](https://github.com/platzhersh/oehrpy/pull/91),
+  [`ca3ffba`](https://github.com/platzhersh/oehrpy/commit/ca3ffba76fa45a33a427b793a19900bad54101cf))
+
+- **deps-dev**: Bump flatted from 3.4.1 to 3.4.2 in /vscode-extension (#47)
+  ([#47](https://github.com/platzhersh/oehrpy/pull/47),
+  [`931ff22`](https://github.com/platzhersh/oehrpy/commit/931ff221a1f89c1e9a47f10215505566749cd193))
+
+- **deps-dev**: Bump form-data from 4.0.5 to 4.0.6 in /vscode-extension (#64)
+  ([#64](https://github.com/platzhersh/oehrpy/pull/64),
+  [`320a2fb`](https://github.com/platzhersh/oehrpy/commit/320a2fbf30d2f63364d67c10c400574eb2ee79f9))
+
+- **deps-dev**: Bump markdown-it from 14.2.0 to 14.3.2 in /vscode-extension (#92)
+  ([#92](https://github.com/platzhersh/oehrpy/pull/92),
+  [`3f350eb`](https://github.com/platzhersh/oehrpy/commit/3f350eb5ae39c411aa31ef528b48db45efccbca1))
+
+- **deps-dev**: Bump tmp from 0.2.5 to 0.2.7 in /vscode-extension (#48)
+  ([#48](https://github.com/platzhersh/oehrpy/pull/48),
+  [`bdd2912`](https://github.com/platzhersh/oehrpy/commit/bdd291220efa783833ca2b4dd1158ab8e86c03e8))
+
+- **deps-dev**: Bump undici from 7.23.0 to 7.30.0 in /vscode-extension (#90)
+  ([#90](https://github.com/platzhersh/oehrpy/pull/90),
+  [`9c6cc50`](https://github.com/platzhersh/oehrpy/commit/9c6cc5087d31f2cb0028f6837d077768b0079eeb))
+
+### Continuous Integration
+
+- **release**: Cut releases on demand instead of on every push (#80)
+  ([#80](https://github.com/platzhersh/oehrpy/pull/80),
+  [`b3176cd`](https://github.com/platzhersh/oehrpy/commit/b3176cd95a3d340f0f0995c1e0421fa6d80c2ef4))
+
+### Documentation
+
+- Add end-to-end FLAT example (RM values to FLAT to CDR) (#88)
+  ([#88](https://github.com/platzhersh/oehrpy/pull/88),
+  [`7dc4062`](https://github.com/platzhersh/oehrpy/commit/7dc4062b82962397dcddd036fc0ca24560c29cc4))
+
+- Add per-CDR feature support matrix (#89) ([#89](https://github.com/platzhersh/oehrpy/pull/89),
+  [`f33f3bf`](https://github.com/platzhersh/oehrpy/commit/f33f3bf4cb2538c2689e2635665c67708815e20d))
+
+### Features
+
+- **client**: Add ferroehr support via generic its-rest client (#86)
+  ([#86](https://github.com/platzhersh/oehrpy/pull/86),
+  [`080d0e9`](https://github.com/platzhersh/oehrpy/commit/080d0e9f08e5bc0ff0d39342ff6b19cf2347cb7e))
+
+- **client**: Add get_template_example with detail_level and type (#84)
+  ([#84](https://github.com/platzhersh/oehrpy/pull/84),
+  [`a45ad03`](https://github.com/platzhersh/oehrpy/commit/a45ad03e7615bf56d7d549ef8e0405651e6270e4))
+
+- **website**: Add hero badges and footer copyright note (#85)
+  ([#85](https://github.com/platzhersh/oehrpy/pull/85),
+  [`5008619`](https://github.com/platzhersh/oehrpy/commit/5008619d4a85e3f1ef310885087abe3ae3efe6be))
+
+- **website**: Seo improvements for oehrpy.dev (#82)
+  ([#82](https://github.com/platzhersh/oehrpy/pull/82),
+  [`9b5bf47`](https://github.com/platzhersh/oehrpy/commit/9b5bf4725ced35dca53f2ce7f38586ee5999f4b4))
+
+
 ## v0.16.1 (2026-09-24)
 
 ### Bug Fixes
