@@ -508,6 +508,7 @@ Apache-2.0
 
 ## Documentation
 
+- [Architecture (arc42)](docs/architecture/README.md) - Goals, context, building blocks, runtime, deployment, concepts, risks
 - [FLAT Format Versions](docs/FLAT_FORMAT_VERSIONS.md) - Understanding EHRBase 2.0+ FLAT format changes
 - [FLAT Format Learnings](docs/flat-format-learnings.md) - Comprehensive FLAT format guide
 - [ADR-0001: RM 1.1.0 Support](docs/adr/0001-odin-parsing-and-rm-1.1.0-support.md)
